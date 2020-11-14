@@ -82,7 +82,7 @@ Building blocks of Template Haskell The core mechanisms of Template Haskell are:
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#f92672">$</span>(curryN <span style="color:#ae81ff">3</span>)
 </code></pre></div><p>This evaluates the meta program <code>curryN</code> and puts the resulting object program <code>\f x1 x2 x3 -&gt; f (x1, x2, x3)</code> in place of the splice.</p>
 <p>In general, the splice operator <code>$</code> can be applied to any monadic <code>Q</code> computation, resulting in performing this computation at compile-time and inserting the resulting object program as real Haskell code.</p>
-<p>Meta programs are type-checked beforehand to yield a valid Template Haskell object program, therefore only imported, fully type-checked meta programs can be run via the splice operator <code>$</code>. In particular, we have to evaluate the meta program $(curryN 3) in a <em>separate</em> module to when <code>curryN</code> is defined.</p>
+<p>Meta programs are type-checked beforehand to yield a valid Template Haskell object program, therefore only imported, fully type-checked meta programs can be run via the splice operator <code>$</code>. In particular, we have to evaluate the meta program <code>$(curryN 3)</code> in a <em>separate</em> module to when <code>curryN</code> is defined.</p>
 <p>To generate function declarations for the first <em>n</em> curry functions, we can devise a further meta program on top of <code>curryN</code>:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">genCurries</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Q</span> [<span style="color:#66d9ef">Dec</span>]
 <span style="color:#a6e22e">genCurries</span> n <span style="color:#f92672">=</span> forM [<span style="color:#ae81ff">1</span><span style="color:#f92672">..</span>n] mkCurryDec
@@ -94,7 +94,7 @@ Building blocks of Template Haskell The core mechanisms of Template Haskell are:
 <li>In this case, the function <code>genCurries</code> will return a list of top-level function declarations that bind the anonymous lambda abstractions built by <code>curryN</code>.</li>
 <li>Also, the function <code>mkName</code> is used instead of <code>newName</code>, because we want to generate functions <code>curry1</code> to <code>curry20</code> with exactly the prescribed names, so they can be captured and referred to from other parts of the program.</li>
 </ul>
-<p>Running $(genCurries 20) will then splice in the first 20 curry functions at compile-time:</p>
+<p>Running <code>$(genCurries 20)</code> will then splice in the first 20 curry functions at compile-time:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">curry1</span>  <span style="color:#f92672">=</span> <span style="color:#a6e22e">\</span> f x1 <span style="color:#f92672">-&gt;</span> f (x1)
 <span style="color:#a6e22e">curry2</span>  <span style="color:#f92672">=</span> <span style="color:#a6e22e">\</span> f x1 x2 <span style="color:#f92672">-&gt;</span> f (x1, x2)
 <span style="color:#a6e22e">curry3</span>  <span style="color:#f92672">=</span> <span style="color:#a6e22e">\</span> f x1 x2 x3 <span style="color:#f92672">-&gt;</span> f (x1, x2, x3)
@@ -178,8 +178,8 @@ The syntax constructor functions (<code>funD</code>, <code>clause</code>, <code>
 <span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Tree</span>     a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Leaf</span> a <span style="color:#f92672">|</span> <span style="color:#66d9ef">Node</span> (<span style="color:#66d9ef">Tree</span> a) a (<span style="color:#66d9ef">Tree</span> a)
 </code></pre></div><p>Then, suppose we want to derive <code>Functor</code> instances for all of these types automatically. To make a type constructor <code>T</code> an instance of <code>Functor</code>, we need to implement the method <code>fmap :: (a -&gt; b) -&gt; T a -&gt; T b</code>. Its definition is precisely determined by parametricity and the functor laws:</p>
 <ul>
-<li>By parametricity, all values of type a must be replaced according to the provided function with values of type b.</li>
-<li>By the functor laws, all other shapes of the input value of type T a must be preserved when transforming it to the output value of type T b.</li>
+<li>By parametricity, all values of type <code>a</code> must be replaced according to the provided function with values of type <code>b</code>.</li>
+<li>By the functor laws, all other shapes of the input value of type <code>T a</code> must be preserved when transforming it to the output value of type <code>T b</code>.</li>
 </ul>
 <p>The meta function <code>deriveFunctor :: Name -&gt; Q [Dec]</code> implements the idea of this algorithm:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Deriving</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">Deriving</span> { tyCon <span style="color:#f92672">::</span> <span style="color:#66d9ef">Name</span>, tyVar <span style="color:#f92672">::</span> <span style="color:#66d9ef">Name</span> }
