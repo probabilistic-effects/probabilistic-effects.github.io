@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Research on Probabilistic Effects.  λθ</title>
-    <link>https://min-nguyen.github.io/research/</link>
+    <link>https://probabilistic-effects.github.io/research/</link>
     <description>Recent content in Research on Probabilistic Effects.  λθ</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 13 Nov 2020 13:52:51 +0000</lastBuildDate><atom:link href="https://min-nguyen.github.io/research/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 13 Nov 2020 13:52:51 +0000</lastBuildDate><atom:link href="https://probabilistic-effects.github.io/research/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Research Journal</title>
-      <link>https://min-nguyen.github.io/research/research-journal/</link>
+      <link>https://probabilistic-effects.github.io/research/research-journal/</link>
       <pubDate>Fri, 13 Nov 2020 14:05:57 +0000</pubDate>
       
-      <guid>https://min-nguyen.github.io/research/research-journal/</guid>
+      <guid>https://probabilistic-effects.github.io/research/research-journal/</guid>
       <description>• Scrum Meeting 1 (Meng + Sam + Minh)
   Can the inference monad transformer stack of a program be inferred/fixed at compile time?
   Identifying smaller goals and intermediate research ideas and what is valuable to do:
@@ -21,20 +21,20 @@
     
     <item>
       <title>Potential Approaches to Improving Monad Bayes</title>
-      <link>https://min-nguyen.github.io/research/approaches-for-monad-bayes/</link>
+      <link>https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/</link>
       <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
       
-      <guid>https://min-nguyen.github.io/research/approaches-for-monad-bayes/</guid>
+      <guid>https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/</guid>
       <description>Possible approaches to optimising effect systems:
  Different effects system - taking a look at the core effect library as a whole Different concrete transformers - the effects aren’t disappearing when using monad transformers  Effects for Less (Eff library) - Alexis King (Delimited continuations approach)   Staging  Multi-stage Programs In Context - Matthew Pickering, Nicolas Wu, Jamie Willis Selective Staged Parser Combinators - Jamie Willis, Nicolas Wu, Matthew Pickering (optimising parser combinators with staging)   Codensity transformations  Csongor used the codensity transform in his generic deriving paper   Tagless final style (optimises mtl style?</description>
     </item>
     
     <item>
       <title>Effects for Less - Alexis King&#39;s Talk Summary</title>
-      <link>https://min-nguyen.github.io/research/effects-for-less/</link>
+      <link>https://probabilistic-effects.github.io/research/effects-for-less/</link>
       <pubDate>Fri, 13 Nov 2020 14:05:31 +0000</pubDate>
       
-      <guid>https://min-nguyen.github.io/research/effects-for-less/</guid>
+      <guid>https://probabilistic-effects.github.io/research/effects-for-less/</guid>
       <description>Table of Contents  Summary Thoughts Benchmarking  Summary of Alexis King - focusing on benchmarks
 Summary  Real world benchmarks make it difficult to isolate costs Microbenchmarks often seen as synthetic Microbenchmarks need to make sure you&amp;rsquo;re measuring the right thing Might not have broad scope. Effects systems make real world programs hard to benchmark Effects systems tend to have small operations that do not take a significant amount of time Splitting in modules slows stuff down Compiler optimisations lead to cross module slowdowns Free monad libraries, by constructing trees, obscures the program structure to the optimiser preventing inlining.</description>
     </item>

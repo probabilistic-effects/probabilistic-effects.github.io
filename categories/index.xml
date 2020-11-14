@@ -2,9 +2,9 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Categories on Probabilistic Effects.  λθ</title>
-    <link>https://min-nguyen.github.io/categories/</link>
+    <link>https://probabilistic-effects.github.io/categories/</link>
     <description>Recent content in Categories on Probabilistic Effects.  λθ</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language><atom:link href="https://min-nguyen.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
+    <language>en-us</language><atom:link href="https://probabilistic-effects.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
   </channel>
 </rss>
