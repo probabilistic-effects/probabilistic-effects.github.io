@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Research on My New Hugo Site</title>
+    <title>Research on Probabilistic Effects.  λθ</title>
     <link>https://min-nguyen.github.io/research/</link>
-    <description>Recent content in Research on My New Hugo Site</description>
+    <description>Recent content in Research on Probabilistic Effects.  λθ</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Fri, 13 Nov 2020 13:52:51 +0000</lastBuildDate><atom:link href="https://min-nguyen.github.io/research/index.xml" rel="self" type="application/rss+xml" />
@@ -20,7 +20,7 @@
     </item>
     
     <item>
-      <title>Approaches for Monad Bayes</title>
+      <title>Potential Approaches to Improving Monad Bayes</title>
       <link>https://min-nguyen.github.io/research/approaches-for-monad-bayes/</link>
       <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
       
@@ -30,7 +30,7 @@
     </item>
     
     <item>
-      <title>Effects for Less</title>
+      <title>Effects for Less - Alexis King&#39;s Talk Summary</title>
       <link>https://min-nguyen.github.io/research/effects-for-less/</link>
       <pubDate>Fri, 13 Nov 2020 14:05:31 +0000</pubDate>
       

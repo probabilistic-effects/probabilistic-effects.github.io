@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Background on My New Hugo Site</title>
+    <title>Background on Probabilistic Effects.  λθ</title>
     <link>https://min-nguyen.github.io/background/</link>
-    <description>Recent content in Background on My New Hugo Site</description>
+    <description>Recent content in Background on Probabilistic Effects.  λθ</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Fri, 13 Nov 2020 13:42:14 +0000</lastBuildDate><atom:link href="https://min-nguyen.github.io/background/index.xml" rel="self" type="application/rss+xml" />
@@ -19,7 +19,7 @@ Building blocks of Template Haskell The core mechanisms of Template Haskell are:
     </item>
     
     <item>
-      <title>Smc Pmmh</title>
+      <title>SMC and PMMH</title>
       <link>https://min-nguyen.github.io/background/smc-pmmh/</link>
       <pubDate>Fri, 13 Nov 2020 13:58:54 +0000</pubDate>
       
@@ -29,7 +29,7 @@ The observable variables (observation process) are related to the hidden variabl
     </item>
     
     <item>
-      <title>Performance W Monads</title>
+      <title>Performance With Monads</title>
       <link>https://min-nguyen.github.io/background/performance-w-monads/</link>
       <pubDate>Fri, 13 Nov 2020 13:58:41 +0000</pubDate>
       
@@ -41,7 +41,7 @@ For example, consider the following MTL monad stack.
     </item>
     
     <item>
-      <title>Mtl</title>
+      <title>MTL</title>
       <link>https://min-nguyen.github.io/background/mtl/</link>
       <pubDate>Fri, 13 Nov 2020 13:58:35 +0000</pubDate>
       
@@ -51,7 +51,7 @@ type Environment = [(String, Int)] type Counter = Int newtype M a = M (ReaderT E
     </item>
     
     <item>
-      <title>Mcmc Mh</title>
+      <title>MCMC and MH</title>
       <link>https://min-nguyen.github.io/background/mcmc-mh/</link>
       <pubDate>Fri, 13 Nov 2020 13:58:28 +0000</pubDate>
       
@@ -62,7 +62,7 @@ These methods vary, but tend to follow a particular pattern:
     </item>
     
     <item>
-      <title>Markov Chain</title>
+      <title>Markov Chains</title>
       <link>https://min-nguyen.github.io/background/markov-chain/</link>
       <pubDate>Fri, 13 Nov 2020 13:58:20 +0000</pubDate>
       

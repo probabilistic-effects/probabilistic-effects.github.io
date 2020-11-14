@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Index on My New Hugo Site</title>
+    <title>Index on Probabilistic Effects.  λθ</title>
     <link>https://min-nguyen.github.io/</link>
-    <description>Recent content in Index on My New Hugo Site</description>
+    <description>Recent content in Index on Probabilistic Effects.  λθ</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Fri, 13 Nov 2020 14:05:57 +0000</lastBuildDate><atom:link href="https://min-nguyen.github.io/index.xml" rel="self" type="application/rss+xml" />
@@ -20,7 +20,7 @@
     </item>
     
     <item>
-      <title>Approaches for Monad Bayes</title>
+      <title>Potential Approaches to Improving Monad Bayes</title>
       <link>https://min-nguyen.github.io/research/approaches-for-monad-bayes/</link>
       <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
       
@@ -30,7 +30,7 @@
     </item>
     
     <item>
-      <title>Effects for Less</title>
+      <title>Effects for Less - Alexis King&#39;s Talk Summary</title>
       <link>https://min-nguyen.github.io/research/effects-for-less/</link>
       <pubDate>Fri, 13 Nov 2020 14:05:31 +0000</pubDate>
       
@@ -49,7 +49,7 @@ Summary  Real world benchmarks make it difficult to isolate costs Microbenchmark
     </item>
     
     <item>
-      <title>Pmmh Hmm</title>
+      <title>Implementing HMM Simulation and Inference (using PMMH)</title>
       <link>https://min-nguyen.github.io/monad-bayes/pmmh-hmm/</link>
       <pubDate>Fri, 13 Nov 2020 14:04:50 +0000</pubDate>
       
@@ -60,7 +60,7 @@ data ObservedState = Obs { obs :: Int } deriving Show data LatentState = Lat { l
     </item>
     
     <item>
-      <title>Conditioning Scoring</title>
+      <title>How Conditioning and Scoring Works</title>
       <link>https://min-nguyen.github.io/monad-bayes/conditioning-scoring/</link>
       <pubDate>Fri, 13 Nov 2020 14:04:44 +0000</pubDate>
       
@@ -69,7 +69,7 @@ data ObservedState = Obs { obs :: Int } deriving Show data LatentState = Lat { l
     </item>
     
     <item>
-      <title>Benchmarking Profiling</title>
+      <title>How to Benchmark and Profile</title>
       <link>https://min-nguyen.github.io/benchmarking/benchmarking-profiling/</link>
       <pubDate>Fri, 13 Nov 2020 14:02:28 +0000</pubDate>
       
@@ -80,7 +80,7 @@ testPmmh :: Int -&amp;gt; IO () testPmmh nsteps = do observedStates &amp;lt;- ge
     </item>
     
     <item>
-      <title>Monad Bayes Components</title>
+      <title>Relevant Components of Monad Bayes for Profiling</title>
       <link>https://min-nguyen.github.io/benchmarking/monad-bayes-components/</link>
       <pubDate>Fri, 13 Nov 2020 14:01:54 +0000</pubDate>
       
@@ -104,7 +104,7 @@ Building blocks of Template Haskell The core mechanisms of Template Haskell are:
     </item>
     
     <item>
-      <title>Smc Pmmh</title>
+      <title>SMC and PMMH</title>
       <link>https://min-nguyen.github.io/background/smc-pmmh/</link>
       <pubDate>Fri, 13 Nov 2020 13:58:54 +0000</pubDate>
       
@@ -114,7 +114,7 @@ The observable variables (observation process) are related to the hidden variabl
     </item>
     
     <item>
-      <title>Performance W Monads</title>
+      <title>Performance With Monads</title>
       <link>https://min-nguyen.github.io/background/performance-w-monads/</link>
       <pubDate>Fri, 13 Nov 2020 13:58:41 +0000</pubDate>
       
@@ -126,7 +126,7 @@ For example, consider the following MTL monad stack.
     </item>
     
     <item>
-      <title>Mtl</title>
+      <title>MTL</title>
       <link>https://min-nguyen.github.io/background/mtl/</link>
       <pubDate>Fri, 13 Nov 2020 13:58:35 +0000</pubDate>
       
@@ -136,7 +136,7 @@ type Environment = [(String, Int)] type Counter = Int newtype M a = M (ReaderT E
     </item>
     
     <item>
-      <title>Mcmc Mh</title>
+      <title>MCMC and MH</title>
       <link>https://min-nguyen.github.io/background/mcmc-mh/</link>
       <pubDate>Fri, 13 Nov 2020 13:58:28 +0000</pubDate>
       
@@ -147,7 +147,7 @@ These methods vary, but tend to follow a particular pattern:
     </item>
     
     <item>
-      <title>Markov Chain</title>
+      <title>Markov Chains</title>
       <link>https://min-nguyen.github.io/background/markov-chain/</link>
       <pubDate>Fri, 13 Nov 2020 13:58:20 +0000</pubDate>
       

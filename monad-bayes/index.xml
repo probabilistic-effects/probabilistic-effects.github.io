@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Monad Bayes on My New Hugo Site</title>
+    <title>Monad Bayes on Probabilistic Effects.  λθ</title>
     <link>https://min-nguyen.github.io/monad-bayes/</link>
-    <description>Recent content in Monad Bayes on My New Hugo Site</description>
+    <description>Recent content in Monad Bayes on Probabilistic Effects.  λθ</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Fri, 13 Nov 2020 13:50:31 +0000</lastBuildDate><atom:link href="https://min-nguyen.github.io/monad-bayes/index.xml" rel="self" type="application/rss+xml" />
@@ -17,7 +17,7 @@
     </item>
     
     <item>
-      <title>Pmmh Hmm</title>
+      <title>Implementing HMM Simulation and Inference (using PMMH)</title>
       <link>https://min-nguyen.github.io/monad-bayes/pmmh-hmm/</link>
       <pubDate>Fri, 13 Nov 2020 14:04:50 +0000</pubDate>
       
@@ -28,7 +28,7 @@ data ObservedState = Obs { obs :: Int } deriving Show data LatentState = Lat { l
     </item>
     
     <item>
-      <title>Conditioning Scoring</title>
+      <title>How Conditioning and Scoring Works</title>
       <link>https://min-nguyen.github.io/monad-bayes/conditioning-scoring/</link>
       <pubDate>Fri, 13 Nov 2020 14:04:44 +0000</pubDate>
       
