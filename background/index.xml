@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Background on Probabilistic Effects.  λθ</title>
-    <link>https://min-nguyen.github.io/background/</link>
+    <link>https://probabilistic-effects.github.io/background/</link>
     <description>Recent content in Background on Probabilistic Effects.  λθ</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 13 Nov 2020 13:42:14 +0000</lastBuildDate><atom:link href="https://min-nguyen.github.io/background/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 13 Nov 2020 13:42:14 +0000</lastBuildDate><atom:link href="https://probabilistic-effects.github.io/background/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Staging</title>
-      <link>https://min-nguyen.github.io/background/staging/</link>
+      <link>https://probabilistic-effects.github.io/background/staging/</link>
       <pubDate>Fri, 13 Nov 2020 13:59:01 +0000</pubDate>
       
-      <guid>https://min-nguyen.github.io/background/staging/</guid>
+      <guid>https://probabilistic-effects.github.io/background/staging/</guid>
       <description>Staging and metaprogramming are the same; Template Haskell is a metaprogramming library for Haskell. We have different stages of computation, so staging a program is making it so that it compiles different parts of the program at different stages to be used by other parts of a program at a later stage.
 Building blocks of Template Haskell The core mechanisms of Template Haskell are:
  Evaluating Haskell meta-programs at compile-time and splicing in the generated object programs as regular Haskell code Representing Template Haskell object programs as algebraic data types The quotation monad Q  • Writing a meta-program</description>
@@ -20,20 +20,20 @@ Building blocks of Template Haskell The core mechanisms of Template Haskell are:
     
     <item>
       <title>SMC and PMMH</title>
-      <link>https://min-nguyen.github.io/background/smc-pmmh/</link>
+      <link>https://probabilistic-effects.github.io/background/smc-pmmh/</link>
       <pubDate>Fri, 13 Nov 2020 13:58:54 +0000</pubDate>
       
-      <guid>https://min-nguyen.github.io/background/smc-pmmh/</guid>
+      <guid>https://probabilistic-effects.github.io/background/smc-pmmh/</guid>
       <description>Particle Filter Sequential Monte Carlo (SMC) methods, also known as Particle Filters, are a set of simulation-based methods (to artificially generate data to test a hypothesis) which provide an approach to computing the posterior distribution. The objective is to compute the posterior distributions of the states of some hidden Markov Model process, where the system consists of both hidden and observable variables.
 The observable variables (observation process) are related to the hidden variables (state process) by some functional form that is known.</description>
     </item>
     
     <item>
       <title>Performance With Monads</title>
-      <link>https://min-nguyen.github.io/background/performance-w-monads/</link>
+      <link>https://probabilistic-effects.github.io/background/performance-w-monads/</link>
       <pubDate>Fri, 13 Nov 2020 13:58:41 +0000</pubDate>
       
-      <guid>https://min-nguyen.github.io/background/performance-w-monads/</guid>
+      <guid>https://probabilistic-effects.github.io/background/performance-w-monads/</guid>
       <description>Unrolling MTL stacks Stacked monad transformers do not inline well and the MTL library often requires an optimisation pass.
 Unrolling means to flatten a stack of transformers into a single hand-unrolled monad.
 For example, consider the following MTL monad stack.
@@ -42,20 +42,20 @@ For example, consider the following MTL monad stack.
     
     <item>
       <title>MTL</title>
-      <link>https://min-nguyen.github.io/background/mtl/</link>
+      <link>https://probabilistic-effects.github.io/background/mtl/</link>
       <pubDate>Fri, 13 Nov 2020 13:58:35 +0000</pubDate>
       
-      <guid>https://min-nguyen.github.io/background/mtl/</guid>
+      <guid>https://probabilistic-effects.github.io/background/mtl/</guid>
       <description>Ordinary monad transformers Using ordinary monad transformers, we would have to construct a transformer stack like the following example:
 type Environment = [(String, Int)] type Counter = Int newtype M a = M (ReaderT Environment (StateT Counter IO) a) deriving (Functor, Applicative, Monad) -- This inverts into something like IO (State Counter (Reader Environment a)) In order to access the environment, we can use the ask operation from Control.Monad.Trans.Reader, but we have to wrap this up in the M newtype.</description>
     </item>
     
     <item>
       <title>MCMC and MH</title>
-      <link>https://min-nguyen.github.io/background/mcmc-mh/</link>
+      <link>https://probabilistic-effects.github.io/background/mcmc-mh/</link>
       <pubDate>Fri, 13 Nov 2020 13:58:28 +0000</pubDate>
       
-      <guid>https://min-nguyen.github.io/background/mcmc-mh/</guid>
+      <guid>https://probabilistic-effects.github.io/background/mcmc-mh/</guid>
       <description>Monte Carlo Monte Carlo methods, are a broad class of computational algorithms that rely on repeated random sampling to obtain numerical results.
 These methods vary, but tend to follow a particular pattern:
  Define a domain of possible inputs Generate inputs randomly from a probability distribution over the domain Perform a deterministic computation on the inputs Aggregate the results   Markov Chain Monte Carlo (MCMC) Markov Chain Monte Carlo (MCMC) methods are from a class of techniques known as approximate inference which are a range of algorithms for computing posteriors when the likelihood is intractable.</description>
@@ -63,10 +63,10 @@ These methods vary, but tend to follow a particular pattern:
     
     <item>
       <title>Markov Chains</title>
-      <link>https://min-nguyen.github.io/background/markov-chain/</link>
+      <link>https://probabilistic-effects.github.io/background/markov-chain/</link>
       <pubDate>Fri, 13 Nov 2020 13:58:20 +0000</pubDate>
       
-      <guid>https://min-nguyen.github.io/background/markov-chain/</guid>
+      <guid>https://probabilistic-effects.github.io/background/markov-chain/</guid>
       <description>Markov Chain A Markov Chain is a stochastic model describing a sequence of possible events in which the probability of each event depends only on the state attained in the previous event.
 A Markov chain is a model that tells us about the probabilities of sequences of random variables, states, each of which can take on values from some set.
 Formally, a Markov chain is specified by the following components:</description>
@@ -74,10 +74,10 @@ Formally, a Markov chain is specified by the following components:</description>
     
     <item>
       <title>Hidden Markov Model</title>
-      <link>https://min-nguyen.github.io/background/hidden-markov-model/</link>
+      <link>https://probabilistic-effects.github.io/background/hidden-markov-model/</link>
       <pubDate>Fri, 13 Nov 2020 13:58:10 +0000</pubDate>
       
-      <guid>https://min-nguyen.github.io/background/hidden-markov-model/</guid>
+      <guid>https://probabilistic-effects.github.io/background/hidden-markov-model/</guid>
       <description>HMM A Markov chain is useful when we need to compute a probability for a sequence of observable events. In many cases, the events we are interested in are hidden - meaning we don&amp;rsquo;t observe them directly.
 HMM allows us to talk about both observed events and hidden events that we think of as causal factors in our probabilistic model.
 A HMM is specified by the following components:
@@ -86,19 +86,19 @@ A HMM is specified by the following components:
     
     <item>
       <title>Delimited Continuations</title>
-      <link>https://min-nguyen.github.io/background/delimited-continuations/</link>
+      <link>https://probabilistic-effects.github.io/background/delimited-continuations/</link>
       <pubDate>Fri, 13 Nov 2020 13:57:22 +0000</pubDate>
       
-      <guid>https://min-nguyen.github.io/background/delimited-continuations/</guid>
+      <guid>https://probabilistic-effects.github.io/background/delimited-continuations/</guid>
       <description>Delimited Continuations A limiting factor for effect system performance is the need to implement delimited continuations outside of the runtime. Accordingly, this proposal presents a design for native delimited continuation primitive operations that can be used to efficiently capture the RTS (runtime system) stack. A guiding principle of the design is to be minimal. Rather than burden GHC with the full complexity of designing and implementing algebraic effects, this proposal provides a path for users to experiment with designs as ordinary Haskell libraries without sacrificing performance.</description>
     </item>
     
     <item>
       <title>Continuations</title>
-      <link>https://min-nguyen.github.io/background/continuations/</link>
+      <link>https://probabilistic-effects.github.io/background/continuations/</link>
       <pubDate>Fri, 13 Nov 2020 13:40:41 +0000</pubDate>
       
-      <guid>https://min-nguyen.github.io/background/continuations/</guid>
+      <guid>https://probabilistic-effects.github.io/background/continuations/</guid>
       <description>What are continuations? Continuations represent the future of a computation, as a function from an intermediate result to the final result. Direct-style functions are computations which return their result directly, with general type a -&amp;gt; b.
 The direct-style factorial fac takes a single argument.
 fac :: Integral a =&amp;gt; a -&amp;gt; a fac 0 = 1 fac n = n * fac (n - 1) Continuation-passing-style functions are suspended computations with general type a -&amp;gt; (b -&amp;gt; r) -&amp;gt; r, which represent direct-style functions with type a -&amp;gt; b.</description>
