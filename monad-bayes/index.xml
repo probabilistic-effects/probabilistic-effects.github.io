@@ -2,26 +2,26 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Monad Bayes on Probabilistic Effects.  λθ</title>
-    <link>https://probabilistic-effects.github.io/monad-bayes/</link>
+    <link>https://min-nguyen.github.io/monad-bayes/</link>
     <description>Recent content in Monad Bayes on Probabilistic Effects.  λθ</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 13 Nov 2020 13:50:31 +0000</lastBuildDate><atom:link href="https://probabilistic-effects.github.io/monad-bayes/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 13 Nov 2020 13:50:31 +0000</lastBuildDate><atom:link href="https://min-nguyen.github.io/monad-bayes/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Inference Transformers</title>
-      <link>https://probabilistic-effects.github.io/monad-bayes/inference-transformers/</link>
+      <link>https://min-nguyen.github.io/monad-bayes/inference-transformers/</link>
       <pubDate>Fri, 13 Nov 2020 14:04:56 +0000</pubDate>
       
-      <guid>https://probabilistic-effects.github.io/monad-bayes/inference-transformers/</guid>
+      <guid>https://min-nguyen.github.io/monad-bayes/inference-transformers/</guid>
       <description>Inference Representation Type Classes type R = Double class Monad m =&amp;gt; MonadSample m where random :: m R bernoulli :: R -&amp;gt; m Bool bernoulli p = fmap ( &amp;lt; p ) random -- and other default distributions : -- normal , gamma , beta , geometric , -- poisson , dirichlet class Monad m ⇒ MonadCond m where score :: Log R -&amp;gt; m () class ( MonadSample m , MonadCond m ) =&amp;gt; MonadInfer m  Sampler This inference transformer is a sampler that draws concrete values for random variables from the prior.</description>
     </item>
     
     <item>
       <title>Implementing HMM Simulation and Inference (using PMMH)</title>
-      <link>https://probabilistic-effects.github.io/monad-bayes/pmmh-hmm/</link>
+      <link>https://min-nguyen.github.io/monad-bayes/pmmh-hmm/</link>
       <pubDate>Fri, 13 Nov 2020 14:04:50 +0000</pubDate>
       
-      <guid>https://probabilistic-effects.github.io/monad-bayes/pmmh-hmm/</guid>
+      <guid>https://min-nguyen.github.io/monad-bayes/pmmh-hmm/</guid>
       <description>Simulating Data We aim to model a HMM and use it to generate data by simulating a sample path.
 First, for simplicity we consider our latent states xi to be integers, and the corresponding observed states yi to also be integers.
 data ObservedState = Obs { obs :: Int } deriving Show data LatentState = Lat { lat :: Int } deriving Show We then choose the parameters of the HMM (i.</description>
@@ -29,10 +29,10 @@ data ObservedState = Obs { obs :: Int } deriving Show data LatentState = Lat { l
     
     <item>
       <title>How Conditioning and Scoring Works</title>
-      <link>https://probabilistic-effects.github.io/monad-bayes/conditioning-scoring/</link>
+      <link>https://min-nguyen.github.io/monad-bayes/conditioning-scoring/</link>
       <pubDate>Fri, 13 Nov 2020 14:04:44 +0000</pubDate>
       
-      <guid>https://probabilistic-effects.github.io/monad-bayes/conditioning-scoring/</guid>
+      <guid>https://min-nguyen.github.io/monad-bayes/conditioning-scoring/</guid>
       <description>A sample path is the course of a program as it executes, hence being the monadic context that the code is executing in. During this path, a new thread created for every random decision. It can be thought of as an execution trace. In probabilistic programming, each sample path is associated with a probability of how likely that execution trace is to happen. This probability is the joint probability of a bunch of random decisions made during the execution of the program.</description>
     </item>
     
