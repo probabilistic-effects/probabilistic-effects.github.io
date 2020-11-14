@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Continuations - My New Hugo Site</title>
+<meta name="generator" content="Hugo 0.78.2" />
+<link href="http://min-nguyen.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="http://min-nguyen.github.io/background/continuations/">
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="http://min-nguyen.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="Continuations" />
+<meta property="og:description" content="What are continuations? Continuations represent the future of a computation, as a function from an intermediate result to the final result. Direct-style functions are computations which return their result directly, with general type a -&gt; b.
+The direct-style factorial fac takes a single argument.
+fac :: Integral a =&gt; a -&gt; a fac 0 = 1 fac n = n * fac (n - 1) Continuation-passing-style functions are suspended computations with general type a -&gt; (b -&gt; r) -&gt; r, which represent direct-style functions with type a -&gt; b." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://min-nguyen.github.io/background/continuations/" />
+<meta property="article:published_time" content="2020-11-13T13:40:41+00:00" />
+<meta property="article:modified_time" content="2020-11-13T13:40:41+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Continuations"/>
+<meta name="twitter:description" content="What are continuations? Continuations represent the future of a computation, as a function from an intermediate result to the final result. Direct-style functions are computations which return their result directly, with general type a -&gt; b.
+The direct-style factorial fac takes a single argument.
+fac :: Integral a =&gt; a -&gt; a fac 0 = 1 fac n = n * fac (n - 1) Continuation-passing-style functions are suspended computations with general type a -&gt; (b -&gt; r) -&gt; r, which represent direct-style functions with type a -&gt; b."/>
+<meta itemprop="name" content="Continuations">
+<meta itemprop="description" content="What are continuations? Continuations represent the future of a computation, as a function from an intermediate result to the final result. Direct-style functions are computations which return their result directly, with general type a -&gt; b.
+The direct-style factorial fac takes a single argument.
+fac :: Integral a =&gt; a -&gt; a fac 0 = 1 fac n = n * fac (n - 1) Continuation-passing-style functions are suspended computations with general type a -&gt; (b -&gt; r) -&gt; r, which represent direct-style functions with type a -&gt; b.">
+<meta itemprop="datePublished" content="2020-11-13T13:40:41+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T13:40:41+00:00" />
+<meta itemprop="wordCount" content="2462">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>My New Hugo Site</h1>
+</header>
+
+<div class="content-container">
+<main><h1>Continuations</h1>
+<h3 id="what-are-continuations">What are continuations?</h3>
+<p>Continuations represent the future of a computation, as a function from an intermediate result to the final result. Direct-style functions are computations which return their result directly, with general type <code>a -&gt; b</code>.</p>
+<p>The direct-style factorial <code>fac</code> takes a single argument.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">fac</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Integral</span> a <span style="color:#f92672">=&gt;</span> a <span style="color:#f92672">-&gt;</span> a
+<span style="color:#a6e22e">fac</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
+<span style="color:#a6e22e">fac</span> n <span style="color:#f92672">=</span> n <span style="color:#f92672">*</span> fac (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>)
+</code></pre></div><p>Continuation-passing-style functions are suspended computations with general type <code>a -&gt; (b -&gt; r) -&gt; r</code>, which represent direct-style functions with type <code>a -&gt; b</code>. When given both a value and another function as an argument, produces and returns a final result. The argument of type <code>(b -&gt; r)</code> is the continuation - it specifies how the computation will be brought to a conclusion.</p>
+<p>The CPS factorial <code>facCPS</code> takes an argument and a continuation.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">facCPS</span> <span style="color:#f92672">::</span> a <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r
+<span style="color:#a6e22e">facCPS</span> <span style="color:#ae81ff">0</span> k <span style="color:#f92672">=</span> k <span style="color:#ae81ff">1</span>
+<span style="color:#a6e22e">facCPS</span> n k <span style="color:#f92672">=</span> facCPS (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) (<span style="color:#a6e22e">\</span>a <span style="color:#f92672">-&gt;</span> k (n <span style="color:#f92672">*</span> a))
+</code></pre></div><p>Any function calling a CPS&rsquo;d function must either provide a new continuation or pass its own continuation. Also, note that it is not a necessity that the type of the non-continuation argument and the type of the continuation&rsquo;s argument must coincide.</p>
+<p>Below we have an ordinary monadic pipeline. A computation <code>m</code> is run - its result is fed into <code>f</code>, whose result is fed into <code>g</code>, whose result is fed into <code>h</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">m</span> <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">&gt;&gt;=</span> g <span style="color:#f92672">&gt;&gt;=</span> h
+</code></pre></div><p>The continuation of <code>m</code> is the portion of the program that executes after <code>m</code>. The continuation takes the value produced by <code>m</code> and feeds it into the rest of the program.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> f x <span style="color:#f92672">&gt;&gt;=</span> g <span style="color:#f92672">&gt;&gt;=</span> h
+</code></pre></div><p>There is a standard way to transform a program written normally or in monadic style, into a program in which continuations (represented as functions) are passed around explicitly. This is known as the CPS transform which is what the <code>Cont</code>/<code>ContT</code> monad does.</p>
+<hr>
+<h3 id="the-cont-monad">The Cont monad</h3>
+<p><strong>• The Cont type</strong></p>
+<p>Continuations, represented as <code>a -&gt; r</code>, are functions that take some value of type <code>a</code> produced by the current computation, and return the final result of type <code>r</code> from it.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Cont</span> r a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Cont</span> { runCont <span style="color:#f92672">::</span> (a <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r }
+</code></pre></div><p>The type <code>Cont r a</code> represents a continuation-passing-style function <code>(a -&gt; r) -&gt; r</code> that takes a single continuation as its only input - (instances of these will be referred to as <code>Cont</code> objects in this explanation). In other words, it is a function that:</p>
+<ol>
+<li>Takes a continuation <code>a -&gt; r</code> as an argument</li>
+<li>Does whatever it needs to do</li>
+<li>Produces a value of type <code>r</code> at the end, presumably by invoking the continuation.</li>
+</ol>
+<p><strong>• Sequencing continuation-style computations</strong></p>
+<p><code>Cont</code> objects can be chained together. The way they chain is the way <code>Cont</code> works: each object in the chain invokes a continuation that makes sure that the next object&rsquo;s computation is prepended to the final continuation.</p>
+<p>To elaborate, let&rsquo;s say we have a chain of <code>Cont</code> objects, <code>f1 -&gt; f2 -&gt; f3</code> and we have a continuation <code>k3</code> that we want to pass to the chain. Then:</p>
+<ul>
+<li><code>f3</code> needs to invoke a continuation <code>k3</code> when it&rsquo;s done.</li>
+<li><code>f2</code> needs to invoke a continuation <code>k2</code>,
+which will invoke <code>f3</code> which will invoke <code>k3</code>.</li>
+<li><code>f1</code> needs to invoke a continuation <code>k3</code>,
+which will invoke <code>f2</code> which will invoke <code>k2</code>,
+which will invoke <code>f3</code> which will invoke <code>k3</code>.</li>
+</ul>
+<p>To chain the <code>Cont</code> objects together, we need to create the appropriate continuations <code>k1</code> and <code>k2</code> and make sure they get passed as the continuation argument to <code>f1</code> and <code>f2</code> respectively.</p>
+<p><strong>• Defining Cont as a Monad</strong></p>
+<p>Extending the concept of the <code>Cont</code> type to the <code>Monad</code> class involves allowing for the value of one computation to affect which <code>Cont</code> object gets invoked next. In this context:</p>
+<ul>
+<li>
+<p>Ignoring the <code>Cont</code> newtype constructor, <code>return</code> is defined as:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">return</span> <span style="color:#f92672">::</span> a <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r
+<span style="color:#a6e22e">return</span> x <span style="color:#f92672">=</span> <span style="color:#a6e22e">\</span>k <span style="color:#f92672">-&gt;</span> k x
+</code></pre></div><p>It takes a value and produces a <code>Cont</code> object which passes that value to its continuation.</p>
+<p>Using the <code>Cont</code> constructor, <code>return</code> is defined as:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">return</span> <span style="color:#f92672">::</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Cont</span> r a
+<span style="color:#a6e22e">return</span> x <span style="color:#f92672">=</span> <span style="color:#66d9ef">Cont</span> <span style="color:#f92672">$</span> <span style="color:#a6e22e">\</span>k <span style="color:#f92672">-&gt;</span> k x
+</code></pre></div></li>
+<li>
+<p>Ignoring the <code>Cont</code> newtype constructor, the definition of <code>(&gt;&gt;=)</code> is:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">(<span style="color:#f92672">&gt;&gt;=</span>) <span style="color:#f92672">::</span> ((a <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> (b <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> (b <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r
+(mx <span style="color:#f92672">&gt;&gt;=</span> f) k <span style="color:#f92672">=</span> mx (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> f x k)
+</code></pre></div><p>So given:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">(<span style="color:#f92672">&gt;&gt;=</span>) mx f k
+</code></pre></div><ul>
+<li>The <code>mx</code> is the first thing the computation can do, but it needs to know what it can do <em>after</em> it&rsquo;s done.</li>
+<li>The <code>f</code> needs an <code>a</code> from the first computation, but it also needs to know what to do after it&rsquo;s done.</li>
+<li>The continuation <code>k</code> is what the entire computation has been told to do next; this is what <code>f</code> should do after it&rsquo;s done.</li>
+</ul>
+<p>Hence now we can see that once we&rsquo;ve done <code>mx</code>, we need to use its value to give to <code>f</code>, which finishes off by performing <code>k</code>. This is expressed in the definition for <code>(&gt;&gt;=)</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">(mx <span style="color:#f92672">&gt;&gt;=</span> f) k <span style="color:#f92672">=</span> mx (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> f x k)
+</code></pre></div><p>Using the <code>Cont</code> constructor, <code>(&gt;&gt;=)</code> is defined as:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">(<span style="color:#f92672">&gt;&gt;=</span>) <span style="color:#f92672">::</span> <span style="color:#66d9ef">Cont</span> r a <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Cont</span> r b) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Cont</span> r b
+<span style="color:#a6e22e">mx</span> <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span> <span style="color:#66d9ef">Cont</span> <span style="color:#f92672">$</span> <span style="color:#a6e22e">\</span>k <span style="color:#f92672">-&gt;</span> runCont mx <span style="color:#f92672">$</span> <span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> runCont (f x) k
+</code></pre></div><p>So this says: run <code>mx</code>&rsquo;s computation, and after it&rsquo;s done, run the continuation <code>\x -&gt; runCont (f x) k</code> - this consists of <code>mx</code> passing its output <code>x</code> to <code>f</code> to run the computation <code>f x</code>, and after it&rsquo;s done, run the continuation <code>k</code>.</p>
+</li>
+</ul>
+<p><strong>• Using Continuations to implement tail recursion</strong></p>
+<p>Consider the function <code>fib</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">fib</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Int</span>
+<span style="color:#a6e22e">fib</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
+<span style="color:#a6e22e">fib</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
+<span style="color:#a6e22e">fib</span> n <span style="color:#f92672">=</span> fib (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">+</span> fib (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">2</span>)
+</code></pre></div><p>It would be nice if this were tail recursive - we can achieve this by using continuations. Instead of returning an integer, <code>fibCPS</code> will take a continuation which tells it what to do next. What can happen after <code>fib</code> is arbitrary, so we represent this with <code>r</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">fibCPS</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> (<span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r
+<span style="color:#a6e22e">fibCPS</span> <span style="color:#ae81ff">0</span> k <span style="color:#f92672">=</span> k <span style="color:#ae81ff">1</span>
+<span style="color:#a6e22e">fibCPS</span> <span style="color:#ae81ff">1</span> k <span style="color:#f92672">=</span> k <span style="color:#ae81ff">1</span>
+<span style="color:#a6e22e">fibCPS</span> n k <span style="color:#f92672">=</span> fibCPS (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">$</span> <span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> fibCPS (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">2</span>) <span style="color:#f92672">$</span> <span style="color:#a6e22e">\</span>y <span style="color:#f92672">-&gt;</span> k (x <span style="color:#f92672">+</span> y)
+</code></pre></div><p>Here we are explicit about what we want to happen <em>after</em> each <code>fibCPS</code> call. In any case where we would have previously returned from the <code>fib</code>, we instead call the next function <code>k</code>.</p>
+<p>Naturally, it&rsquo;s a pain to write functions like this, which is why the <code>Cont</code> monad is a thing; it abstracts the pattern <code>(a -&gt; r) -&gt; r</code> found in <code>fibCPS</code>. Using <code>Cont</code>, we can just write:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">fibCPS&#39;</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Cont</span> r <span style="color:#66d9ef">Int</span>
+<span style="color:#a6e22e">fibCPS&#39;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">=</span> return <span style="color:#ae81ff">1</span>
+<span style="color:#a6e22e">fibCPS&#39;</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">=</span> return <span style="color:#ae81ff">1</span>
+<span style="color:#a6e22e">fibCPS&#39;</span> n <span style="color:#f92672">=</span> (<span style="color:#f92672">+</span>) <span style="color:#f92672">&lt;$&gt;</span> fib&#39;&#39; (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">&lt;*&gt;</span> fib&#39;&#39; (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">2</span>)
+<span style="color:#75715e">-- or equivalently using (&gt;&gt;=) instead of applicative style</span>
+<span style="color:#a6e22e">fibCPS&#39;</span> n <span style="color:#f92672">=</span> fib&#39;&#39; (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">&gt;&gt;=</span> <span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> fib&#39;&#39; (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">2</span>) <span style="color:#f92672">&gt;&gt;=</span> <span style="color:#a6e22e">\</span>y <span style="color:#f92672">-&gt;</span> return (x <span style="color:#f92672">+</span> y)
+</code></pre></div><p><strong>• CallCC</strong></p>
+<p><code>Cont r a</code> is simply a newtype wrapper around <code>(a -&gt; r) -&gt; r</code>. The continuation <code>a -&gt; r</code> is &ldquo;hidden&rdquo; by <code>Cont r a</code> in the sense that the normal code we write in the <code>Cont</code> monad doesn&rsquo;t explicitly <em>see</em> the continuation - it&rsquo;s all handled under the hood by the monad instance. So how do we manipulate the continuations using <code>Cont r a</code>?</p>
+<p>An extension to the <code>Cont</code> monad is the <code>MonadCont</code> class which provides a <code>callCC</code> operation - this exposes the hidden continuation in <code>Cont r a</code> by introducing the <code>(a -&gt; m b)</code> parameter in the <code>(a -&gt; m b) -&gt; m a</code> function; that is the continuation that follows from this line in the <code>do</code> block (and this is normally hidden inside the monad).</p>
+<p>The definition of the function <code>callCC</code> is given below:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">callCC</span> <span style="color:#f92672">::</span> ((a <span style="color:#f92672">-&gt;</span> m b) <span style="color:#f92672">-&gt;</span> m a) <span style="color:#f92672">-&gt;</span> m a
+<span style="color:#a6e22e">callCC</span> fk <span style="color:#f92672">=</span> <span style="color:#66d9ef">Cont</span> (<span style="color:#a6e22e">\</span>k <span style="color:#f92672">-&gt;</span> runCont (fk (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Cont</span> (<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> k x))) k)
+</code></pre></div><p>We can see that <code>k</code> is provided as the continuation to <code>fk</code>, but <code>fk</code> is also given an escape continuation that when used, ignores the continuation it was told to do next and uses <code>k</code> instead. The <code>\_</code> expresses ignoring the continuation it was given.</p>
+<p>The function <code>callCC</code> stands for &ldquo;call with current continuation&rdquo; and it brings the current continuation into scope. This is the idea that we can create an escape hatch. The code that happens after is packaged up into a function of type <code>a -&gt; m b</code>, and we run a &ldquo;program&rdquo; <code>(a -&gt; m b) -&gt; m a</code> which says &ldquo;if you tell me how to continue with the computation after i&rsquo;m done, then i can do something&rdquo;. Crucially, we don&rsquo;t <em>have</em> to use the escape continuation - we could always just reach the end of the fragment normally.  The computation always returns a type <code>a</code>, but we can escape mid-way through by calling the function with an <code>a</code>. It can thought of like a <code>go-to</code> instruction.</p>
+<ul>
+<li>The type <code>(a -&gt; m b)</code> is the actual exit mechanism.</li>
+<li>The whole thing of type <code>(a -&gt; m b) -&gt; m a</code> is the computation that <em>wants</em> an exit mechanism.</li>
+</ul>
+<p>Importantly, by exposing the hidden continuation inside <code>Cont</code>, the function <code>callCC</code> allows to <em>name</em> our continuations. This means we can call a named continuation at any time to jump to that point in the code, and we can reuse and invoke these continuations as many times as we like, with different arguments.</p>
+<p>A good example is writing a little virtual machine. When we execute the <code>halt</code> function, we would like to exit the interpreter - but we might be very deep inside the interpreter and we don&rsquo;t want to have to unwind it and check at each step whether the machine halted or not. Hence, <code>callCC</code> provides the mechanism to do that for us. Below we have named our continuation as <code>exit</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">do</span> callCC (<span style="color:#a6e22e">\</span>exit <span style="color:#f92672">-&gt;</span> executeMachine <span style="color:#f92672">...</span> exit)
+   <span style="color:#f92672">...</span> <span style="color:#75715e">-- do something after the machine has finished running</span>
+
+<span style="color:#a6e22e">executeMachine</span> <span style="color:#66d9ef">Halt</span> exit <span style="color:#f92672">=</span> exit ()
+</code></pre></div><p>And this lets us magically escape. We can implement exceptions this way - <code>callCC</code> is a <code>try/catch</code> mechanism and is very powerful.</p>
+<p><strong>• <code>CallCC</code> and <code>When</code>: Implementing imperative-style <code>return</code> statements</strong></p>
+<p>We can also use <code>callCC</code> to implement &ldquo;imperative style&rdquo; return statements.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">import</span> Control.Monad.Cont
+
+<span style="color:#a6e22e">weirdFib</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Int</span>
+<span style="color:#a6e22e">weirdFib</span> n <span style="color:#f92672">=</span> flip runCont id <span style="color:#f92672">$</span>
+   <span style="color:#66d9ef">let</span> impFib n <span style="color:#f92672">=</span> callCC <span style="color:#f92672">$</span> <span style="color:#a6e22e">\</span>ret <span style="color:#f92672">-&gt;</span>
+         <span style="color:#66d9ef">do</span> when (n <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) (ret <span style="color:#ae81ff">1</span>)
+            when (n <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span>) (ret <span style="color:#ae81ff">1</span>)
+            x <span style="color:#f92672">&lt;-</span> impFib (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>)
+            y <span style="color:#f92672">&lt;-</span> impFib (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">2</span>)
+            return (x <span style="color:#f92672">+</span> y)
+   <span style="color:#66d9ef">in</span>  impFib n
+</code></pre></div><p>The definition of the function <code>ret</code> is given below:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">ret</span> <span style="color:#f92672">::</span> a <span style="color:#f92672">-&gt;</span> (b <span style="color:#f92672">-&gt;</span> a)
+<span style="color:#a6e22e">ret</span> x <span style="color:#f92672">=</span> <span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> id x
+</code></pre></div><p>Whenever the function <code>ret</code> is used, it acts like a real <code>return</code> statement in an imperative language. If <code>n == 0</code>, then it will call <code>ret 1</code> which in this case ignores the continuation (which would be <code>\_ -&gt; when (n == 1) ...</code>) and escapes immediately. The definition of <code>ret</code> here <em>specifically</em> would be <code>\x -&gt; Cont (\_ -&gt; id x)</code> because nothing follows the <code>callCC</code> and nothing follows <code>impFib n</code>, so the continuation will be <code>id</code> as given in the first line of the function. So <code>ret</code> in some sense has exposed the continuation <code>id</code> to the rest of the program.</p>
+<p>The definition of the function <code>when</code> is given below:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">when</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Bool</span> <span style="color:#f92672">-&gt;</span> m () <span style="color:#f92672">-&gt;</span> m ()
+<span style="color:#a6e22e">when</span> <span style="color:#66d9ef">True</span>  mx <span style="color:#f92672">=</span> mx
+<span style="color:#a6e22e">when</span> <span style="color:#66d9ef">False</span> <span style="color:#66d9ef">_</span>  <span style="color:#f92672">=</span> return ()
+<span style="color:#75715e">--- and below is the Cont specific version of &#34;when&#34;</span>
+<span style="color:#a6e22e">when</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Bool</span> <span style="color:#f92672">-&gt;</span> ((() <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> (() <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r
+<span style="color:#a6e22e">when</span> <span style="color:#66d9ef">False</span> <span style="color:#66d9ef">_</span> k <span style="color:#f92672">=</span> k ()
+<span style="color:#a6e22e">when</span> <span style="color:#66d9ef">True</span> mx k <span style="color:#f92672">=</span> mx k
+</code></pre></div><p>How the function <code>when</code> works along with <code>(&gt;&gt;=)</code> is the following:</p>
+<p>For the case of <code>when True ...</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">do</span> when <span style="color:#66d9ef">True</span> mx
+   x <span style="color:#f92672">&lt;-</span> impFib (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>)
+   <span style="color:#f92672">...</span>
+
+<span style="color:#75715e">-- evaluates to:</span>
+
+<span style="color:#a6e22e">mx</span> (<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> impFib (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">...</span>))
+</code></pre></div><p>For the case of <code>when False ...</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">do</span> when <span style="color:#66d9ef">False</span> mx
+   x <span style="color:#f92672">&lt;-</span> impFib (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>)
+   <span style="color:#f92672">...</span>
+
+<span style="color:#75715e">-- evaluates to:</span>
+
+<span style="color:#a6e22e">when</span> <span style="color:#66d9ef">False</span> mx (<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> impFib (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">...</span>))
+
+<span style="color:#75715e">-- which evaluates to:</span>
+
+(<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> impFib (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">...</span>)) ()
+</code></pre></div><p><strong>• <code>CallCC</code> and <code>When</code>: Deriving an incorrect example program</strong></p>
+<p>To give a sense of what happens when we use <code>callCC</code> in the wrong place, consider the following code (which may look plausible from a first glance):</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">weirdFib</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Int</span>
+<span style="color:#a6e22e">weirdFib</span> n <span style="color:#f92672">=</span> flip runCont id <span style="color:#f92672">$</span> callCC <span style="color:#f92672">$</span> <span style="color:#a6e22e">\</span>ret <span style="color:#f92672">-&gt;</span>
+   <span style="color:#66d9ef">let</span> impFib n <span style="color:#f92672">=</span>
+         <span style="color:#66d9ef">do</span> when (n <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) (ret <span style="color:#ae81ff">1</span>)
+            when (n <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span>) (ret <span style="color:#ae81ff">1</span>)
+            x <span style="color:#f92672">&lt;-</span> impFib (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>)
+            y <span style="color:#f92672">&lt;-</span> impFib (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">2</span>)
+            return (x <span style="color:#f92672">+</span> y)
+   <span style="color:#66d9ef">in</span>  impFib n
+</code></pre></div><p>However, this program always returns 1. To see why, let&rsquo;s evaluate <code>impFib 2</code> with <code>ret x = \_ -&gt; id x</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">impFib</span> <span style="color:#ae81ff">2</span> k
+
+<span style="color:#f92672">=</span> <span style="color:#75715e">{- both &#34;when&#34;&#39;s are &#34;return ()&#34; so I&#39;ve omitted them -}</span>
+  <span style="color:#f92672">...</span>
+  x <span style="color:#f92672">&lt;-</span> impFib (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>)
+  y <span style="color:#f92672">&lt;-</span> impFib (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">2</span>)
+  return (x <span style="color:#f92672">+</span> y)
+
+  
+<span style="color:#f92672">=</span> <span style="color:#75715e">{- expanding out impFib -}</span>
+  <span style="color:#f92672">...</span>
+  x <span style="color:#f92672">&lt;-</span> <span style="color:#66d9ef">do</span> when (n <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) (ret <span style="color:#ae81ff">1</span>)
+          when (n <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span>) (ret <span style="color:#ae81ff">1</span>)
+          x&#39; <span style="color:#f92672">&lt;-</span> impFib (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>)
+          <span style="color:#f92672">...</span>
+  y <span style="color:#f92672">&lt;-</span> <span style="color:#66d9ef">do</span> when (n <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) (ret <span style="color:#ae81ff">1</span>)
+          when (n <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span>) (ret <span style="color:#ae81ff">1</span>)
+          <span style="color:#f92672">...</span>
+  return (x <span style="color:#f92672">+</span> y)
+
+ 
+<span style="color:#f92672">=</span> <span style="color:#75715e">{- when False _ k = k () -}</span> 
+  <span style="color:#75715e">{- (mx &gt;&gt;= f) k = mx (\x -&gt; f x k) -}</span>
+  <span style="color:#f92672">...</span>
+  x <span style="color:#f92672">&lt;-</span> (when (n <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span>) (ret <span style="color:#ae81ff">1</span>) (<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> impFib (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) (<span style="color:#f92672">...</span>))) ()
+  y <span style="color:#f92672">&lt;-</span> <span style="color:#66d9ef">do</span> when (n <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) (ret <span style="color:#ae81ff">1</span>)
+          when (n <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span>) (ret <span style="color:#ae81ff">1</span>)
+          <span style="color:#f92672">...</span>
+  return (x <span style="color:#f92672">+</span> y)
+
+  
+<span style="color:#f92672">=</span> <span style="color:#75715e">{- when True mx k = mx k -}</span> 
+  <span style="color:#75715e">{- (mx &gt;&gt;= f) k = mx (\x -&gt; f x k) -}</span>
+  <span style="color:#f92672">...</span>
+  x <span style="color:#f92672">&lt;-</span> (ret <span style="color:#ae81ff">1</span>) (<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> impFib (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) (<span style="color:#f92672">...</span>)) ()
+  y <span style="color:#f92672">&lt;-</span> (ret <span style="color:#ae81ff">1</span>) (<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> when (n <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span>) (ret <span style="color:#ae81ff">1</span>) (<span style="color:#f92672">...</span>))
+
+  
+<span style="color:#f92672">=</span> <span style="color:#75715e">{- ret x = \_ -&gt; id x -}</span>
+  <span style="color:#f92672">...</span>
+  x <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> id <span style="color:#ae81ff">1</span>
+  y <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> id <span style="color:#ae81ff">1</span>
+  return (x <span style="color:#f92672">+</span> y)
+
+  
+<span style="color:#f92672">=</span> <span style="color:#75715e">{- (mx &gt;&gt;= f) k = mx (\x -&gt; f x k) -}</span>
+  <span style="color:#f92672">...</span>
+  (<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> id <span style="color:#ae81ff">1</span>) (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> (<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> id <span style="color:#ae81ff">1</span>) (<span style="color:#a6e22e">\</span>y <span style="color:#f92672">-&gt;</span> return (<span style="color:#ae81ff">1</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>)))
+
+<span style="color:#f92672">=</span> id <span style="color:#ae81ff">1</span>
+
+<span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
+</code></pre></div><!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="http://min-nguyen.github.io/background/delimited-continuations/" title="Delimited Continuations"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Delimited Continuations</a>
+<a class="nav nav-next" href="http://min-nguyen.github.io/background/staging/" title="Staging">Next - Staging <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>

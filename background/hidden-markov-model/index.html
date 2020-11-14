@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Hidden Markov Model - My New Hugo Site</title>
+<meta name="generator" content="Hugo 0.78.2" />
+<link href="http://min-nguyen.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="http://min-nguyen.github.io/background/hidden-markov-model/">
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="http://min-nguyen.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="Hidden Markov Model" />
+<meta property="og:description" content="HMM A Markov chain is useful when we need to compute a probability for a sequence of observable events. In many cases, the events we are interested in are hidden - meaning we don&rsquo;t observe them directly.
+HMM allows us to talk about both observed events and hidden events that we think of as causal factors in our probabilistic model.
+A HMM is specified by the following components:
+  A set of N states" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://min-nguyen.github.io/background/hidden-markov-model/" />
+<meta property="article:published_time" content="2020-11-13T13:58:10+00:00" />
+<meta property="article:modified_time" content="2020-11-13T13:58:10+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Hidden Markov Model"/>
+<meta name="twitter:description" content="HMM A Markov chain is useful when we need to compute a probability for a sequence of observable events. In many cases, the events we are interested in are hidden - meaning we don&rsquo;t observe them directly.
+HMM allows us to talk about both observed events and hidden events that we think of as causal factors in our probabilistic model.
+A HMM is specified by the following components:
+  A set of N states"/>
+<meta itemprop="name" content="Hidden Markov Model">
+<meta itemprop="description" content="HMM A Markov chain is useful when we need to compute a probability for a sequence of observable events. In many cases, the events we are interested in are hidden - meaning we don&rsquo;t observe them directly.
+HMM allows us to talk about both observed events and hidden events that we think of as causal factors in our probabilistic model.
+A HMM is specified by the following components:
+  A set of N states">
+<meta itemprop="datePublished" content="2020-11-13T13:58:10+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T13:58:10+00:00" />
+<meta itemprop="wordCount" content="451">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>My New Hugo Site</h1>
+</header>
+
+<div class="content-container">
+<main><h1>Hidden Markov Model</h1>
+<h3 id="hmm">HMM</h3>
+<p>A Markov chain is useful when we need to compute a probability for a sequence of observable events. In many cases, the events we are interested in are hidden - meaning we don&rsquo;t observe them directly.</p>
+<p>HMM allows us to talk about both <em>observed</em> events and <em>hidden</em> events that we think of as causal factors in our probabilistic model.</p>
+<p>A HMM is specified by the following components:</p>
+<ul>
+<li>
+<p>A set of N <strong>states</strong></p>
+<p><em>Q = q<!-- raw HTML omitted -->1<!-- raw HTML omitted -->, q<!-- raw HTML omitted -->2<!-- raw HTML omitted -->, &hellip;, q<!-- raw HTML omitted -->N<!-- raw HTML omitted --></em></p>
+</li>
+<li>
+<p>A <strong>transition probability matrix</strong> <em>A</em>, each <em>a<!-- raw HTML omitted -->ij<!-- raw HTML omitted --></em> representing the probability of moving from state <em>i</em> to state <em>j</em>, such that: ∀i. Σ<!-- raw HTML omitted -->j=1<!-- raw HTML omitted --><!-- raw HTML omitted -->n<!-- raw HTML omitted --> a<!-- raw HTML omitted -->ij<!-- raw HTML omitted --> = 1</p>
+<p><em>A = a<!-- raw HTML omitted -->11<!-- raw HTML omitted -->, a<!-- raw HTML omitted -->12<!-- raw HTML omitted -->, &hellip;, a<!-- raw HTML omitted -->n1<!-- raw HTML omitted -->, &hellip;, a<!-- raw HTML omitted -->nn<!-- raw HTML omitted --></em></p>
+</li>
+<li>
+<p>An <strong>initial probability distribution</strong> over states. π<!-- raw HTML omitted -->i<!-- raw HTML omitted --> is the probability that the Markov chain will start in state <em>i</em>. Some states may have π<!-- raw HTML omitted -->j<!-- raw HTML omitted --> = 0, meaning that they cannot be initial states. Also, Σ<!-- raw HTML omitted -->j=1<!-- raw HTML omitted --><!-- raw HTML omitted -->n<!-- raw HTML omitted --> π<!-- raw HTML omitted -->i<!-- raw HTML omitted --> = 1</p>
+<p><em>π = π<!-- raw HTML omitted -->1<!-- raw HTML omitted -->, π<!-- raw HTML omitted -->2<!-- raw HTML omitted -->, &hellip;, π<!-- raw HTML omitted -->N<!-- raw HTML omitted --></em></p>
+</li>
+<li>
+<p>A sequence of <em>T</em> <strong>observations</strong>, each one drawn from a vocabulary <em>V - v<!-- raw HTML omitted -->1<!-- raw HTML omitted -->, v<!-- raw HTML omitted -->2<!-- raw HTML omitted -->, &hellip;, v<!-- raw HTML omitted -->v<!-- raw HTML omitted --></em></p>
+<p><em>O = o<!-- raw HTML omitted -->1<!-- raw HTML omitted -->, o<!-- raw HTML omitted -->2<!-- raw HTML omitted -->, &hellip;, o<!-- raw HTML omitted -->T<!-- raw HTML omitted --></em></p>
+</li>
+<li>
+<p>A sequence of <strong>observation likelihoods</strong>, each expressing the probability of an observation o<!-- raw HTML omitted -->t<!-- raw HTML omitted --> being generated from a state <em>i</em></p>
+<p><em>B = b<!-- raw HTML omitted -->i<!-- raw HTML omitted -->(o<!-- raw HTML omitted -->t<!-- raw HTML omitted -->)</em></p>
+</li>
+</ul>
+<p>Hidden Markov Model (HMM) is a statistical Markov model in which the system being modelled is assumed to be a Markov process (chain) – call it <strong>X</strong> – with unobservable (&ldquo;hidden&rdquo;) states. HMM assumes that there is another process <strong>Y</strong> whose behaviour &ldquo;depends&rdquo; on <strong>X</strong>. The goal is to learn about <strong>X</strong> by observing <strong>Y</strong>.</p>
+<p><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Hmm_temporal_bayesian_net.svg/500px-Hmm_temporal_bayesian_net.svg.png" alt=""></p>
+<p>A HMM is specified by two functions (which can be probabilistic):</p>
+<ul>
+<li>A transition function, which defines how to go from hidden state <em>n</em> to hidden state <em>n + 1</em>.</li>
+<li>An observation function, which defines how to go from hidden state <em>n</em> to observed state <em>n</em>.</li>
+</ul>
+<p>These functions can be defined in many different ways - there is no generalisation or &ldquo;typical&rdquo; implementation. The parameters of a HMM (which we try to learn when inferring a HMM) parameterise the transition function and observation function.</p>
+<p><strong>Inference</strong></p>
+<p>There are several inference problems associated with HMMs i.e. problems for which we can use HMMs as an inference tool.</p>
+<ul>
+<li>Given the parameters of the HMM, compute the probability of a particular observed sequence</li>
+<li>Given the parameters of the HMM and a sequence of observations <em>y(1),&hellip;,y(t)</em>, compute the probability of some particular latent variable(s).</li>
+</ul>
+<p><strong>Learning</strong></p>
+<p>The parameter learning task of HMMs is, given an observed sequence, find the best set of state transition and emission probabilities. The task is usually to derive the maximum likelihood estimate of the HMM&rsquo;s parameters given the set of observable sequences. However in certain situations, Bayesian inference methods such as MCMC sampling are proven to be favourable over finding a single likelihood model.</p>
+<div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="http://min-nguyen.github.io/background/markov-chain/" title="Markov Chain"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Markov Chain</a>
+<a class="nav nav-next" href="http://min-nguyen.github.io/background/delimited-continuations/" title="Delimited Continuations">Next - Delimited Continuations <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Approaches for Monad Bayes - My New Hugo Site</title>
+<meta name="generator" content="Hugo 0.78.2" />
+<link href="http://min-nguyen.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="http://min-nguyen.github.io/research/approaches-for-monad-bayes/">
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="http://min-nguyen.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="Approaches for Monad Bayes" />
+<meta property="og:description" content="Possible approaches to optimising effect systems:
+ Different effects system - taking a look at the core effect library as a whole Different concrete transformers - the effects aren’t disappearing when using monad transformers  Effects for Less (Eff library) - Alexis King (Delimited continuations approach)   Staging  Multi-stage Programs In Context - Matthew Pickering, Nicolas Wu, Jamie Willis Selective Staged Parser Combinators - Jamie Willis, Nicolas Wu, Matthew Pickering (optimising parser combinators with staging)   Codensity transformations  Csongor used the codensity transform in his generic deriving paper   Tagless final style (optimises mtl style?" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://min-nguyen.github.io/research/approaches-for-monad-bayes/" />
+<meta property="article:published_time" content="2020-11-13T14:05:41+00:00" />
+<meta property="article:modified_time" content="2020-11-13T14:05:41+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Approaches for Monad Bayes"/>
+<meta name="twitter:description" content="Possible approaches to optimising effect systems:
+ Different effects system - taking a look at the core effect library as a whole Different concrete transformers - the effects aren’t disappearing when using monad transformers  Effects for Less (Eff library) - Alexis King (Delimited continuations approach)   Staging  Multi-stage Programs In Context - Matthew Pickering, Nicolas Wu, Jamie Willis Selective Staged Parser Combinators - Jamie Willis, Nicolas Wu, Matthew Pickering (optimising parser combinators with staging)   Codensity transformations  Csongor used the codensity transform in his generic deriving paper   Tagless final style (optimises mtl style?"/>
+<meta itemprop="name" content="Approaches for Monad Bayes">
+<meta itemprop="description" content="Possible approaches to optimising effect systems:
+ Different effects system - taking a look at the core effect library as a whole Different concrete transformers - the effects aren’t disappearing when using monad transformers  Effects for Less (Eff library) - Alexis King (Delimited continuations approach)   Staging  Multi-stage Programs In Context - Matthew Pickering, Nicolas Wu, Jamie Willis Selective Staged Parser Combinators - Jamie Willis, Nicolas Wu, Matthew Pickering (optimising parser combinators with staging)   Codensity transformations  Csongor used the codensity transform in his generic deriving paper   Tagless final style (optimises mtl style?">
+<meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
+<meta itemprop="wordCount" content="105">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>My New Hugo Site</h1>
+</header>
+
+<div class="content-container">
+<main><h1>Approaches for Monad Bayes</h1>
+<p>Possible approaches to optimising effect systems:</p>
+<ul>
+<li>Different effects system - taking a look at the core effect library as a whole</li>
+<li>Different concrete transformers - the effects aren’t disappearing when using monad transformers
+<ul>
+<li>Effects for Less (Eff library) - Alexis King (Delimited continuations approach)</li>
+</ul>
+</li>
+<li>Staging
+<ul>
+<li>Multi-stage Programs In Context - Matthew Pickering, Nicolas Wu, Jamie Willis</li>
+<li>Selective Staged Parser Combinators - Jamie Willis, Nicolas Wu, Matthew Pickering (optimising parser combinators with staging)</li>
+</ul>
+</li>
+<li>Codensity transformations
+<ul>
+<li>Csongor used the codensity transform in his generic deriving paper</li>
+</ul>
+</li>
+<li>Tagless final style (optimises mtl style?)</li>
+</ul>
+<p>Questions we need to ask:</p>
+<ul>
+<li>Can the monad transformer stack be fixed at compile time?</li>
+</ul>
+<div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="http://min-nguyen.github.io/research/research-journal/" title="Research Journal"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Research Journal</a>
+<a class="nav nav-next" href="http://min-nguyen.github.io/research/effects-for-less/" title="Effects for Less">Next - Effects for Less <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Smc Pmmh - My New Hugo Site</title>
+<meta name="generator" content="Hugo 0.78.2" />
+<link href="http://min-nguyen.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="http://min-nguyen.github.io/background/smc-pmmh/">
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="http://min-nguyen.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="Smc Pmmh" />
+<meta property="og:description" content="Particle Filter Sequential Monte Carlo (SMC) methods, also known as Particle Filters, are a set of simulation-based methods (to artificially generate data to test a hypothesis) which provide an approach to computing the posterior distribution. The objective is to compute the posterior distributions of the states of some hidden Markov Model process, where the system consists of both hidden and observable variables.
+The observable variables (observation process) are related to the hidden variables (state process) by some functional form that is known." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://min-nguyen.github.io/background/smc-pmmh/" />
+<meta property="article:published_time" content="2020-11-13T13:58:54+00:00" />
+<meta property="article:modified_time" content="2020-11-13T13:58:54+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Smc Pmmh"/>
+<meta name="twitter:description" content="Particle Filter Sequential Monte Carlo (SMC) methods, also known as Particle Filters, are a set of simulation-based methods (to artificially generate data to test a hypothesis) which provide an approach to computing the posterior distribution. The objective is to compute the posterior distributions of the states of some hidden Markov Model process, where the system consists of both hidden and observable variables.
+The observable variables (observation process) are related to the hidden variables (state process) by some functional form that is known."/>
+<meta itemprop="name" content="Smc Pmmh">
+<meta itemprop="description" content="Particle Filter Sequential Monte Carlo (SMC) methods, also known as Particle Filters, are a set of simulation-based methods (to artificially generate data to test a hypothesis) which provide an approach to computing the posterior distribution. The objective is to compute the posterior distributions of the states of some hidden Markov Model process, where the system consists of both hidden and observable variables.
+The observable variables (observation process) are related to the hidden variables (state process) by some functional form that is known.">
+<meta itemprop="datePublished" content="2020-11-13T13:58:54+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T13:58:54+00:00" />
+<meta itemprop="wordCount" content="1036">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>My New Hugo Site</h1>
+</header>
+
+<div class="content-container">
+<main><h1>Smc Pmmh</h1>
+<h3 id="particle-filter">Particle Filter</h3>
+<p>Sequential Monte Carlo (SMC) methods, also known as Particle Filters, are a set of simulation-based methods (to artificially generate data to test a hypothesis) which provide an approach to computing the posterior distribution. The objective is to compute the posterior distributions of the states of some hidden Markov Model process, where the system consists of both hidden and observable variables.</p>
+<p>The observable variables (observation process) are related to the hidden variables (state process) by some functional form that is known. The dynamical system describing the evolution of the state variables is also known probabilistically.</p>
+<p>A generic particle filter estimates the posterior distribution of the hidden states using the observation measurement process.</p>
+<p>Consider the state-space shown below of a Hidden Markov Model.</p>
+<p><img src="https://i.ibb.co/pyDS8vv/particle-filter.png" alt=""></p>
+<p>The filtering problem is to estimate sequentially the values of the hidden states <strong>X<!-- raw HTML omitted -->k<!-- raw HTML omitted --></strong>, given the values of the observation process <strong>Y<!-- raw HTML omitted -->0<!-- raw HTML omitted -->, &hellip;, Y<!-- raw HTML omitted -->k<!-- raw HTML omitted --></strong>, at any time step <strong><em>k</em></strong>. All Bayesian estimates of <strong>X<!-- raw HTML omitted -->k<!-- raw HTML omitted --></strong> follow from the posterior density <em>p(x<!-- raw HTML omitted -->k<!-- raw HTML omitted -->|y<!-- raw HTML omitted -->0<!-- raw HTML omitted -->,..,y<!-- raw HTML omitted -->k<!-- raw HTML omitted -->)</em>. The particle filter methodology provides an approximation of these conditional probabilities. (In contrast, MCMC or importance sampling approach would model the full posterior <em>p(x<!-- raw HTML omitted -->0<!-- raw HTML omitted -->,..,x<!-- raw HTML omitted -->k<!-- raw HTML omitted -->|y<!-- raw HTML omitted -->0<!-- raw HTML omitted -->,..,y<!-- raw HTML omitted -->k<!-- raw HTML omitted -->)</em>.</p>
+<p>Particle filters update their prediction in an approximate statistical manner. The samples (generated) from the distribution are represented by a set of particles; each particle has a likelihood weight assigned to it which represents the probability of that particle being sampled from the probability density function.</p>
+<hr>
+<h3 id="particle-filter-explained">Particle Filter Explained</h3>
+<p>The situation is as such:</p>
+<ol>
+<li>There is something we want to know</li>
+<li>We can measure something, related to what we want to know</li>
+<li>We know something about the relationship between the measurements and what we want to know</li>
+</ol>
+<p><strong>For example</strong>, consider the flight of an aircraft:</p>
+<ul>
+<li>We can measure the elevation relative to the sea</li>
+<li>We can measure the distance to the ground</li>
+<li>We have the map</li>
+</ul>
+<p>But we <em>don&rsquo;t</em> know where we are on the map.</p>
+<p><img src="https://i.ibb.co/Ph3vWvR/particle-filter-1.png" alt=""></p>
+<p>We will use a particle filter to determine the position of our aircraft.</p>
+<p>First, we generate a set of hypotheses; these are our samples/particles generated from a (in this case, uniform) random distribution.</p>
+<p><img src="https://i.ibb.co/kynzfbW/particle-filter-2.png" alt=""></p>
+<ul>
+<li>We have measured the distance to the ground (with some uncertainty)</li>
+<li>We know how high we are flying (with some uncertainty from the measurement device)</li>
+<li>We have the map</li>
+</ul>
+<p>For every particle, we evaluate its likelihood of being the current position of our aircraft on the map, by using all the given information of our known variables: its measured flight elevation, and its distance from the ground. For example, the selected particle below fits what is measured quite well.</p>
+<p><img src="https://i.ibb.co/bPcQ6zH/particle-filter-3.png" alt=""></p>
+<p>To record how likely we find every particle, we assign a weight to it corresponding to its likelihood.</p>
+<p><img src="https://i.ibb.co/PZyWvgC/particle-filter-4.png" alt=""></p>
+<p>As some particles appear to be much more likely than others, we decide that the unlikely particles are redundant. Therefore we do a process called <strong>resampling</strong>, which is needed to avoid depletion among particles - otherwise we may end up with only unlikely particles. This generates a set of new particles (the same number as before), but based on the existing particles with their assigned weights. All the re-generated particles are given equal weights.</p>
+<p><img src="https://i.ibb.co/nDnyhGK/particle-filter-5.png" alt=""></p>
+<p>The aircraft moves on, so we will move our particles as well. Assuming we know the direction of the aircraft, we have an idea of how fast the aircraft can move. For each particle, we pick a random number within the likely range of the speed of our aircraft, and then move each particle with this corresponding speed to the right. This step also involves a minor update of the particle weights depending on how likely the randomly picked speed was.</p>
+<p><img src="https://i.ibb.co/4fmZWs2/particle-filter-6.png" alt=""></p>
+<p><strong>Repeating the particle filter steps</strong></p>
+<p>Now we repeat the previous process. We update the weights (likelihood) of our particles using the new measurements of our known variables - the distance to the ground and measured flight elevation.</p>
+<p><img src="https://i.ibb.co/Sdj7CKd/particle-filter-7.png" alt=""></p>
+<p>Again, we can see that some particles are observed to be more likely than others. We hence use resampling based on this.</p>
+<p><img src="https://i.ibb.co/VJZtJmX/particle-filter-8.png" alt=""></p>
+<p>The aircraft then moves on - so we propagate our particles in time using randomly selected speeds for each particle like before. Again, we also perform a minor update of the weights depending on the likelihood of the speed selected for each particle.</p>
+<p><img src="https://i.ibb.co/Hgz3HW1/particle-filter-9.png" alt=""></p>
+<p>With our time-propagated particles, we now update the weights using our new measurements of our known variables. Then we resample. Then we propagate. And so on.</p>
+<hr>
+<h3 id="particle-mcmc">Particle MCMC</h3>
+<p>Particle MCMC (PMCMC) methods are Bayesian approximate inference techniques to estimate posterior distributions over the parameters. PMCMC methods are normal MCMC algorithms that use particle filters to estimate the likelihood of the data given the parameter generated by the proposal (this is as opposed to normal Metropolis Hastings which just uses the likelihood function to compute the likelihood, if it is tractable). We use Metropolis Hastings to sample from some non-normalised density <strong>g(θ)</strong>. This non-normalised density in Bayesian contexts is the prior times the likelihood - it is the likelihood that is estimated using the particle filter - this algorithm is known as Particle Marginal Metropolis Hastings (there is some difference between Particle-Independent Metropolis Hastings and PMMH but I don&rsquo;t know).</p>
+<p><strong>Some more elaboration:</strong></p>
+<p>PMMH and Particle filters (to the extent of my knowledge) are used for Markov Models. PMMH uses Metropolis-Hastings (an iteration of generating candidate parameters for proposal distributions and accepting or rejecting), but rather than using the likelihood function to compute the likelihood <strong>P(D | θ)</strong> for the accept/reject step,</p>
+<blockquote>
+<p><strong>P(acceptance) = (P(θ<!-- raw HTML omitted -->t+1<!-- raw HTML omitted -->) * P(D | θ<!-- raw HTML omitted -->t+1<!-- raw HTML omitted -->)) / (P(θ<!-- raw HTML omitted -->t<!-- raw HTML omitted -->) * P(D | θ<!-- raw HTML omitted -->t<!-- raw HTML omitted -->))</strong></p>
+</blockquote>
+<p>we instead use a particle filter to estimate the likelihood of the data given the parameter generated by the proposal. The particle filter uses the model that we&rsquo;re trying to learn parameters for, by running it
+during the particle filter process. As the particle filter is simulated, every step that the particles are transitioned, they are compared to the next corresponding data point (observed state) of the HMM. The particles represent a set of possible latent states, and each transition of these particles represents a transition of latent state in the HMM - the likelihood/weightings of the particles are changed appropriately to how well they relate to the current step&rsquo;s corresponding observed state (provided beforehand as a data set/list of observed states).</p>
+<div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="http://min-nguyen.github.io/background/staging/" title="Staging"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Staging</a>
+<a class="nav nav-next" href="http://min-nguyen.github.io/background/performance-w-monads/" title="Performance W Monads">Next - Performance W Monads <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>

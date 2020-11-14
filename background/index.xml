@@ -1,97 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>My New Hugo Site</title>
-    <link>http://min-nguyen.github.io/</link>
-    <description>Recent content on My New Hugo Site</description>
+    <title>Background on My New Hugo Site</title>
+    <link>http://min-nguyen.github.io/background/</link>
+    <description>Recent content in Background on My New Hugo Site</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 13 Nov 2020 14:05:57 +0000</lastBuildDate><atom:link href="http://min-nguyen.github.io/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Research Journal</title>
-      <link>http://min-nguyen.github.io/research/research-journal/</link>
-      <pubDate>Fri, 13 Nov 2020 14:05:57 +0000</pubDate>
-      
-      <guid>http://min-nguyen.github.io/research/research-journal/</guid>
-      <description>• Scrum Meeting 1 (Meng + Sam + Minh)
-  Can the inference monad transformer stack of a program be inferred/fixed at compile time?
-  Identifying smaller goals and intermediate research ideas and what is valuable to do:
- What&amp;rsquo;s the line between papers and a very good blog post? (new things are papers) How can research/observations across monad-bayes be generalised? It is possible to do an empirical evaluation and target software dev audiences Programming languages field lacks proper evaluations; it is possible to question existing &amp;ldquo;folklore&amp;rdquo; with new observed results&amp;quot; It is important to know what the benchmarking tool can and can&amp;rsquo;t do - when experimenting we must always ask what can the tool do for me.</description>
-    </item>
-    
-    <item>
-      <title>Approaches for Monad Bayes</title>
-      <link>http://min-nguyen.github.io/research/approaches-for-monad-bayes/</link>
-      <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
-      
-      <guid>http://min-nguyen.github.io/research/approaches-for-monad-bayes/</guid>
-      <description>Possible approaches to optimising effect systems:
- Different effects system - taking a look at the core effect library as a whole Different concrete transformers - the effects aren’t disappearing when using monad transformers  Effects for Less (Eff library) - Alexis King (Delimited continuations approach)   Staging  Multi-stage Programs In Context - Matthew Pickering, Nicolas Wu, Jamie Willis Selective Staged Parser Combinators - Jamie Willis, Nicolas Wu, Matthew Pickering (optimising parser combinators with staging)   Codensity transformations  Csongor used the codensity transform in his generic deriving paper   Tagless final style (optimises mtl style?</description>
-    </item>
-    
-    <item>
-      <title>Effects for Less</title>
-      <link>http://min-nguyen.github.io/research/effects-for-less/</link>
-      <pubDate>Fri, 13 Nov 2020 14:05:31 +0000</pubDate>
-      
-      <guid>http://min-nguyen.github.io/research/effects-for-less/</guid>
-      <description>Table of Contents  Summary Thoughts Benchmarking  Summary of Alexis King - focusing on benchmarks
-Summary  Real world benchmarks make it difficult to isolate costs Microbenchmarks often seen as synthetic Microbenchmarks need to make sure you&amp;rsquo;re measuring the right thing Might not have broad scope. Effects systems make real world programs hard to benchmark Effects systems tend to have small operations that do not take a significant amount of time Splitting in modules slows stuff down Compiler optimisations lead to cross module slowdowns Free monad libraries, by constructing trees, obscures the program structure to the optimiser preventing inlining.</description>
-    </item>
-    
-    <item>
-      <title>Inference Transformers</title>
-      <link>http://min-nguyen.github.io/monad-bayes/inference-transformers/</link>
-      <pubDate>Fri, 13 Nov 2020 14:04:56 +0000</pubDate>
-      
-      <guid>http://min-nguyen.github.io/monad-bayes/inference-transformers/</guid>
-      <description>Inference Representation Type Classes type R = Double class Monad m =&amp;gt; MonadSample m where random :: m R bernoulli :: R -&amp;gt; m Bool bernoulli p = fmap ( &amp;lt; p ) random -- and other default distributions : -- normal , gamma , beta , geometric , -- poisson , dirichlet class Monad m ⇒ MonadCond m where score :: Log R -&amp;gt; m () class ( MonadSample m , MonadCond m ) =&amp;gt; MonadInfer m  Sampler This inference transformer is a sampler that draws concrete values for random variables from the prior.</description>
-    </item>
-    
-    <item>
-      <title>Pmmh Hmm</title>
-      <link>http://min-nguyen.github.io/monad-bayes/pmmh-hmm/</link>
-      <pubDate>Fri, 13 Nov 2020 14:04:50 +0000</pubDate>
-      
-      <guid>http://min-nguyen.github.io/monad-bayes/pmmh-hmm/</guid>
-      <description>Simulating Data We aim to model a HMM and use it to generate data by simulating a sample path.
-First, for simplicity we consider our latent states xi to be integers, and the corresponding observed states yi to also be integers.
-data ObservedState = Obs { obs :: Int } deriving Show data LatentState = Lat { lat :: Int } deriving Show We then choose the parameters of the HMM (i.</description>
-    </item>
-    
-    <item>
-      <title>Conditioning Scoring</title>
-      <link>http://min-nguyen.github.io/monad-bayes/conditioning-scoring/</link>
-      <pubDate>Fri, 13 Nov 2020 14:04:44 +0000</pubDate>
-      
-      <guid>http://min-nguyen.github.io/monad-bayes/conditioning-scoring/</guid>
-      <description>A sample path is the course of a program as it executes, hence being the monadic context that the code is executing in. During this path, a new thread created for every random decision. It can be thought of as an execution trace. In probabilistic programming, each sample path is associated with a probability of how likely that execution trace is to happen. This probability is the joint probability of a bunch of random decisions made during the execution of the program.</description>
-    </item>
-    
-    <item>
-      <title>Benchmarking Profiling</title>
-      <link>http://min-nguyen.github.io/benchmarking/benchmarking-profiling/</link>
-      <pubDate>Fri, 13 Nov 2020 14:02:28 +0000</pubDate>
-      
-      <guid>http://min-nguyen.github.io/benchmarking/benchmarking-profiling/</guid>
-      <description>Benchmarking With Criterion &amp;amp; Stack   The benchmark program we intend to profile needs to have a function which takes one argument (influencing the computational effort of executing the program) - this is the function we directly call for profiling.
-This should be under the test directory, e.g. test/BenchmarkProgram.hs which contains a function:
-testPmmh :: Int -&amp;gt; IO () testPmmh nsteps = do observedStates &amp;lt;- generateData initLatentState initParams nsteps print observedStates   The program that calls the profiling functions should ideally be test/Spec.</description>
-    </item>
-    
-    <item>
-      <title>Monad Bayes Components</title>
-      <link>http://min-nguyen.github.io/benchmarking/monad-bayes-components/</link>
-      <pubDate>Fri, 13 Nov 2020 14:01:54 +0000</pubDate>
-      
-      <guid>http://min-nguyen.github.io/benchmarking/monad-bayes-components/</guid>
-      <description>What constitutes a good benchmark - Concrete components/transformers of interest:
-These are plausible components for benchmarking the performance of individual concrete transformers.
-  SamplerIO
--- | An &amp;#39;IO&amp;#39; based random sampler using the MWC-Random package. newtype SamplerIO a = SamplerIO (ReaderT GenIO IO a) deriving (Functor, Applicative, Monad, MonadIO)   SamplerST
--- | An &amp;#39;ST&amp;#39; based random sampler using the MWC-Random package. newtype SamplerST a = SamplerST (forall s.</description>
-    </item>
-    
+    <lastBuildDate>Fri, 13 Nov 2020 13:42:14 +0000</lastBuildDate><atom:link href="http://min-nguyen.github.io/background/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Staging</title>
       <link>http://min-nguyen.github.io/background/staging/</link>

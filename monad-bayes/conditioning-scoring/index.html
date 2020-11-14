@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Conditioning Scoring - My New Hugo Site</title>
+<meta name="generator" content="Hugo 0.78.2" />
+<link href="http://min-nguyen.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="http://min-nguyen.github.io/monad-bayes/conditioning-scoring/">
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="http://min-nguyen.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="Conditioning Scoring" />
+<meta property="og:description" content="A sample path is the course of a program as it executes, hence being the monadic context that the code is executing in. During this path, a new thread created for every random decision. It can be thought of as an execution trace. In probabilistic programming, each sample path is associated with a probability of how likely that execution trace is to happen. This probability is the joint probability of a bunch of random decisions made during the execution of the program." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://min-nguyen.github.io/monad-bayes/conditioning-scoring/" />
+<meta property="article:published_time" content="2020-11-13T14:04:44+00:00" />
+<meta property="article:modified_time" content="2020-11-13T14:04:44+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Conditioning Scoring"/>
+<meta name="twitter:description" content="A sample path is the course of a program as it executes, hence being the monadic context that the code is executing in. During this path, a new thread created for every random decision. It can be thought of as an execution trace. In probabilistic programming, each sample path is associated with a probability of how likely that execution trace is to happen. This probability is the joint probability of a bunch of random decisions made during the execution of the program."/>
+<meta itemprop="name" content="Conditioning Scoring">
+<meta itemprop="description" content="A sample path is the course of a program as it executes, hence being the monadic context that the code is executing in. During this path, a new thread created for every random decision. It can be thought of as an execution trace. In probabilistic programming, each sample path is associated with a probability of how likely that execution trace is to happen. This probability is the joint probability of a bunch of random decisions made during the execution of the program.">
+<meta itemprop="datePublished" content="2020-11-13T14:04:44+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T14:04:44+00:00" />
+<meta itemprop="wordCount" content="302">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>My New Hugo Site</h1>
+</header>
+
+<div class="content-container">
+<main><h1>Conditioning Scoring</h1>
+<p>A sample path is the course of a program as it executes, hence being the monadic context that the code is executing in. During this path, a new thread created for every random decision. It can be thought of as an execution trace. In probabilistic programming, each sample path is associated with a probability of how likely that execution trace is to happen. This probability is the joint probability of a bunch of random decisions made during the execution of the program. Some of this may be related to the actual variables in the model used (such as a latent variable we define), but if there is a random decision made, it will also be joint with the random variable corresponding to that random decision.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">class</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">MonadCond</span> m <span style="color:#66d9ef">where</span>
+   score <span style="color:#f92672">::</span> <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">R</span> <span style="color:#f92672">-&gt;</span> m ()
+</code></pre></div><p>The <code>score</code> function manually updates the probability of a sample path the program is on. For the most part, the probability of each sample path is hard-coded in all the random decisions we make - but the function <code>score</code> acts like an override. When the user calls <code>score</code> midway in a program to update the probability by some specified factor (for example the likelihood that an observed variable y is generated by a latent variable x), they explicitly supply the likelihood resulting from a conditioning operation. This tells the program to update the sample path&rsquo;s associated probability such that during the execution path&rsquo;s hard-coded updating of its probability it is as though the program notices &ldquo;oh, i have some data here to compare to and hence update the sample path&rsquo;s probability appropriately&rdquo;. The fact that <code>score</code> can be called on a double that is calculated by some specific equation is incidental to whatever algorithm, model, or statistical context is implemented in the program.</p>
+<div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="http://min-nguyen.github.io/monad-bayes/pmmh-hmm/" title="Pmmh Hmm"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Pmmh Hmm</a>
+<a class="nav nav-next" href="http://min-nguyen.github.io/benchmarking/" title="Benchmarking">Next - Benchmarking <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>

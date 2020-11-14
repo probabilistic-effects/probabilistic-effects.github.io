@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Monad Bayes Components - My New Hugo Site</title>
+<meta name="generator" content="Hugo 0.78.2" />
+<link href="http://min-nguyen.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="http://min-nguyen.github.io/benchmarking/monad-bayes-components/">
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="http://min-nguyen.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="Monad Bayes Components" />
+<meta property="og:description" content="What constitutes a good benchmark - Concrete components/transformers of interest:
+These are plausible components for benchmarking the performance of individual concrete transformers.
+  SamplerIO
+-- | An &#39;IO&#39; based random sampler using the MWC-Random package. newtype SamplerIO a = SamplerIO (ReaderT GenIO IO a) deriving (Functor, Applicative, Monad, MonadIO)   SamplerST
+-- | An &#39;ST&#39; based random sampler using the MWC-Random package. newtype SamplerST a = SamplerST (forall s." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://min-nguyen.github.io/benchmarking/monad-bayes-components/" />
+<meta property="article:published_time" content="2020-11-13T14:01:54+00:00" />
+<meta property="article:modified_time" content="2020-11-13T14:01:54+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Monad Bayes Components"/>
+<meta name="twitter:description" content="What constitutes a good benchmark - Concrete components/transformers of interest:
+These are plausible components for benchmarking the performance of individual concrete transformers.
+  SamplerIO
+-- | An &#39;IO&#39; based random sampler using the MWC-Random package. newtype SamplerIO a = SamplerIO (ReaderT GenIO IO a) deriving (Functor, Applicative, Monad, MonadIO)   SamplerST
+-- | An &#39;ST&#39; based random sampler using the MWC-Random package. newtype SamplerST a = SamplerST (forall s."/>
+<meta itemprop="name" content="Monad Bayes Components">
+<meta itemprop="description" content="What constitutes a good benchmark - Concrete components/transformers of interest:
+These are plausible components for benchmarking the performance of individual concrete transformers.
+  SamplerIO
+-- | An &#39;IO&#39; based random sampler using the MWC-Random package. newtype SamplerIO a = SamplerIO (ReaderT GenIO IO a) deriving (Functor, Applicative, Monad, MonadIO)   SamplerST
+-- | An &#39;ST&#39; based random sampler using the MWC-Random package. newtype SamplerST a = SamplerST (forall s.">
+<meta itemprop="datePublished" content="2020-11-13T14:01:54+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T14:01:54+00:00" />
+<meta itemprop="wordCount" content="373">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>My New Hugo Site</h1>
+</header>
+
+<div class="content-container">
+<main><h1>Monad Bayes Components</h1>
+<h3 id="what-constitutes-a-good-benchmark">What constitutes a good benchmark</h3>
+<p><strong>- Concrete components/transformers of interest:</strong></p>
+<p>These are plausible components for benchmarking the performance of individual concrete transformers.</p>
+<ul>
+<li>
+<p><strong>SamplerIO</strong></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | An &#39;IO&#39; based random sampler using the MWC-Random package.</span>
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">SamplerIO</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">SamplerIO</span> (<span style="color:#66d9ef">ReaderT</span> <span style="color:#66d9ef">GenIO</span> <span style="color:#66d9ef">IO</span> a)
+   <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadIO</span>)
+</code></pre></div></li>
+<li>
+<p><strong>SamplerST</strong></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | An &#39;ST&#39; based random sampler using the MWC-Random package.</span>
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">SamplerST</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">SamplerST</span> (forall s<span style="color:#f92672">.</span> <span style="color:#66d9ef">ReaderT</span> (<span style="color:#66d9ef">GenST</span> s) (<span style="color:#66d9ef">ST</span> s) a)
+</code></pre></div></li>
+<li>
+<p><strong>Enumerator</strong></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | An exact inference transformer that integrates</span>
+<span style="color:#75715e">--   discrete random variables by enumerating all execution paths.</span>
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Enumerator</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Enumerator</span> (<span style="color:#66d9ef">WriterT</span> (<span style="color:#66d9ef">Product</span> (<span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)) <span style="color:#66d9ef">[]</span> a)
+   <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">Alternative</span>, <span style="color:#66d9ef">MonadPlus</span>)
+</code></pre></div></li>
+<li>
+<p><strong>Weighted</strong></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Execute the program using the prior distribution, while </span>
+<span style="color:#75715e">--   accumulating likelihood. (StateT is more efficient than WriterT).</span>
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Weighted</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">StateT</span> (<span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>) m a)
+   <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadIO</span>, <span style="color:#66d9ef">MonadTrans</span>, <span style="color:#66d9ef">MonadSample</span>)
+</code></pre></div></li>
+<li>
+<p><strong>Population</strong></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | A collection of weighted samples, or particles.</span>
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Population</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Population</span> (<span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">ListT</span> m) a)
+   <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadIO</span>, 
+             <span style="color:#66d9ef">MonadSample</span>, <span style="color:#66d9ef">MonadCond</span>, <span style="color:#66d9ef">MonadInfer</span>)
+</code></pre></div></li>
+<li>
+<p><strong>Sequential</strong></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Represents a computation that can be suspended at certain points.</span>
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Sequential</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Sequential</span> {runSequential <span style="color:#f92672">::</span> <span style="color:#66d9ef">Coroutine</span> (<span style="color:#66d9ef">Await</span> ()) m a}
+   <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadTrans</span>, <span style="color:#66d9ef">MonadIO</span>)
+</code></pre></div></li>
+<li>
+<p><strong>Traced</strong></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | A tracing monad where only a subset of random choices are traced.</span>
+<span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Traced</span> m a
+  <span style="color:#f92672">=</span> <span style="color:#66d9ef">Traced</span>
+      { model <span style="color:#f92672">::</span> <span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">FreeSampler</span> m) a,
+        traceDist <span style="color:#f92672">::</span> m (<span style="color:#66d9ef">Trace</span> a)
+      }
+</code></pre></div></li>
+</ul>
+<p><strong>- Algorithms of interest:</strong></p>
+<ul>
+<li><strong>PMMH</strong>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Particle Marginal Metropolis-Hastings sampling.</span>
+<span style="color:#a6e22e">pmmh</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadInfer</span> m <span style="color:#f92672">=&gt;</span>
+  <span style="color:#75715e">-- | number of Metropolis-Hastings steps</span>
+  <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span>
+  <span style="color:#75715e">-- | number of time steps</span>
+  <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span>
+  <span style="color:#75715e">-- | number of particles</span>
+  <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span>
+  <span style="color:#75715e">-- | model parameters prior</span>
+  <span style="color:#66d9ef">Traced</span> m b <span style="color:#f92672">-&gt;</span>
+  <span style="color:#75715e">-- | model</span>
+  (b <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Sequential</span> (<span style="color:#66d9ef">Population</span> m) a) <span style="color:#f92672">-&gt;</span>
+  m [[(a, <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)]]
+<span style="color:#a6e22e">pmmh</span> t k n param model <span style="color:#f92672">=</span>
+  mh t (param <span style="color:#f92672">&gt;&gt;=</span> runPopulation <span style="color:#f92672">.</span> pushEvidence <span style="color:#f92672">.</span> 
+                  <span style="color:#66d9ef">Pop</span><span style="color:#f92672">.</span>hoist lift <span style="color:#f92672">.</span> smcSystematic k n <span style="color:#f92672">.</span> model)
+</code></pre></div><p>This is a good example of benchmarking for whole inference transformer systems.
+It uses <code>Traced</code>, <code>Sequential</code>, and <code>Population</code> which consists of the <code>Weighted</code> and <code>ListT</code>
+transformers.</p>
+</li>
+</ul>
+<hr>
+<p><strong>Thoughts</strong></p>
+<ul>
+<li>What constitutes the difference in efficiency (if any) between the concrete library implementation and the &ldquo;from-scratch&rdquo; implementations found in the paper?</li>
+</ul>
+<div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="http://min-nguyen.github.io/benchmarking/benchmarking-profiling/" title="Benchmarking Profiling"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Benchmarking Profiling</a>
+<a class="nav nav-next" href="http://min-nguyen.github.io/background/" title="Background">Next - Background <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>

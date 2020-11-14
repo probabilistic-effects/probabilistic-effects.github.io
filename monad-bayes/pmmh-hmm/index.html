@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Pmmh Hmm - My New Hugo Site</title>
+<meta name="generator" content="Hugo 0.78.2" />
+<link href="http://min-nguyen.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="http://min-nguyen.github.io/monad-bayes/pmmh-hmm/">
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="http://min-nguyen.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="Pmmh Hmm" />
+<meta property="og:description" content="Simulating Data We aim to model a HMM and use it to generate data by simulating a sample path.
+First, for simplicity we consider our latent states xi to be integers, and the corresponding observed states yi to also be integers.
+data ObservedState = Obs { obs :: Int } deriving Show data LatentState = Lat { lat :: Int } deriving Show We then choose the parameters of the HMM (i." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://min-nguyen.github.io/monad-bayes/pmmh-hmm/" />
+<meta property="article:published_time" content="2020-11-13T14:04:50+00:00" />
+<meta property="article:modified_time" content="2020-11-13T14:04:50+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Pmmh Hmm"/>
+<meta name="twitter:description" content="Simulating Data We aim to model a HMM and use it to generate data by simulating a sample path.
+First, for simplicity we consider our latent states xi to be integers, and the corresponding observed states yi to also be integers.
+data ObservedState = Obs { obs :: Int } deriving Show data LatentState = Lat { lat :: Int } deriving Show We then choose the parameters of the HMM (i."/>
+<meta itemprop="name" content="Pmmh Hmm">
+<meta itemprop="description" content="Simulating Data We aim to model a HMM and use it to generate data by simulating a sample path.
+First, for simplicity we consider our latent states xi to be integers, and the corresponding observed states yi to also be integers.
+data ObservedState = Obs { obs :: Int } deriving Show data LatentState = Lat { lat :: Int } deriving Show We then choose the parameters of the HMM (i.">
+<meta itemprop="datePublished" content="2020-11-13T14:04:50+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T14:04:50+00:00" />
+<meta itemprop="wordCount" content="1652">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>My New Hugo Site</h1>
+</header>
+
+<div class="content-container">
+<main><h1>Pmmh Hmm</h1>
+<h3 id="simulating-data">Simulating Data</h3>
+<p>We aim to model a HMM and use it to generate data by simulating a sample path.</p>
+<p><strong>First</strong>, for simplicity we consider our latent states <strong>x<!-- raw HTML omitted -->i<!-- raw HTML omitted --></strong> to be integers, and the corresponding observed states <strong>y<!-- raw HTML omitted -->i<!-- raw HTML omitted --></strong> to also be integers.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">ObservedState</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">Obs</span> { obs <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span> } <span style="color:#66d9ef">deriving</span> <span style="color:#66d9ef">Show</span>
+<span style="color:#66d9ef">data</span> <span style="color:#66d9ef">LatentState</span>   <span style="color:#f92672">=</span> <span style="color:#66d9ef">Lat</span> { lat <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span> } <span style="color:#66d9ef">deriving</span> <span style="color:#66d9ef">Show</span>
+</code></pre></div><p>We then choose the parameters of the HMM (i.e. those which parameterise the transition and observation functions) to consist of two doubles - one parameterising each function.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Params</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">Params</span> {
+   transition_p  <span style="color:#f92672">::</span> <span style="color:#66d9ef">Double</span>
+   observation_p <span style="color:#f92672">::</span> <span style="color:#66d9ef">Double</span>
+}
+</code></pre></div><p><strong>Next</strong> we define the observation function and transition function. They can be defined in many different ways - there is no typical choice of algorithm.</p>
+<p>Here we choose the observation function to sample from a binomial distribution <strong>B(n, p)</strong> using the latent state as <strong>n</strong> and the observation parameter as <strong>p</strong>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">observationModel</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadSample</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Params</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">LatentState</span> <span style="color:#f92672">-&gt;</span> m <span style="color:#66d9ef">ObservedState</span>
+<span style="color:#a6e22e">observationModel</span> (<span style="color:#66d9ef">Params</span> <span style="color:#66d9ef">_</span> observation_p) (<span style="color:#66d9ef">Lat</span> l) <span style="color:#f92672">=</span>
+   fmap <span style="color:#66d9ef">Obs</span> (binomial l observation_p)
+</code></pre></div><p>We choose the transition function to first compute the value <code>dL</code> by sampling from a bernoulli distribution <strong>Ber(p)</strong> using the transition parameter as <strong>p</strong>. The new latent state is then computed by adding <code>dL</code> to the current latent state <code>l</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">transitionModel</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadSample</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Params</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">LatentState</span> <span style="color:#f92672">-&gt;</span> m <span style="color:#66d9ef">LatentState</span>
+<span style="color:#a6e22e">transitionModel</span> (<span style="color:#66d9ef">Params</span> transition_p <span style="color:#66d9ef">_</span>) (<span style="color:#66d9ef">Lat</span> l) <span style="color:#f92672">=</span>
+  <span style="color:#66d9ef">do</span>
+    dI <span style="color:#f92672">&lt;-</span> fmap boolToInt <span style="color:#f92672">$</span> bernoulli transition_p
+    <span style="color:#66d9ef">let</span> l&#39; <span style="color:#f92672">=</span> l <span style="color:#f92672">+</span> dL
+    return (<span style="color:#66d9ef">Lat</span> l&#39;)
+</code></pre></div><p><strong>Finally</strong>, we define how a step in the HMM is simulated. A step consists of transitioning the current latent state to a new latent state, and then using this to acquire the corresponding new observed state. By using the <code>MonadState</code> constraint with the type <code>[ObservedState]</code> as the state, we can also accumulate all the observed states along the sample path.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">simulateStep</span> <span style="color:#f92672">::</span> (<span style="color:#66d9ef">MonadSample</span> m, <span style="color:#66d9ef">MonadState</span> [<span style="color:#66d9ef">ObservedState</span>] m)
+  <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Params</span>
+  <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">LatentState</span>
+  <span style="color:#f92672">-&gt;</span> m <span style="color:#66d9ef">LatentState</span>
+<span style="color:#a6e22e">simulateStep</span> params latentState <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+  l&#39; <span style="color:#f92672">&lt;-</span> transitionModel params latentState
+  o  <span style="color:#f92672">&lt;-</span> observationModel params l&#39;
+  modify (<span style="color:#f92672">++</span> [o])
+  return l&#39;
+</code></pre></div><p>Simulating n steps in a HMM means that we simulate n state transitions and observations. This requires that we give an initial latent state and a set of parameters for the HMM.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">repeatFunction</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> m a) <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> m a)
+<span style="color:#a6e22e">repeatFunction</span> n f <span style="color:#f92672">=</span> foldl (<span style="color:#f92672">&gt;=&gt;</span>) return (replicate n f)
+
+
+<span style="color:#a6e22e">simulateModelNSteps</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadSample</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">LatentState</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Params</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> m [<span style="color:#66d9ef">ObservedState</span>]
+<span style="color:#a6e22e">simulateModelNSteps</span> initialState params nsteps <span style="color:#f92672">=</span>
+  execStateT (repeatFunction nsteps (simulateStep params) initialState) <span style="color:#66d9ef">[]</span>
+</code></pre></div><p>Executing this to generate data simply consists of calling <code>sampleIO</code> on <code>simulateModelNSteps</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">generateData</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">LatentState</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Params</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> [<span style="color:#66d9ef">ObservedState</span>]
+<span style="color:#a6e22e">generateData</span> initialState params nsteps <span style="color:#f92672">=</span>
+  sampleIO <span style="color:#f92672">$</span> simulateModelNSteps initialState params nsteps
+</code></pre></div><hr>
+<h3 id="inference">Inference</h3>
+<p>We aim to use PMMH as an inference method in order to learn the model parameters of a HMM.</p>
+<p><strong>First</strong>, we create a function <code>scoreModel</code> which is similar to <code>simulateStep</code> - but rather than simulating and accumulating a list of observed states, we instead &ldquo;score&rdquo; which updates the probability of the sample path we&rsquo;re on. We intend for this function to return a distribution over all possible sample paths the program takes, parameterised by the parameters we provide.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">scoreModel</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadInfer</span> m
+   <span style="color:#f92672">=&gt;</span> [<span style="color:#66d9ef">ObservedState</span>]
+   <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">LatentState</span>
+   <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Params</span>
+   <span style="color:#f92672">-&gt;</span> m <span style="color:#66d9ef">Params</span>
+<span style="color:#a6e22e">scoreModel</span> observedStates latentState params
+   <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+       <span style="color:#66d9ef">let</span> observe n p y <span style="color:#f92672">=</span> score (binomialPdf n p y)
+           go <span style="color:#66d9ef">[]</span>     x <span style="color:#f92672">=</span> return x
+           go (y<span style="color:#66d9ef">:</span>ys) x <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span> x&#39; <span style="color:#f92672">&lt;-</span> transitionModel params x
+                            observe x&#39; ((fromIntegral <span style="color:#f92672">$</span> getLat x&#39;) <span style="color:#f92672">*</span> (observation_p params)) y
+                            go ys x&#39;
+
+       (go <span style="color:#f92672">$!</span> (map getObs observedStates)) <span style="color:#f92672">$!</span> latentState
+
+       return params
+</code></pre></div><ol>
+<li>
+<p>As input, we are given some model parameters for the HMM, an initial latent state, and a data set consisting of a sequence of observed states.</p>
+</li>
+<li>
+<p>We transition the current latent state <code>x</code> to a new latent state <code>x'</code>.</p>
+</li>
+<li>
+<p>Then we use score to update the probability of the sample path we&rsquo;re on. This multiplies the current probability by a specified factor - we choose this factor to be determined by the binomial probability density function, <code>binomialPdf</code>. Whereas the function <code>binomial</code> lets us draw a random sample from its distribution, the function <code>binomialPdf</code> tells us how likely we are to draw a certain sample given some certain parameters/variables.</p>
+<p>If our new latent state is <code>x'</code> and the observed state is <code>y</code>, we score our sample path by a factor of &ldquo;how likely we are to observe <code>y</code> given the latent state <code>x'</code>&rdquo;, where the binomial pdf parameter <strong>p</strong> is given by some arbitrary computation <code>(fromIntegral $ getLat x') * (observation_p params)</code>. Why this specific choice of factor is used is simply incidental to how the HMM works.</p>
+</li>
+<li>
+<p>We repeat this process for all of the observed data, transitioning the current latent state and scoring based on the new latent state and its corresponding observed state.</p>
+</li>
+<li>
+<p>At the end, the function produces all the sample paths executed during the program, along with their associated probabilities, and the parameters we used which produced all these sample paths. Hence, this returns a distribution over all sample paths which is parameterised by the parameters we provided.</p>
+</li>
+</ol>
+<p><strong>Next</strong>, we use PMMH as an inference method to learn the parameters of a HMM. This should return a distribution over all the possible parameters of our HMM.</p>
+<p>The monad-bayes function <code>pmmh</code> is given below. Typically, the type variables <code>b</code> and <code>a</code> are both <code>Params</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Particle Marginal Metropolis-Hastings sampling.</span>
+<span style="color:#a6e22e">pmmh</span> <span style="color:#f92672">::</span>  <span style="color:#66d9ef">MonadInfer</span> m <span style="color:#f92672">=&gt;</span>
+  <span style="color:#75715e">-- | number of Metropolis-Hastings steps</span>
+  <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span>
+  <span style="color:#75715e">-- | number of time steps (should be same as number of data points we&#39;re processing)</span>
+  <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span>
+  <span style="color:#75715e">-- | number of particles</span>
+  <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span>
+  <span style="color:#75715e">-- | model parameters prior</span>
+  <span style="color:#66d9ef">Traced</span> m b <span style="color:#f92672">-&gt;</span>
+  <span style="color:#75715e">-- | model</span>
+  (b <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Sequential</span> (<span style="color:#66d9ef">Population</span> m) a) <span style="color:#f92672">-&gt;</span>
+  <span style="color:#75715e">-- | [[(model parameters, the likelihood of the particular parameter values)]]</span>
+  m [[(a, <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)]]
+<span style="color:#a6e22e">pmmh</span> t k n param model <span style="color:#f92672">=</span>
+</code></pre></div><p>To perform inference, we elaborate on the parameters we need to provide <code>pmmh</code>.</p>
+<ol>
+<li>
+<p>The first three parameters are simply integers, specific to how PMMH works.</p>
+</li>
+<li>
+<p>The type <code>Traced m b</code> is the prior distribution over our model&rsquo;s parameters, where b represents parameters. We can declare this like so:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">paramsPrior</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadSample</span> m <span style="color:#f92672">=&gt;</span> m <span style="color:#66d9ef">Params</span>
+<span style="color:#a6e22e">paramsPrior</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+  p_transition  <span style="color:#f92672">&lt;-</span> <span style="color:#66d9ef">Control</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Monad</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Bayes</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Class</span><span style="color:#f92672">.</span>gamma <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">1</span>
+  p_observation <span style="color:#f92672">&lt;-</span> <span style="color:#66d9ef">Control</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Monad</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Bayes</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Class</span><span style="color:#f92672">.</span>beta <span style="color:#ae81ff">2.0</span> <span style="color:#ae81ff">7.0</span>
+  return (<span style="color:#66d9ef">Params</span> p_transition p_observation)
+</code></pre></div></li>
+<li>
+<p>The type <code>(b -&gt; Sequential (Population m) a)</code> is a function which takes some parameters <code>b</code>, and returns a model which is a distribution over all sample paths using those parameters. For this, we use our previous function <code>scoreModel :: MonadInfer m =&gt; [ObservedState] -&gt; LatentState -&gt; Params -&gt; m Params</code> and partially apply it.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">initialLatState</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">LatentState</span>
+<span style="color:#a6e22e">initialLatState</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">LatentState</span> <span style="color:#ae81ff">0</span>
+
+<span style="color:#a6e22e">scoreModel</span> obsData initialLatState <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadInfer</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Params</span> <span style="color:#f92672">-&gt;</span> m <span style="color:#66d9ef">Params</span>
+</code></pre></div></li>
+<li>
+<p>The return type <code>m [[(a, Log Double)]]</code> represents a distribution over all possible parameters for our model. The type <code>a</code> represents parameters and <code>Log Double</code> represents the corresponding likelihood of those parameters for our model. More precisely, it returns the history of all the particles and their associated probabilities/weightings for each step during Metropolis-Hastings.</p>
+</li>
+</ol>
+<p><strong>Finally</strong>, we can put all this together to create a function <code>testInference</code> which uses <code>pmmh</code> on our HMM.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">testInference</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> [[(<span style="color:#66d9ef">Params</span>, <span style="color:#66d9ef">Numeric</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Log</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)]]
+<span style="color:#a6e22e">testInference</span> nsteps nparticles <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+    ys <span style="color:#f92672">&lt;-</span> parseFromFile dataParser <span style="color:#e6db74">&#34;data/datafile&#34;</span>
+    <span style="color:#66d9ef">case</span> ys <span style="color:#66d9ef">of</span>
+      (<span style="color:#66d9ef">Left</span> <span style="color:#66d9ef">_</span>)    <span style="color:#f92672">-&gt;</span> <span style="color:#a6e22e">error</span> <span style="color:#e6db74">&#34;naughty&#34;</span>
+      (<span style="color:#66d9ef">Right</span> obsData) <span style="color:#f92672">-&gt;</span> sampleIO <span style="color:#f92672">$</span> <span style="color:#66d9ef">do</span>
+              pmmhRes <span style="color:#f92672">&lt;-</span> prior <span style="color:#f92672">$</span> pmmh nsteps <span style="color:#ae81ff">14</span> nparticles paramsPrior 
+                                      (scoreModel obsData initialLatState)
+              return pmmhRes
+</code></pre></div><ol>
+<li>
+<p>Running <code>pmmh</code> on our HMM returns a value of type:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">pmmh</span> nsteps <span style="color:#ae81ff">14</span> nparticles paramsPrior (scoreModel obsData initialLatState) 
+   <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadInfer</span> m <span style="color:#f92672">=&gt;</span> m [[(<span style="color:#66d9ef">Params</span>, <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)]]
+</code></pre></div></li>
+<li>
+<p>Applying the monad-bayes function <code>prior</code> to an inference representation will execute the program (with <code>runStateT</code>) and return us a value from the distribution over values of type <code>a</code>. (This could be imagined as turning the inference representation into a prior distribution from which we can sample parameters from.)</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Compute the sample and discard the weight.</span>
+<span style="color:#75715e">-- This operation introduces bias.</span>
+<span style="color:#a6e22e">prior</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Functor</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Weighted</span> m a <span style="color:#f92672">-&gt;</span> m a
+<span style="color:#a6e22e">prior</span> <span style="color:#f92672">=</span> fmap fst <span style="color:#f92672">.</span> runWeighted
+</code></pre></div><blockquote>
+<p>(Applying the monad-bayes function <code>runWeighted</code> to an inference representation will unwrap its <code>Weighted</code> newtype constructor and execute the program (with <code>runStateT</code>) using the prior distribution, while accumulating likelihood. This returns a value from a distribution and its likelihood.)</p>
+</blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Obtain an explicit value of the likelihood for a given value.</span>
+<span style="color:#a6e22e">runWeighted</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Weighted</span> m a <span style="color:#f92672">-&gt;</span> m (a, <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)
+<span style="color:#a6e22e">runWeighted</span> (<span style="color:#66d9ef">Weighted</span> m) <span style="color:#f92672">=</span> runStateT m <span style="color:#ae81ff">1</span>
+</code></pre></div><p>In this context however, using <code>prior</code> on <code>pmmh</code> will return us parameters in the form of the history of all the particles and their associated probabilities/weightings for each step during Metropolis-Hastings (for some confusing reason).</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">prior</span> <span style="color:#f92672">$</span> pmmh nsteps <span style="color:#ae81ff">14</span> nparticles paramsPrior (scoreModel obsData initialLatState) 
+   <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadSample</span> m <span style="color:#f92672">=&gt;</span> m [[(<span style="color:#66d9ef">Params</span>, <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)]]
+</code></pre></div></li>
+</ol>
+<hr>
+<p><strong>PMMH Explanation</strong></p>
+<p>PMMH uses Metropolis-Hastings (an iteration of generating candidate parameters for proposal distributions and accepting or rejecting), but rather than using the likelihood function to compute the likelihood <strong>P(D | θ)</strong> for the accept/reject step:</p>
+<blockquote>
+<p><strong>P(acceptance) = (P(θ<!-- raw HTML omitted -->t+1<!-- raw HTML omitted -->) * P(D | θ<!-- raw HTML omitted -->t+1<!-- raw HTML omitted -->)) / (P(θ<!-- raw HTML omitted -->t<!-- raw HTML omitted -->) * P(D | θ<!-- raw HTML omitted -->t<!-- raw HTML omitted -->))</strong></p>
+</blockquote>
+<p>we instead use a particle filter to estimate the likelihood of the data given the parameter generated by the proposal. The particle filter uses the model that we&rsquo;re trying to learn parameters for, by running it during the particle filter process. As the particle filter is simulated, every step that the particles are transitioned, they are compared to the next corresponding data point (observed state) of the HMM. The particles represent a set of possible latent states, and each transition of these particles represents a transition of latent state in the HMM - the likelihood/weightings of the particles are changed appropriately to how well they relate to the current step&rsquo;s corresponding observed state (provided beforehand as a data set/list of observed states).</p>
+<div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="http://min-nguyen.github.io/monad-bayes/inference-transformers/" title="Inference Transformers"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Inference Transformers</a>
+<a class="nav nav-next" href="http://min-nguyen.github.io/monad-bayes/conditioning-scoring/" title="Conditioning Scoring">Next - Conditioning Scoring <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>

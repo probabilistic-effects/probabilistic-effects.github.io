@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Benchmarking on My New Hugo Site</title>
+    <link>http://min-nguyen.github.io/benchmarking/</link>
+    <description>Recent content in Benchmarking on My New Hugo Site</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 13 Nov 2020 13:49:05 +0000</lastBuildDate><atom:link href="http://min-nguyen.github.io/benchmarking/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Benchmarking Profiling</title>
+      <link>http://min-nguyen.github.io/benchmarking/benchmarking-profiling/</link>
+      <pubDate>Fri, 13 Nov 2020 14:02:28 +0000</pubDate>
+      
+      <guid>http://min-nguyen.github.io/benchmarking/benchmarking-profiling/</guid>
+      <description>Benchmarking With Criterion &amp;amp; Stack   The benchmark program we intend to profile needs to have a function which takes one argument (influencing the computational effort of executing the program) - this is the function we directly call for profiling.
+This should be under the test directory, e.g. test/BenchmarkProgram.hs which contains a function:
+testPmmh :: Int -&amp;gt; IO () testPmmh nsteps = do observedStates &amp;lt;- generateData initLatentState initParams nsteps print observedStates   The program that calls the profiling functions should ideally be test/Spec.</description>
+    </item>
+    
+    <item>
+      <title>Monad Bayes Components</title>
+      <link>http://min-nguyen.github.io/benchmarking/monad-bayes-components/</link>
+      <pubDate>Fri, 13 Nov 2020 14:01:54 +0000</pubDate>
+      
+      <guid>http://min-nguyen.github.io/benchmarking/monad-bayes-components/</guid>
+      <description>What constitutes a good benchmark - Concrete components/transformers of interest:
+These are plausible components for benchmarking the performance of individual concrete transformers.
+  SamplerIO
+-- | An &amp;#39;IO&amp;#39; based random sampler using the MWC-Random package. newtype SamplerIO a = SamplerIO (ReaderT GenIO IO a) deriving (Functor, Applicative, Monad, MonadIO)   SamplerST
+-- | An &amp;#39;ST&amp;#39; based random sampler using the MWC-Random package. newtype SamplerST a = SamplerST (forall s.</description>
+    </item>
+    
+  </channel>
+</rss>

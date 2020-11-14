@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Inference Transformers - My New Hugo Site</title>
+<meta name="generator" content="Hugo 0.78.2" />
+<link href="http://min-nguyen.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="http://min-nguyen.github.io/monad-bayes/inference-transformers/">
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="http://min-nguyen.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="Inference Transformers" />
+<meta property="og:description" content="Inference Representation Type Classes type R = Double class Monad m =&gt; MonadSample m where random :: m R bernoulli :: R -&gt; m Bool bernoulli p = fmap ( &lt; p ) random -- and other default distributions : -- normal , gamma , beta , geometric , -- poisson , dirichlet class Monad m ⇒ MonadCond m where score :: Log R -&gt; m () class ( MonadSample m , MonadCond m ) =&gt; MonadInfer m  Sampler This inference transformer is a sampler that draws concrete values for random variables from the prior." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://min-nguyen.github.io/monad-bayes/inference-transformers/" />
+<meta property="article:published_time" content="2020-11-13T14:04:56+00:00" />
+<meta property="article:modified_time" content="2020-11-13T14:04:56+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Inference Transformers"/>
+<meta name="twitter:description" content="Inference Representation Type Classes type R = Double class Monad m =&gt; MonadSample m where random :: m R bernoulli :: R -&gt; m Bool bernoulli p = fmap ( &lt; p ) random -- and other default distributions : -- normal , gamma , beta , geometric , -- poisson , dirichlet class Monad m ⇒ MonadCond m where score :: Log R -&gt; m () class ( MonadSample m , MonadCond m ) =&gt; MonadInfer m  Sampler This inference transformer is a sampler that draws concrete values for random variables from the prior."/>
+<meta itemprop="name" content="Inference Transformers">
+<meta itemprop="description" content="Inference Representation Type Classes type R = Double class Monad m =&gt; MonadSample m where random :: m R bernoulli :: R -&gt; m Bool bernoulli p = fmap ( &lt; p ) random -- and other default distributions : -- normal , gamma , beta , geometric , -- poisson , dirichlet class Monad m ⇒ MonadCond m where score :: Log R -&gt; m () class ( MonadSample m , MonadCond m ) =&gt; MonadInfer m  Sampler This inference transformer is a sampler that draws concrete values for random variables from the prior.">
+<meta itemprop="datePublished" content="2020-11-13T14:04:56+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T14:04:56+00:00" />
+<meta itemprop="wordCount" content="1203">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>My New Hugo Site</h1>
+</header>
+
+<div class="content-container">
+<main><h1>Inference Transformers</h1>
+<h2 id="inference-representation-type-classes">Inference Representation Type Classes</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">type</span> <span style="color:#66d9ef">R</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">Double</span>
+
+<span style="color:#66d9ef">class</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">MonadSample</span> m <span style="color:#66d9ef">where</span>
+   random <span style="color:#f92672">::</span> m <span style="color:#66d9ef">R</span>
+   bernoulli <span style="color:#f92672">::</span> <span style="color:#66d9ef">R</span> <span style="color:#f92672">-&gt;</span> m <span style="color:#66d9ef">Bool</span>
+   bernoulli p <span style="color:#f92672">=</span> fmap ( <span style="color:#f92672">&lt;</span> p ) random
+   <span style="color:#75715e">-- and other default distributions :</span>
+   <span style="color:#75715e">-- normal , gamma , beta , geometric ,</span>
+   <span style="color:#75715e">-- poisson , dirichlet</span>
+
+<span style="color:#66d9ef">class</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#960050;background-color:#1e0010">⇒</span> <span style="color:#66d9ef">MonadCond</span> m <span style="color:#66d9ef">where</span>
+   score <span style="color:#f92672">::</span> <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">R</span> <span style="color:#f92672">-&gt;</span> m ()
+
+<span style="color:#66d9ef">class</span> ( <span style="color:#66d9ef">MonadSample</span> m , <span style="color:#66d9ef">MonadCond</span> m ) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">MonadInfer</span> m
+</code></pre></div><hr>
+<h2 id="sampler">Sampler</h2>
+<p>This inference transformer is a sampler that draws concrete values for random variables from the
+prior. Such a sampler type can be constructed as a state monad that references a global
+pseudo-random number generator.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Sampler</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Sampler</span> ( forall s <span style="color:#f92672">.</span> <span style="color:#66d9ef">ReaderT</span> ( <span style="color:#66d9ef">GenST</span> s ) ( <span style="color:#66d9ef">ST</span> s ) a )
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">MonadSample</span> <span style="color:#66d9ef">Sampler</span> <span style="color:#66d9ef">where</span>
+   random <span style="color:#f92672">=</span> <span style="color:#66d9ef">Sampler</span> <span style="color:#f92672">$</span> <span style="color:#66d9ef">do</span>
+   gen <span style="color:#960050;background-color:#1e0010">←</span> ask
+   lift ( <span style="color:#66d9ef">MWC</span> <span style="color:#f92672">.</span> uniform gen )
+</code></pre></div><p><strong>ReaderT</strong></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">ReaderT</span> r m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">ReaderT</span> { runReaderT <span style="color:#f92672">::</span> r <span style="color:#f92672">-&gt;</span> m a }
+
+<span style="color:#66d9ef">instance</span> (<span style="color:#66d9ef">Monad</span> m) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">ReaderT</span> r m) <span style="color:#66d9ef">where</span>
+    return   <span style="color:#f92672">=</span> lift <span style="color:#f92672">.</span> return
+    m <span style="color:#f92672">&gt;&gt;=</span> k  <span style="color:#f92672">=</span> <span style="color:#66d9ef">ReaderT</span> <span style="color:#f92672">$</span> <span style="color:#a6e22e">\</span> r <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">do</span>
+        a <span style="color:#f92672">&lt;-</span> runReaderT m r
+        runReaderT (k a) r
+</code></pre></div><ul>
+<li>r = resource from the environment</li>
+<li>m = the resulting monad</li>
+<li>a = value returned in the monad</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">ask</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">ReaderT</span> r m r
+</code></pre></div><p><code>ask</code> - to retrieve the supplied resource</p>
+<hr>
+<h2 id="weighting">Weighting</h2>
+<p>This is the weighting inference transformer <code>W</code>. (Theoretically it is the writer monad transformer for the monoid structure on <code>Log R</code>, but the state monad transformer was apparently found to be much faster.)</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">W</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">W</span> ( <span style="color:#66d9ef">StateT</span> ( <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">R</span> ) m a )
+
+<span style="color:#a6e22e">runW</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#960050;background-color:#1e0010">⇒</span> <span style="color:#66d9ef">W</span> m a <span style="color:#960050;background-color:#1e0010">→</span> m (a , <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">R</span> )
+<span style="color:#a6e22e">runW</span> ( <span style="color:#66d9ef">W</span> x ) <span style="color:#f92672">=</span> runStateT x <span style="color:#ae81ff">1</span>
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">MonadSample</span> m <span style="color:#960050;background-color:#1e0010">⇒</span> <span style="color:#66d9ef">MonadSample</span> ( <span style="color:#66d9ef">W</span> m ) <span style="color:#66d9ef">where</span>
+   random <span style="color:#f92672">=</span> lift <span style="color:#f92672">.</span> random
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#960050;background-color:#1e0010">⇒</span> <span style="color:#66d9ef">MonadCond</span> ( <span style="color:#66d9ef">W</span> m ) <span style="color:#66d9ef">where</span>
+   score w <span style="color:#f92672">=</span> <span style="color:#66d9ef">W</span> ( modify (<span style="color:#f92672">*</span> w ))
+
+<span style="color:#a6e22e">hoistW</span> <span style="color:#f92672">::</span> ( forall x <span style="color:#f92672">.</span> m x <span style="color:#960050;background-color:#1e0010">→</span> n x ) <span style="color:#960050;background-color:#1e0010">→</span> <span style="color:#66d9ef">W</span> m a <span style="color:#960050;background-color:#1e0010">→</span> <span style="color:#66d9ef">W</span> n a
+<span style="color:#a6e22e">hoistW</span> f ( <span style="color:#66d9ef">W</span> m ) <span style="color:#f92672">=</span> <span style="color:#66d9ef">W</span> ( mapStateT f m )
+</code></pre></div><p><code>W m a</code> is an <code>m</code>-computation returning pairs <code>(a, Log R)</code>, which are the result type and the accumulated log-likelihood. Weighting a representation <code>m</code> equips it with conditioning operation making <code>W m a</code> conditioning representation by allowing us to use the function <code>score</code>.</p>
+<p>The function <code>hoist</code> lifts inference transformations applicable to <code>m</code> and turns them into inference transformations applicable to <code>T m</code>.</p>
+<p><strong>StateT</strong></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">StateT</span> s m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> { runStateT <span style="color:#f92672">::</span> s <span style="color:#f92672">-&gt;</span> m (a,s) }
+
+<span style="color:#66d9ef">instance</span> (<span style="color:#66d9ef">Monad</span> m) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">StateT</span> s m) <span style="color:#66d9ef">where</span>
+    return a <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> <span style="color:#f92672">$</span> <span style="color:#a6e22e">\</span> s <span style="color:#f92672">-&gt;</span> return (a, s)
+    m <span style="color:#f92672">&gt;&gt;=</span> k  <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> <span style="color:#f92672">$</span> <span style="color:#a6e22e">\</span> s <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">do</span>
+        <span style="color:#f92672">~</span>(a, s&#39;) <span style="color:#f92672">&lt;-</span> runStateT m s
+        runStateT (k a) s&#39;
+</code></pre></div><ul>
+<li>s = the state</li>
+<li>m = the inner monad</li>
+<li>a = value returned in the monad</li>
+</ul>
+<hr>
+<h2 id="population">Population</h2>
+<p>The <code>Pop</code> inference transformer turns a single sample into a collection of weighted samples, called the population. It is the weighted list transformer, i.e. the composition of <code>W</code> with the <code>ListT</code> transformer.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Pop</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Pop</span> ( <span style="color:#66d9ef">W</span> ( <span style="color:#66d9ef">ListT</span> m ) a )
+   <span style="color:#66d9ef">deriving</span> ( <span style="color:#66d9ef">Monad</span> , <span style="color:#66d9ef">MonadSample</span> , <span style="color:#66d9ef">MonadCond</span> , <span style="color:#66d9ef">MonadInfer</span> )
+
+<span style="color:#a6e22e">runPopulation</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#960050;background-color:#1e0010">⇒</span> <span style="color:#66d9ef">Pop</span> m a <span style="color:#960050;background-color:#1e0010">→</span> m [a , <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">R</span> ]
+<span style="color:#a6e22e">runPopulation</span> ( <span style="color:#66d9ef">Pop</span> p ) <span style="color:#f92672">=</span> runListT ( runW p )
+
+<span style="color:#a6e22e">hoistP</span> <span style="color:#f92672">::</span> ( forall x <span style="color:#f92672">.</span> m x <span style="color:#960050;background-color:#1e0010">→</span> n x ) <span style="color:#960050;background-color:#1e0010">→</span> <span style="color:#66d9ef">Pop</span> m a <span style="color:#960050;background-color:#1e0010">→</span> <span style="color:#66d9ef">Pop</span> n a
+<span style="color:#a6e22e">hoistP</span> f ( <span style="color:#66d9ef">Pop</span> m ) <span style="color:#f92672">=</span> <span style="color:#66d9ef">Pop</span> ( hoistW ( mapListT f ) m )
+</code></pre></div><p>There are three inference transformations associated with the <code>Pop</code> inference transformer.</p>
+<p>Calling <code>spawn n &gt;&gt;</code> increases the population size <code>n</code> times, adjusting the weights accordingly.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">spawn</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Pop</span> m ()
+</code></pre></div><p>Calling <code>resample</code> draws a new population with uniform weights from the current population.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">resample</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadSample</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Pop</span> m a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Pop</span> m a
+</code></pre></div><p>Calling <code>pushEvidence</code> normalises the weights in the population, while simultaneously incorporating the sum of the weights as a <code>score</code> in <code>m</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">pushEvidence</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadInfer</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Pop</span> m a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Pop</span> m a
+</code></pre></div><p><strong>ListT</strong></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">ListT</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">ListT</span> { next <span style="color:#f92672">::</span> m (<span style="color:#66d9ef">Step</span> m a) }
+    <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Foldable</span>, <span style="color:#66d9ef">Traversable</span>)
+
+<span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Step</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Cons</span> a (<span style="color:#66d9ef">ListT</span> m a) <span style="color:#f92672">|</span> <span style="color:#66d9ef">Nil</span>
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">ListT</span> m) <span style="color:#66d9ef">where</span>
+    return <span style="color:#f92672">=</span> pure
+    <span style="color:#66d9ef">ListT</span> m <span style="color:#f92672">&gt;&gt;=</span> k <span style="color:#f92672">=</span> <span style="color:#66d9ef">ListT</span> (<span style="color:#66d9ef">do</span>
+        s <span style="color:#f92672">&lt;-</span> m
+        <span style="color:#66d9ef">case</span> s <span style="color:#66d9ef">of</span>
+            <span style="color:#66d9ef">Nil</span>       <span style="color:#f92672">-&gt;</span> return <span style="color:#66d9ef">Nil</span>
+            <span style="color:#66d9ef">Cons</span> x l&#39; <span style="color:#f92672">-&gt;</span> next (k x <span style="color:#f92672">&lt;|&gt;</span> (l&#39; <span style="color:#f92672">&gt;&gt;=</span> k)) )
+</code></pre></div><hr>
+<h2 id="sequential">Sequential</h2>
+<p>Many models exhibit a sequential structure where observations are interleaved with sampling.
+In those models a possible inference strategy is to consider a program up to a certain
+point, do inference on the partial posterior it defines, then run the program a little more,
+do more inference, and so on.</p>
+<p>The sequential transformer <code>Seq</code> represents a computation that can be suspended at certain points, by introducing suspensions after each <code>score</code> in the program. <code>Seq</code> is the standard coroutine transformer.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Seq</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Seq</span> {runSeq <span style="color:#f92672">::</span> <span style="color:#66d9ef">Coroutine</span> (<span style="color:#66d9ef">Await</span> ()) m a}
+   <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadTrans</span>, <span style="color:#66d9ef">MonadIO</span>)
+
+<span style="color:#75715e">-- | A point where the computation is paused.</span>
+<span style="color:#a6e22e">suspend</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Sequential</span> m ()
+<span style="color:#a6e22e">suspend</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">Sequential</span> await
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">MonadSample</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">MonadSample</span> (<span style="color:#66d9ef">Sequential</span> m) <span style="color:#66d9ef">where</span>
+  random <span style="color:#f92672">=</span> lift random
+  bernoulli <span style="color:#f92672">=</span> lift <span style="color:#f92672">.</span> bernoulli
+  categorical <span style="color:#f92672">=</span> lift <span style="color:#f92672">.</span> categorical
+
+<span style="color:#75715e">-- | Execution is &#39;suspend&#39;ed after each &#39;score&#39;.</span>
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">MonadCond</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">MonadCond</span> (<span style="color:#66d9ef">Sequential</span> m) <span style="color:#66d9ef">where</span>
+  score w <span style="color:#f92672">=</span> lift (score w) <span style="color:#f92672">&gt;&gt;</span> suspend
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">MonadInfer</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">MonadInfer</span> (<span style="color:#66d9ef">Sequential</span> m)
+</code></pre></div><p>The <code>hoistS</code> function applies the inference transformation only to the part of the program executed so far (i.e. it transforms the inner monad). The transformation is applied recursively through all the suspension points.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">hoistS</span> <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Monad</span> m, <span style="color:#66d9ef">Monad</span> n) <span style="color:#f92672">=&gt;</span> (forall x<span style="color:#f92672">.</span> m x <span style="color:#f92672">-&gt;</span> n x) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Sequential</span> m a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Sequential</span> n a
+<span style="color:#a6e22e">hoistS</span> f <span style="color:#f92672">=</span> <span style="color:#66d9ef">Sequential</span> <span style="color:#f92672">.</span> mapMonad f <span style="color:#f92672">.</span> runSequential
+</code></pre></div><p>We have two inference transformations associated with <code>Seq</code>:</p>
+<p>The <code>advance</code> transformation runs the program to the next suspension point.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">advance</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Sequential</span> m a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Sequential</span> m a
+<span style="color:#a6e22e">advance</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">Sequential</span> <span style="color:#f92672">.</span> bounce extract <span style="color:#f92672">.</span> runSequential
+</code></pre></div><p>The finish transformation runs the program to the end.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Remove the remaining suspension points.</span>
+<span style="color:#a6e22e">finish</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Sequential</span> m a <span style="color:#f92672">-&gt;</span> m a
+<span style="color:#a6e22e">finish</span> <span style="color:#f92672">=</span> pogoStick extract <span style="color:#f92672">.</span> runSequential
+</code></pre></div><p><strong>Coroutine</strong></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- Suspending, resumable monadic computations.</span>
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Coroutine</span> s m r <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> {
+   <span style="color:#75715e">-- | Run the next step of a `Coroutine` computation. The result of the </span>
+   <span style="color:#75715e">-- | step execution will be either a suspension or the final coroutine result.</span>
+   resume <span style="color:#f92672">::</span> m (<span style="color:#66d9ef">Either</span> (s (<span style="color:#66d9ef">Coroutine</span> s m r)) r)
+   }
+</code></pre></div><hr>
+<h3 id="traced">Traced</h3>
+<p>The traced transformer supports a class of algorithms called Trace MCMC - this is a variant of Metropolis Hastings that aims to make it more automatic in some sense. In normal Metropolis Hastings you have to create a proposal whereas trace MCMC gets around the need for a proposal.</p>
+<div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="http://min-nguyen.github.io/monad-bayes/" title="Monad Bayes"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Monad Bayes</a>
+<a class="nav nav-next" href="http://min-nguyen.github.io/monad-bayes/pmmh-hmm/" title="Pmmh Hmm">Next - Pmmh Hmm <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>

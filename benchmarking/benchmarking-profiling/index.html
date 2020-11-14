@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Benchmarking Profiling - My New Hugo Site</title>
+<meta name="generator" content="Hugo 0.78.2" />
+<link href="http://min-nguyen.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="http://min-nguyen.github.io/benchmarking/benchmarking-profiling/">
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="http://min-nguyen.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="Benchmarking Profiling" />
+<meta property="og:description" content="Benchmarking With Criterion &amp; Stack   The benchmark program we intend to profile needs to have a function which takes one argument (influencing the computational effort of executing the program) - this is the function we directly call for profiling.
+This should be under the test directory, e.g. test/BenchmarkProgram.hs which contains a function:
+testPmmh :: Int -&gt; IO () testPmmh nsteps = do observedStates &lt;- generateData initLatentState initParams nsteps print observedStates   The program that calls the profiling functions should ideally be test/Spec." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://min-nguyen.github.io/benchmarking/benchmarking-profiling/" />
+<meta property="article:published_time" content="2020-11-13T14:02:28+00:00" />
+<meta property="article:modified_time" content="2020-11-13T14:02:28+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Benchmarking Profiling"/>
+<meta name="twitter:description" content="Benchmarking With Criterion &amp; Stack   The benchmark program we intend to profile needs to have a function which takes one argument (influencing the computational effort of executing the program) - this is the function we directly call for profiling.
+This should be under the test directory, e.g. test/BenchmarkProgram.hs which contains a function:
+testPmmh :: Int -&gt; IO () testPmmh nsteps = do observedStates &lt;- generateData initLatentState initParams nsteps print observedStates   The program that calls the profiling functions should ideally be test/Spec."/>
+<meta itemprop="name" content="Benchmarking Profiling">
+<meta itemprop="description" content="Benchmarking With Criterion &amp; Stack   The benchmark program we intend to profile needs to have a function which takes one argument (influencing the computational effort of executing the program) - this is the function we directly call for profiling.
+This should be under the test directory, e.g. test/BenchmarkProgram.hs which contains a function:
+testPmmh :: Int -&gt; IO () testPmmh nsteps = do observedStates &lt;- generateData initLatentState initParams nsteps print observedStates   The program that calls the profiling functions should ideally be test/Spec.">
+<meta itemprop="datePublished" content="2020-11-13T14:02:28+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T14:02:28+00:00" />
+<meta itemprop="wordCount" content="1777">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>My New Hugo Site</h1>
+</header>
+
+<div class="content-container">
+<main><h1>Benchmarking Profiling</h1>
+<hr>
+<h2 id="benchmarking-with-criterion--stack">Benchmarking With Criterion &amp; Stack</h2>
+<ol>
+<li>
+<p>The benchmark program we intend to profile needs to have a function which takes one argument (influencing the computational effort of executing the program) - this is the function we directly call for profiling.</p>
+<p>This should be under the <code>test</code> directory, e.g. <code>test/BenchmarkProgram.hs</code> which contains a function:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">testPmmh</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> ()
+<span style="color:#a6e22e">testPmmh</span> nsteps <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+   observedStates <span style="color:#f92672">&lt;-</span> generateData initLatentState initParams nsteps
+   print observedStates
+</code></pre></div></li>
+<li>
+<p>The program that calls the profiling functions should ideally be <code>test/Spec.hs</code>. This needs to import both the benchmarked program and criterion.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">import</span> BenchmarkProgram
+<span style="color:#66d9ef">import</span> Criterion.Main
+</code></pre></div><p>It should contain a <code>main</code> function which details how benchmarking is performed. (This isn&rsquo;t the optimal usage of Criterion&rsquo;s tools, but this is still the core idea).</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">main</span> <span style="color:#f92672">=</span> defaultMain [
+  bgroup <span style="color:#e6db74">&#34;pmmhTest&#34;</span> [ bench <span style="color:#e6db74">&#34;10&#34;</span>  <span style="color:#f92672">$</span> whnf testPmmh <span style="color:#ae81ff">10</span>
+                    , bench <span style="color:#e6db74">&#34;20&#34;</span>  <span style="color:#f92672">$</span> whnf testPmmh <span style="color:#ae81ff">20</span>
+                    , bench <span style="color:#e6db74">&#34;40&#34;</span>  <span style="color:#f92672">$</span> whnf testPmmh <span style="color:#ae81ff">40</span>
+                    , bench <span style="color:#e6db74">&#34;80&#34;</span>  <span style="color:#f92672">$</span> whnf testPmmh <span style="color:#ae81ff">80</span>
+                    , bench <span style="color:#e6db74">&#34;160&#34;</span> <span style="color:#f92672">$</span> whnf testPmmh <span style="color:#ae81ff">160</span>
+                    ]
+  ]
+</code></pre></div><p>In this example, the <code>defaultMain</code> criterion function takes a list of <code>Benchmark</code> values, each of which describes a function to benchmark.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">defaultMain</span> <span style="color:#f92672">::</span> [<span style="color:#66d9ef">Benchmark</span>] <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> ()
+</code></pre></div><p>The <code>bgroup</code> function groups related benchmarks together, where its first argument is a name for that group of benchmarks.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">bgroup</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">String</span> <span style="color:#f92672">-&gt;</span> [<span style="color:#66d9ef">Benchmark</span>] <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Benchmark</span>
+</code></pre></div><p>The <code>bench</code> function (unsurprisingly) benchmarks a program. The first argument is a name describing the activity we&rsquo;re benchmarking. The <code>Benchmarkable</code> type is a container for code that can be benchmarked.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">bench</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">String</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Benchmarkable</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Benchmark</span>
+</code></pre></div><p>The <code>whnf</code> function applies an argument to a function and evaluates the result to weak head normal form (WHNF).</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">whnf</span> <span style="color:#f92672">::</span> (a <span style="color:#f92672">-&gt;</span> b) <span style="color:#f92672">-&gt;</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Benchmarkable</span>
+</code></pre></div></li>
+<li>
+<p>The <code>package.yaml</code> file should contain the following:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">tests</span>:
+  <span style="color:#f92672">benchmarks-test</span>:
+    <span style="color:#f92672">main</span>:                <span style="color:#ae81ff">Spec.hs</span>
+    <span style="color:#f92672">source-dirs</span>:         <span style="color:#ae81ff">test</span>
+    <span style="color:#f92672">ghc-options</span>:
+    - -<span style="color:#ae81ff">O</span>
+    - -<span style="color:#ae81ff">threaded</span>
+    - -<span style="color:#ae81ff">rtsopts</span>
+    - -<span style="color:#ae81ff">fprof-auto</span>
+    - -<span style="color:#ae81ff">with-rtsopts=-N</span>
+    <span style="color:#f92672">dependencies</span>:
+    - <span style="color:#ae81ff">benchmarks</span>
+    - <span style="color:#ae81ff">criterion</span>
+    <span style="color:#75715e"># and other dependencies which the benchmarked program needs, e.g. :</span>
+    - <span style="color:#ae81ff">statistics</span>
+    - <span style="color:#ae81ff">monad-bayes</span>
+    - <span style="color:#ae81ff">mtl</span>
+    - <span style="color:#ae81ff">log-domain</span>
+</code></pre></div></li>
+<li>
+<p>Next, within the <code>test</code> directory, we can then compile <code>Spec.hs</code> (along with its local imports i.e. the benchmarked program).</p>
+<pre><code>stack ghc BenchmarkProgram.hs Spec.hs
+</code></pre><p>And then by running the following, the <code>--output</code> option directs our program to write a report to the file <code>spec.html</code>:</p>
+<pre><code>./Spec --output spec.html
+</code></pre><p>Clicking <code>spec.html</code> opens this report.</p>
+</li>
+</ol>
+<hr>
+<h2 id="criterion">Criterion</h2>
+<p>Criterion allows two kinds of code to be benchmarked.</p>
+<ul>
+<li>Any <code>IO</code> action can be benchmarked directly</li>
+<li>We can benchmark pure functions (with some trickery)</li>
+</ul>
+<h3 id="-benchmarking-an-io-action">• Benchmarking an IO action</h3>
+<p>We use <code>nfIO</code> to specify that after we run an <code>IO</code> action, its result must be evaluated to normal form (so that all of its internal constructors are fully evaluated, and it contains no thunks).</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">nfIO</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">NFData</span> a <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">IO</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> ()
+</code></pre></div><p>The function <code>nfIO</code> is best used when:</p>
+<ul>
+<li>Lazy I/O is involved - (<code>nfIO</code> avoids resource leaks)</li>
+<li>We aren&rsquo;t confident how much evaluation will have been performed on the result of an action - (<code>nfIO</code> makes sure that it is fully evaluated)</li>
+</ul>
+<p>We use <code>whnfIO</code> to specify that after we run an <code>IO</code> action, its result must be evaluated only deep enough for the outermost constructor to be known.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">whnfIO</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">IO</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> ()
+</code></pre></div><p>The function <code>whnfIO</code> is best used when:</p>
+<ul>
+<li>Our I/O action returns a simple value such as an <code>Int</code></li>
+<li>Our I/O action returns something complex such as a <code>Map</code> but evaluating the outermost constructor will do &ldquo;enough work&rdquo;</li>
+</ul>
+<h3 id="-benchmarking-a-pure-function">• Benchmarking a pure function</h3>
+<p>Lazy evaluation makes it hard to benchmark pure code:</p>
+<ul>
+<li>If we tried to saturate a function with all of its arguments and evaluate it repeatedly, laziness would ensure that we’d only do “real work” the first time through our benchmarking loop. The expression would be overwritten with that result, and no further work would happen on subsequent loops through our benchmarking harness.</li>
+</ul>
+<p>We can overcome laziness by benchmarking an unsaturated function (a function which has been given <em>all but one</em> of its arguments).</p>
+<p>The function <code>nf</code> takes two arguments: the unsaturated function we want to benchmark, and the final argument to pass to it. It applies the argument to the function and then evaluates the result to normal form.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">nf</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">NFData</span> b <span style="color:#f92672">=&gt;</span> (a <span style="color:#f92672">-&gt;</span> b) <span style="color:#f92672">-&gt;</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Benchmarkable</span>
+</code></pre></div><p>The function <code>whnf</code> takes similar arguments but evaluated the result to weak head normal form.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">whnf</span> <span style="color:#f92672">::</span> (a <span style="color:#f92672">-&gt;</span> b) <span style="color:#f92672">-&gt;</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Benchmarkable</span>
+</code></pre></div><h3 id="-understanding-criterion-reports">• Understanding Criterion Reports</h3>
+<ul>
+<li>
+<p>The <strong>left chart</strong> is a kernel density estimate (KDE) of time measurements - this graphs the probability of any given time measurement occurring. A spike indicates that a measurement of a particular time occurred, and its height indicates how often that measurement was repeated.</p>
+</li>
+<li>
+<p>The <strong>right chart</strong> contains the raw measurements from which the kernel density estimate was built. The x axis indicates the number of loop iterations. The y axis shows measured execution time for the given number of iterations. The line is the linear regression generated from this data.</p>
+</li>
+</ul>
+<p><img src="https://i.ibb.co/7v5SFrm/fib1.png" alt=""></p>
+<ul>
+<li>
+<p><strong>OLS regression</strong> estimates the time needed for a single execution of the benchmarked activity, using an ordinary least-squares regression model. This number should be similar to the mean execution time. The OLS estimate is usually more accurate than the mean as it more effectively eliminates measurement overhead and other constant factors.</p>
+</li>
+<li>
+<p><strong>R<!-- raw HTML omitted -->2<!-- raw HTML omitted --> goodness-of-fit</strong> measures how accurately the linear regression model fits the observed measurements. If the measurements are not too noisy, R<!-- raw HTML omitted -->2<!-- raw HTML omitted --> should lie between 0.99 and 1, indicating an excellent fit. If the number is below 0.99, something is confusing the accuracy of the linear model. If the number is below 0.9, this is very worrisome.</p>
+</li>
+<li>
+<p><strong>Mean execution time</strong> and <strong>standard deviation</strong> are statistics calculated from execution time divided by the number of iterations.</p>
+</li>
+</ul>
+<p>The <strong>lower</strong> and <strong>upper bounds</strong> measure the accuracy of the main estimate (using a statistical technique called bootstrapping) - this tells us that when randomly resampling the data, 95% of estimates fall within the lower and upper bounds. Having lower and upper bounds which are close to the main estimate indicates that the main estimate is of good quality.</p>
+<hr>
+<h2 id="profiling">Profiling</h2>
+<ol>
+<li>
+<p>To run profiling while performing these benchmarks, run:</p>
+<pre><code>stack test --profile
+</code></pre><p>The <code>--profile</code> flag turns on the <code>--enable-library-profiling</code> and <code>--enable-executable-profiling</code> cabal options, and also passes the <code>+RTS -p -RTS</code> runtime options to any test-suites and benchmarks. This produces a <code>.prof</code> file containing time and allocation info for the test run.</p>
+</li>
+<li>
+<p>To run profiling for an executable, run:</p>
+<pre><code>stack clean # not always needed
+stack build --profile
+stack exec --profile -- my-exe +RTS &lt;profiling options&gt;
+</code></pre></li>
+</ol>
+<p>The GHC system compiles the code and the links it with an RTS (runtime system) which handles storage management, thread scheduling, profiling, and so on. The RTS has a lot of options to control its behaviour. To set RTS options, we can declare options on the command line between <code>+RTS ... -RTS</code> when running the program. The most common (and relevant) options are <code>-p</code> which produces a standard time profile report.</p>
+<h3 id="-understanding-profiling-reports">• Understanding Profiling Reports</h3>
+<p>GHC&rsquo;s profiling system assigns costs to cost centres. A cost is the time or space required to evaluate an expression. Cost centres are program annotations around expressions - all costs incurred by the annotated expression are assigned to the enclosing cost centre.</p>
+<pre><code>        total time  =        0.14 secs   (7 ticks @ 20 ms)
+        total alloc =   8,741,204 bytes  (excludes profiling overheads)
+
+COST CENTRE          MODULE     %time %alloc
+
+nfib                 Main       100.0  100.0
+
+                                               individual     inherited
+COST CENTRE              MODULE      entries  %time %alloc   %time %alloc
+
+MAIN                     MAIN             0    0.0   0.0    100.0 100.0
+ main                    Main             0    0.0   0.0      0.0   0.0
+ CAF                     PrelHandle       3    0.0   0.0      0.0   0.0
+ CAF                     PrelAddr         1    0.0   0.0      0.0   0.0
+ CAF                     Main             9    0.0   0.0    100.0 100.0
+  main                   Main             1    0.0   0.0    100.0 100.0
+   g                     Main             1    0.0   0.0      0.0   0.2
+    nfib                 Main           465    0.0   0.2      0.0   0.2
+   f                     Main             1    0.0   0.0    100.0  99.8
+    nfib                 Main        242785  100.0  99.8    100.0  99.8
+</code></pre><ol>
+<li>
+<p>The first part of the file gives the program name and options, and the total time and total memory allocation measured during the run of the program.</p>
+</li>
+<li>
+<p>The second part of the file is a break-down by cost-centre of the <em>most costly</em> functions in the program.</p>
+</li>
+<li>
+<p>The third and final part of the file gives a <em>full</em> profile break-down by cost-centre stack. This is a call-graph profile of the program (in which we can find calls of all the various functions involved in the execution of the program).</p>
+</li>
+</ol>
+<p>The time and allocation incurred by a given part of the program is displayed in two ways:</p>
+<ul>
+<li>Individual, which are the costs incurred by the code covered by this cost-centre stack alone.</li>
+<li>Inherited, which includes the costs incurred by all the children of this node.</li>
+</ul>
+<p>The meanings of the various columns in the profiling report are:</p>
+<ul>
+<li>Entries - the number of times this particular point in the call graph was entered</li>
+<li>Individual %time - the percentage of the total run time of the program spent at this point in the call graph</li>
+<li>Individual %alloc - the percentage of the total memory allocations (excluding profiling overheads) of the program made by this call</li>
+<li>Inherited %time - the percentage of the total run time of the program spent below this point in the call graph</li>
+<li>Inherited %alloc - the percentage of the total memory allocations (excluding profiling overheads) of the program made by this call and all of its sub-calls</li>
+</ul>
+<h3 id="-inserting-cost-centres-by-hand">• Inserting Cost Centres By Hand</h3>
+<p>Cost centres are just program annotations. When passing <code>fprof-auto</code> (previously known as <code>auto-all</code>) to the compiler, it automatically inserts a cost centre annotation around every top-level function not marked <code>INLINE</code> in the program. However, we can manually add the cost centre annotations ourselves. When using stack, we don&rsquo;t need to add any extra GHC options to the <code>package.yaml</code> file to do this.</p>
+<p>The syntax of a cost centre annotation is:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">{-# SCC &#34;name&#34; #-}</span> <span style="color:#f92672">&lt;</span>expression<span style="color:#f92672">&gt;</span>
+</code></pre></div><p>where <code>&quot;name&quot;</code> is an arbitrary string that labels the cost centre as it appears in the profiling report, and <code>&lt;expression&gt;</code> is any Haskell expression. An <code>SCC</code> (Set Cost Centre) annotation extends as far to the right as possible when parsing.</p>
+<p>For example:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">main</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">IO</span> ()
+<span style="color:#a6e22e">main</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span> <span style="color:#66d9ef">let</span> xs <span style="color:#f92672">=</span> <span style="color:#75715e">{-# SCC &#34;X&#34; #-}</span> [<span style="color:#ae81ff">1</span><span style="color:#f92672">..</span><span style="color:#ae81ff">1000000</span>]
+          <span style="color:#66d9ef">let</span> ys <span style="color:#f92672">=</span> <span style="color:#75715e">{-# SCC &#34;Y&#34; #-}</span> [<span style="color:#ae81ff">1</span><span style="color:#f92672">..</span><span style="color:#ae81ff">2000000</span>]
+          print <span style="color:#f92672">$</span> last xs
+          print <span style="color:#f92672">$</span> last <span style="color:#f92672">$</span> init xs
+          print <span style="color:#f92672">$</span> last ys
+          print <span style="color:#f92672">$</span> last <span style="color:#f92672">$</span> init ys
+</code></pre></div><p>We can then find these labelled cost-centres in the third section of our profiling report (in the call-graph profile/break down of cost centres)</p>
+<h3 id="-visualising-profiler-reports">• Visualising Profiler Reports</h3>
+<p>To make it easier to analyse <code>.prof</code> files, we can use <code>ghcprofview.py</code> from <a href="https://github.com/portnov/ghcprofview-py">ghcprofview-py</a> and then execute it on our <code>.prof</code> file:</p>
+<pre><code>./ghcprofview.py path/to/file.prof
+</code></pre><p>This gives us the following visualisation of the profile:</p>
+<p><img src="https://i.ibb.co/7j5v41W/ghcprofview.png" alt=""></p>
+<div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="http://min-nguyen.github.io/benchmarking/" title="Benchmarking"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Benchmarking</a>
+<a class="nav nav-next" href="http://min-nguyen.github.io/benchmarking/monad-bayes-components/" title="Monad Bayes Components">Next - Monad Bayes Components <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>

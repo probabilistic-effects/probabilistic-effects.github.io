@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Staging - My New Hugo Site</title>
+<meta name="generator" content="Hugo 0.78.2" />
+<link href="http://min-nguyen.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="http://min-nguyen.github.io/background/staging/">
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="http://min-nguyen.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="Staging" />
+<meta property="og:description" content="Staging and metaprogramming are the same; Template Haskell is a metaprogramming library for Haskell. We have different stages of computation, so staging a program is making it so that it compiles different parts of the program at different stages to be used by other parts of a program at a later stage.
+Building blocks of Template Haskell The core mechanisms of Template Haskell are:
+ Evaluating Haskell meta-programs at compile-time and splicing in the generated object programs as regular Haskell code Representing Template Haskell object programs as algebraic data types The quotation monad Q  • Writing a meta-program" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://min-nguyen.github.io/background/staging/" />
+<meta property="article:published_time" content="2020-11-13T13:59:01+00:00" />
+<meta property="article:modified_time" content="2020-11-13T13:59:01+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Staging"/>
+<meta name="twitter:description" content="Staging and metaprogramming are the same; Template Haskell is a metaprogramming library for Haskell. We have different stages of computation, so staging a program is making it so that it compiles different parts of the program at different stages to be used by other parts of a program at a later stage.
+Building blocks of Template Haskell The core mechanisms of Template Haskell are:
+ Evaluating Haskell meta-programs at compile-time and splicing in the generated object programs as regular Haskell code Representing Template Haskell object programs as algebraic data types The quotation monad Q  • Writing a meta-program"/>
+<meta itemprop="name" content="Staging">
+<meta itemprop="description" content="Staging and metaprogramming are the same; Template Haskell is a metaprogramming library for Haskell. We have different stages of computation, so staging a program is making it so that it compiles different parts of the program at different stages to be used by other parts of a program at a later stage.
+Building blocks of Template Haskell The core mechanisms of Template Haskell are:
+ Evaluating Haskell meta-programs at compile-time and splicing in the generated object programs as regular Haskell code Representing Template Haskell object programs as algebraic data types The quotation monad Q  • Writing a meta-program">
+<meta itemprop="datePublished" content="2020-11-13T13:59:01+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T13:59:01+00:00" />
+<meta itemprop="wordCount" content="1958">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>My New Hugo Site</h1>
+</header>
+
+<div class="content-container">
+<main><h1>Staging</h1>
+<p>Staging and metaprogramming are the same; Template Haskell is a metaprogramming library for Haskell. We have different stages of computation, so staging a program is making it so that it compiles different parts of the program at different stages to be used by other parts of a program at a later stage.</p>
+<h3 id="building-blocks-of-template-haskell">Building blocks of Template Haskell</h3>
+<p>The core mechanisms of Template Haskell are:</p>
+<ul>
+<li>Evaluating Haskell meta-programs at compile-time and splicing in the generated object programs as regular Haskell code</li>
+<li>Representing Template Haskell object programs as algebraic data types</li>
+<li>The quotation monad <code>Q</code></li>
+</ul>
+<p><strong>• Writing a meta-program</strong></p>
+<p>As an introductory example, consider the <code>curry</code> function</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">curry</span> <span style="color:#f92672">::</span> ((a,b) <span style="color:#f92672">-&gt;</span> c) <span style="color:#f92672">-&gt;</span> a <span style="color:#f92672">-&gt;</span> b <span style="color:#f92672">-&gt;</span> c
+</code></pre></div><p>Unfortunately, there are no Prelude functions that provide the same currying functionality for functions taking arbitrary n-tuples. Manually writing these is tedious - instead we wish to generate functions through a single meta program on demand. Template Haskell lets us do this.</p>
+<p>The idea is to write a meta function <code>curryN :: Int -&gt; Q Exp</code> which, given a number n &gt;= 1, constructs the source code for an n-ary curry function:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">{-# LANGUAGE TemplateHaskell #-}</span>
+<span style="color:#66d9ef">import</span> Control.Monad
+<span style="color:#66d9ef">import</span> Language.Haskell.TH
+
+<span style="color:#a6e22e">curryN</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Q</span> <span style="color:#66d9ef">Exp</span>
+<span style="color:#a6e22e">curryN</span> n <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+  f  <span style="color:#f92672">&lt;-</span> newName <span style="color:#e6db74">&#34;f&#34;</span>
+  xs <span style="color:#f92672">&lt;-</span> replicateM n (newName <span style="color:#e6db74">&#34;x&#34;</span>)
+  <span style="color:#66d9ef">let</span> args <span style="color:#f92672">=</span> map <span style="color:#66d9ef">VarP</span> (f<span style="color:#66d9ef">:</span>xs)
+      ntup <span style="color:#f92672">=</span> <span style="color:#66d9ef">TupE</span> (map <span style="color:#66d9ef">VarE</span> xs)
+  return <span style="color:#f92672">$</span> <span style="color:#66d9ef">LamE</span> args (<span style="color:#66d9ef">AppE</span> (<span style="color:#66d9ef">VarE</span> f) ntup)
+</code></pre></div><ul>
+<li>The meta function <code>curryN</code> takes an input <em>n</em> and builds a lambda abstraction <code>LamE</code> that first pattern matches against a function <code>f</code> and <em>n</em> argument variables <code>x1, x2, ..., xn</code>, and then applies function <code>f</code> to the <em>n</em>-tuple <code>(x1, x2, ..., xn)</code>.</li>
+<li>The function <code>newName</code> is used to monadically generate the names used to refer to the variables <code>f</code> and <code>x1</code> through <code>xn</code>, such that these names are always fresh. Hence the value returned by <code>curryN</code> is a monadic computation of type <code>Q Exp</code>.</li>
+<li>When executed, this monadic computation yields an expression <code>Exp</code> representing the object program of an <em>n</em>-ary <code>curry</code> function.</li>
+</ul>
+<p>For example, <code>curryN 3</code> returns a monadic computation that yields an expression representing a <code>curry3</code> function of type (<code>(a, b, c) -&gt; d) -&gt; a -&gt; b -&gt; c -&gt; d</code> in abstract syntax.</p>
+<p><strong>• Running a meta-program</strong></p>
+<p>To run a meta program like <code>curryN</code> at compile-time, we enclose it with Template Haskell&rsquo;s <em>splice</em> operator <code>$</code>, by writing:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#f92672">$</span>(curryN <span style="color:#ae81ff">3</span>)
+</code></pre></div><p>This evaluates the meta program <code>curryN</code> and puts the resulting object program <code>\f x1 x2 x3 -&gt; f (x1, x2, x3)</code> in place of the splice.</p>
+<p>In general, the splice operator <code>$</code> can be applied to any monadic <code>Q</code> computation, resulting in performing this computation at compile-time and inserting the resulting object program as real Haskell code.</p>
+<p>Meta programs are type-checked beforehand to yield a valid Template Haskell object program, therefore only imported, fully type-checked meta programs can be run via the splice operator <code>$</code>. In particular, we have to evaluate the meta program $(curryN 3) in a <em>separate</em> module to when <code>curryN</code> is defined.</p>
+<p>To generate function declarations for the first <em>n</em> curry functions, we can devise a further meta program on top of <code>curryN</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">genCurries</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Q</span> [<span style="color:#66d9ef">Dec</span>]
+<span style="color:#a6e22e">genCurries</span> n <span style="color:#f92672">=</span> forM [<span style="color:#ae81ff">1</span><span style="color:#f92672">..</span>n] mkCurryDec
+   <span style="color:#66d9ef">where</span> mkCurryDec ith <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+             cury <span style="color:#f92672">&lt;-</span> curryN ith
+             <span style="color:#66d9ef">let</span> name <span style="color:#f92672">=</span> mkName <span style="color:#f92672">$</span> curry<span style="color:#e6db74">&#34; ++ show ith
+</span><span style="color:#e6db74">             return $ FunD name [Clause [] (NormalB cury) []]
+</span></code></pre></div><ul>
+<li>In this case, the function <code>genCurries</code> will return a list of top-level function declarations that bind the anonymous lambda abstractions built by <code>curryN</code>.</li>
+<li>Also, the function <code>mkName</code> is used instead of <code>newName</code>, because we want to generate functions <code>curry1</code> to <code>curry20</code> with exactly the prescribed names, so they can be captured and referred to from other parts of the program.</li>
+</ul>
+<p>Running $(genCurries 20) will then splice in the first 20 curry functions at compile-time:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">curry1</span>  <span style="color:#f92672">=</span> <span style="color:#a6e22e">\</span> f x1 <span style="color:#f92672">-&gt;</span> f (x1)
+<span style="color:#a6e22e">curry2</span>  <span style="color:#f92672">=</span> <span style="color:#a6e22e">\</span> f x1 x2 <span style="color:#f92672">-&gt;</span> f (x1, x2)
+<span style="color:#a6e22e">curry3</span>  <span style="color:#f92672">=</span> <span style="color:#a6e22e">\</span> f x1 x2 x3 <span style="color:#f92672">-&gt;</span> f (x1, x2, x3)
+<span style="color:#a6e22e">curry4</span>  <span style="color:#f92672">=</span> <span style="color:#a6e22e">\</span> f x1 x2 x3 x4 <span style="color:#f92672">-&gt;</span> f (x1, x2, x3, x4)
+<span style="color:#f92672">...</span>
+<span style="color:#a6e22e">curry20</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">\</span> f x1 x2 <span style="color:#f92672">...</span> x20 <span style="color:#f92672">-&gt;</span> f (x1, x2, <span style="color:#f92672">...</span>, x20)
+</code></pre></div><p><strong>• Object programs as algebraic data types</strong></p>
+<p>Object programs created by Template Haskell are represented as regular algebraic data types, describing a program in the form of an abstract syntax tree. The Template Haskell library provides algebraic data types <code>Exp</code>, <code>Pat</code>, <code>Dec</code>, and <code>Type</code> to represent Haskell&rsquo;s surface-level syntax of expressions, patterns, declarations, and types.
+Virtually all concrete Haskell syntactic constructs have a corresponding abstract syntax constructor in one of these four ADTs. Furthermore, all Haskell identifiers are represented by the <code>Name</code> data type. By representing object programs as regular ADTs, normal Haskell can be used as the meta-programming language to build object programs.</p>
+<p><strong>• Quotation Monad <code>Q</code></strong></p>
+<p>Template Haskell object programs are built inside the quotation monad <code>Q</code>. This monad is performed by the splice operator <code>$</code> at compile-time as part of evaluating the meta program.</p>
+<p>Generation of code requires certain features to be available to use:</p>
+<ul>
+<li>The ability to generate fresh names that cannot be captured.</li>
+<li>The ability to retrieve information about something by its name.</li>
+<li>The ability to put and get some custom state that is then shared by all Template Haskell code in the same module.</li>
+<li>The ability to run <code>IO</code> during compilation so that we can, for example, read something from a file.</li>
+</ul>
+<p>The quotation monad <code>Q</code> hosts all the functions provided by Template Haskell.</p>
+<h3 id="the-process-of-template-haskell">The process of Template Haskell:</h3>
+<p>Template Haskell&rsquo;s core functionality constitutes evaluating object programs with splice <code>$</code> and building them from algebraic data types inside the quotation monad <code>Q</code>. However, constructing object programs in terms of their abstract syntax trees is verbose and leads to clumsy meta programs. Therefore, the Template Haskell API also provides two further interfaces to build object programs more conveniently:</p>
+<ul>
+<li>Syntax construction functions</li>
+<li>Quotation brackets</li>
+</ul>
+<p><strong>• Syntax construction functions</strong></p>
+<p>For every syntax constructor, there is a corresponding monadic syntax construction function provided. Syntax construction functions directly relate to the syntax constructors from the algebraic data types <code>Exp</code>, <code>Pat</code>, <code>Dec</code>, and <code>Type</code> for representing Haskell code. However, they also let us hide the monadic nature when building object programs.</p>
+<p>To elaborate, recall the definition of the meta function <code>genCurries</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">genCurries</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Q</span> [<span style="color:#66d9ef">Dec</span>]
+<span style="color:#a6e22e">genCurries</span> n <span style="color:#f92672">=</span> forM [<span style="color:#ae81ff">1</span><span style="color:#f92672">..</span>n] mkCurryDec
+   <span style="color:#66d9ef">where</span> mkCurryDec ith <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+             cury <span style="color:#f92672">&lt;-</span> curryN ith
+             <span style="color:#66d9ef">let</span> name <span style="color:#f92672">=</span> mkName <span style="color:#f92672">$</span> curry<span style="color:#e6db74">&#34; ++ show ith
+</span><span style="color:#e6db74">             return $ FunD name [Clause [] (NormalB cury) []]
+</span></code></pre></div><p>To use the object program generated by the sub call to <code>curryN</code> in the larger context of the returned function declaration, we have to first perform <code>curryN</code> and bind its result to <code>cury</code>. This is because we have to account for <code>curryN</code>&rsquo;s generation of fresh names before we can continue.
+However, using <strong>syntax construction functions</strong> instead of data constructors <em>abstracts</em> from the monadic construction of <code>genCurries</code>, thus making its code a little shorter.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">genCurries</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Q</span> [<span style="color:#66d9ef">Dec</span>]
+<span style="color:#a6e22e">genCurries</span> n <span style="color:#f92672">=</span> forM [<span style="color:#ae81ff">1</span><span style="color:#f92672">..</span>n] mkCurryDec
+   <span style="color:#66d9ef">where</span> mkCurryDec ith <span style="color:#f92672">=</span> funD name [clause <span style="color:#66d9ef">[]</span> (normalB (curryN ith)) <span style="color:#66d9ef">[]</span>]
+            <span style="color:#66d9ef">where</span> name <span style="color:#f92672">=</span> mkName <span style="color:#f92672">$</span> <span style="color:#e6db74">&#34;curry&#34;</span> <span style="color:#f92672">++</span> show ith
+</code></pre></div><p>The new <code>funD</code>, <code>clause</code>, and <code>normalB</code> functions directly correspond to the formerly used <code>FunD</code>, <code>Clause</code>, and <code>NormalB</code> constructors. The only difference is their types:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">FunD</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Name</span> <span style="color:#f92672">-&gt;</span> [<span style="color:#66d9ef">Clause</span>]   <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Dec</span>
+<span style="color:#a6e22e">funD</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Name</span> <span style="color:#f92672">-&gt;</span> [<span style="color:#66d9ef">Q</span> <span style="color:#66d9ef">Clause</span>] <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Q</span> <span style="color:#66d9ef">Dec</span>
+
+<span style="color:#66d9ef">Clause</span> <span style="color:#f92672">::</span> [<span style="color:#66d9ef">Pat</span>] <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Body</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Clause</span>
+<span style="color:#a6e22e">clause</span> <span style="color:#f92672">::</span> [<span style="color:#66d9ef">Q</span> <span style="color:#66d9ef">Pat</span>] <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Q</span> <span style="color:#66d9ef">Body</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Q</span> <span style="color:#66d9ef">Clause</span>
+
+<span style="color:#66d9ef">NormalB</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Exp</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Body</span>
+<span style="color:#a6e22e">normalB</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Q</span> <span style="color:#66d9ef">Exp</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Q</span> <span style="color:#66d9ef">Body</span>
+</code></pre></div><p>The syntax constructors (<code>FunD</code>, <code>Clause</code>, <code>NormalB</code>) work with raw Template Haskell expressions.
+The syntax constructor functions (<code>funD</code>, <code>clause</code>, <code>normalB</code>) work with the monadic counterparts of raw Template Haskell expressions. They construct a Template Haskell object program directly in <code>Q</code> - this frees the API consumer from doing the monadic wrapping and unwrapping manually.</p>
+<p><strong>• Quotation brackets</strong></p>
+<p>Quotation brackets are a method to further simplify the representation of Haskell code. They let us specify an object program using regular Haskell syntax, by enclosing it inside oxford brackets:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">[<span style="color:#f92672">|</span> <span style="color:#f92672">..</span> <span style="color:#f92672">|</span>]
+</code></pre></div><p>With this, object programs can be specified much more succinctly.</p>
+<ul>
+<li>
+<p>For example, using either ADTs or syntax construction functions to express a meta program which builds a Haskell expression for the identity function is quite verbose:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">genId</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Q</span> <span style="color:#66d9ef">Exp</span>
+<span style="color:#a6e22e">genId</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+  x <span style="color:#f92672">&lt;-</span> newName <span style="color:#e6db74">&#34;x&#34;</span>
+  lamE [varP x] (varE x)
+</code></pre></div><p>Whereas using quotation brackets, writing the same meta program can be simplified to:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">genId</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Q</span> <span style="color:#66d9ef">Exp</span>
+<span style="color:#a6e22e">genId</span> <span style="color:#f92672">=</span> [<span style="color:#f92672">|</span> <span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> x <span style="color:#f92672">|</span>]
+</code></pre></div></li>
+</ul>
+<p>Quotation brackets quote regular Haskell code as the corresponding object program fragments inside the <code>Q</code> monad.  There are quotation brackets for quoting Haskell expressions (<code>[e| .. |]|</code>), patterns (<code>[p| .. |]</code>), declarations (<code>[d| .. |]</code>), and types (<code>[t| .. |]</code>). Writing <code>[| .. |]</code> is hereby just another way of saying <code>[e| .. |]</code>.</p>
+<p>Using quotation brackets &ldquo;lifts&rdquo; concrete Haskell syntax into corresponding object program expressions inside the <code>Q</code> monad. By doing so, quotation brackets represent the dual of the already introduced splice operator <code>$</code>: evaluating a meta program with <code>$</code> splices in the generated object program as real Haskell code; in contrast, quotation brackets <code>[| .. |]</code> turn real Haskell code into an object program. Consequently, quotation brackets and the splice operator cancel each other out. The equation <code>$([| e |]) = e</code> holds for all expressions <code>e</code>, and similar equations hold for declarations, and types.</p>
+<p><strong>• Reification</strong></p>
+<p>A major feature of Template Haskell is program <em>reification</em>. Reification allows a meta program to query compile-time information about other program parts whilst constructing the object program. This allows the meta program to inspect other program components to answer questions such as:</p>
+<ul>
+<li>What is this variable&rsquo;s type?</li>
+<li>What are the class instances of this type class?</li>
+<li>Which constructors does this data type have and what do they look like?</li>
+</ul>
+<p>The main use-case of reification is to generate boilerplate code which auto-completes manually written code.</p>
+<p>An example of this, is to generically derive type class instances from bare data type definitions. Suppose we define the following polymorphic data types for representing potentially erroneous values, lists, and binary trees:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Result</span> e a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Err</span> e  <span style="color:#f92672">|</span> <span style="color:#66d9ef">Ok</span> a
+<span style="color:#66d9ef">data</span> <span style="color:#66d9ef">List</span>     a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Nil</span>    <span style="color:#f92672">|</span> <span style="color:#66d9ef">Cons</span> a (<span style="color:#66d9ef">List</span> a)
+<span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Tree</span>     a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Leaf</span> a <span style="color:#f92672">|</span> <span style="color:#66d9ef">Node</span> (<span style="color:#66d9ef">Tree</span> a) a (<span style="color:#66d9ef">Tree</span> a)
+</code></pre></div><p>Then, suppose we want to derive <code>Functor</code> instances for all of these types automatically. To make a type constructor <code>T</code> an instance of <code>Functor</code>, we need to implement the method <code>fmap :: (a -&gt; b) -&gt; T a -&gt; T b</code>. Its definition is precisely determined by parametricity and the functor laws:</p>
+<ul>
+<li>By parametricity, all values of type a must be replaced according to the provided function with values of type b.</li>
+<li>By the functor laws, all other shapes of the input value of type T a must be preserved when transforming it to the output value of type T b.</li>
+</ul>
+<p>The meta function <code>deriveFunctor :: Name -&gt; Q [Dec]</code> implements the idea of this algorithm:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Deriving</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">Deriving</span> { tyCon <span style="color:#f92672">::</span> <span style="color:#66d9ef">Name</span>, tyVar <span style="color:#f92672">::</span> <span style="color:#66d9ef">Name</span> }
+
+<span style="color:#a6e22e">deriveFunctor</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Name</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Q</span> [<span style="color:#66d9ef">Dec</span>]
+<span style="color:#a6e22e">deriveFunctor</span> ty
+  <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span> (<span style="color:#66d9ef">TyConI</span> tyCon) <span style="color:#f92672">&lt;-</span> reify ty
+       (tyConName, tyVars, cs) <span style="color:#f92672">&lt;-</span> <span style="color:#66d9ef">case</span> tyCon <span style="color:#66d9ef">of</span>
+         <span style="color:#66d9ef">DataD</span> <span style="color:#66d9ef">_</span> nm tyVars cs <span style="color:#66d9ef">_</span>   <span style="color:#f92672">-&gt;</span> return (nm, tyVars, cs)
+         <span style="color:#66d9ef">NewtypeD</span> <span style="color:#66d9ef">_</span> nm tyVars c <span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> return (nm, tyVars, [c])
+         <span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> fail <span style="color:#e6db74">&#34;deriveFunctor: tyCon may not be a type synonym.&#34;</span>
+
+       <span style="color:#66d9ef">let</span> (<span style="color:#66d9ef">KindedTV</span> tyVar <span style="color:#66d9ef">StarT</span>) <span style="color:#f92672">=</span> last tyVars
+           instanceType           <span style="color:#f92672">=</span> conT <span style="color:#66d9ef">&#39;&#39;Functor</span> `appT`
+             (foldl apply (conT tyConName) (init tyVars))
+
+       putQ <span style="color:#f92672">$</span> <span style="color:#66d9ef">Deriving</span> tyConName tyVar
+       sequence [instanceD (return <span style="color:#66d9ef">[]</span>) instanceType [genFmap cs]]
+  <span style="color:#66d9ef">where</span>
+    apply t (<span style="color:#66d9ef">PlainTV</span> name)    <span style="color:#f92672">=</span> appT t (varT name)
+    apply t (<span style="color:#66d9ef">KindedTV</span> name <span style="color:#66d9ef">_</span>) <span style="color:#f92672">=</span> appT t (varT name)
+</code></pre></div><div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="http://min-nguyen.github.io/background/" title="Background"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Background</a>
+<a class="nav nav-next" href="http://min-nguyen.github.io/background/smc-pmmh/" title="Smc Pmmh">Next - Smc Pmmh <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>

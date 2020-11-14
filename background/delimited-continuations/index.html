@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Delimited Continuations - My New Hugo Site</title>
+<meta name="generator" content="Hugo 0.78.2" />
+<link href="http://min-nguyen.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="http://min-nguyen.github.io/background/delimited-continuations/">
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="http://min-nguyen.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="Delimited Continuations" />
+<meta property="og:description" content="Delimited Continuations A limiting factor for effect system performance is the need to implement delimited continuations outside of the runtime. Accordingly, this proposal presents a design for native delimited continuation primitive operations that can be used to efficiently capture the RTS (runtime system) stack. A guiding principle of the design is to be minimal. Rather than burden GHC with the full complexity of designing and implementing algebraic effects, this proposal provides a path for users to experiment with designs as ordinary Haskell libraries without sacrificing performance." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://min-nguyen.github.io/background/delimited-continuations/" />
+<meta property="article:published_time" content="2020-11-13T13:57:22+00:00" />
+<meta property="article:modified_time" content="2020-11-13T13:57:22+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Delimited Continuations"/>
+<meta name="twitter:description" content="Delimited Continuations A limiting factor for effect system performance is the need to implement delimited continuations outside of the runtime. Accordingly, this proposal presents a design for native delimited continuation primitive operations that can be used to efficiently capture the RTS (runtime system) stack. A guiding principle of the design is to be minimal. Rather than burden GHC with the full complexity of designing and implementing algebraic effects, this proposal provides a path for users to experiment with designs as ordinary Haskell libraries without sacrificing performance."/>
+<meta itemprop="name" content="Delimited Continuations">
+<meta itemprop="description" content="Delimited Continuations A limiting factor for effect system performance is the need to implement delimited continuations outside of the runtime. Accordingly, this proposal presents a design for native delimited continuation primitive operations that can be used to efficiently capture the RTS (runtime system) stack. A guiding principle of the design is to be minimal. Rather than burden GHC with the full complexity of designing and implementing algebraic effects, this proposal provides a path for users to experiment with designs as ordinary Haskell libraries without sacrificing performance.">
+<meta itemprop="datePublished" content="2020-11-13T13:57:22+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T13:57:22+00:00" />
+<meta itemprop="wordCount" content="353">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>My New Hugo Site</h1>
+</header>
+
+<div class="content-container">
+<main><h1>Delimited Continuations</h1>
+<h2 id="delimited-continuations">Delimited Continuations</h2>
+<p>A limiting factor for effect system performance is the need to implement delimited continuations outside of the runtime. Accordingly, this proposal presents a design for native delimited continuation primitive operations that can be used to efficiently capture the RTS (runtime system) stack. A guiding principle of the design is to be minimal. Rather than burden GHC with the full complexity of designing and implementing algebraic effects, this proposal provides a path for users to experiment with designs as ordinary Haskell libraries without sacrificing performance.</p>
+<p>Effect systems provide the ability to capture portions of the current continuation. Without native support for first-class continuations from the runtime, this must be implemented by writing the program in CPS. In Haskell, this is naturally expressed using a monad, <code>Cont</code>.</p>
+<p>There already exist various monadic implementations of delimited control (unlike regular continuations, delimited continuations return a value, and thus may be reused and composed).</p>
+<ul>
+<li>
+<p>The <a href="https://hackage.haskell.org/package/CC-delcont"><code>CC-delcont</code></a> library - a monadic treatment of delimited continuations. This implements the delimited continuation monad <code>CC</code> and transformer <code>CCT</code>, which may be respectively used to execute computations with delimited control and layer delimited control effects over an arbitrary monad.</p>
+</li>
+<li>
+<p>The <a href="http://okmij.org/ftp/Computation/free-monad.html#freer"><code>Freer</code></a> monad, which has been used in several libraries to implement delimited continuations specifically for the purpose of effect systems.</p>
+</li>
+<li>
+<p>The <a href="https://hackage.haskell.org/package/effects"><code>effects</code></a> library, which uses nested continuation transformers to achieve delimited control.</p>
+</li>
+</ul>
+<p>These approaches have various performance trade-offs, but they all suffer from the same fatal flaw: programs must pay for the cost of continuation capture, <strong>even if they never actually capture the continuation</strong>. (To capture a continuation means to expose a slice of a continuation frame, i think). This is a real problem for effect systems as many programs that use effects have no need to capture the continuation. For example, the <code>Reader</code>, <code>State</code>, and <code>Writer</code> effects need no continuation manipulation, and the <code>Error</code> effect only needs to abort the continuation early, not capture it.</p>
+<p>The scope of the proposed change is limited to the RTS: no other part of the compiler needs to be touched. The user-facing interface consists of one new primitive type and three new primitive operations.</p>
+<h2 id="heading"></h2>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="http://min-nguyen.github.io/background/hidden-markov-model/" title="Hidden Markov Model"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Hidden Markov Model</a>
+<a class="nav nav-next" href="http://min-nguyen.github.io/background/continuations/" title="Continuations">Next - Continuations <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>

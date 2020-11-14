@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Effects for Less - My New Hugo Site</title>
+<meta name="generator" content="Hugo 0.78.2" />
+<link href="http://min-nguyen.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="http://min-nguyen.github.io/research/effects-for-less/">
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="http://min-nguyen.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="http://min-nguyen.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="Effects for Less" />
+<meta property="og:description" content="Table of Contents  Summary Thoughts Benchmarking  Summary of Alexis King - focusing on benchmarks
+Summary  Real world benchmarks make it difficult to isolate costs Microbenchmarks often seen as synthetic Microbenchmarks need to make sure you&rsquo;re measuring the right thing Might not have broad scope. Effects systems make real world programs hard to benchmark Effects systems tend to have small operations that do not take a significant amount of time Splitting in modules slows stuff down Compiler optimisations lead to cross module slowdowns Free monad libraries, by constructing trees, obscures the program structure to the optimiser preventing inlining." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://min-nguyen.github.io/research/effects-for-less/" />
+<meta property="article:published_time" content="2020-11-13T14:05:31+00:00" />
+<meta property="article:modified_time" content="2020-11-13T14:05:31+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Effects for Less"/>
+<meta name="twitter:description" content="Table of Contents  Summary Thoughts Benchmarking  Summary of Alexis King - focusing on benchmarks
+Summary  Real world benchmarks make it difficult to isolate costs Microbenchmarks often seen as synthetic Microbenchmarks need to make sure you&rsquo;re measuring the right thing Might not have broad scope. Effects systems make real world programs hard to benchmark Effects systems tend to have small operations that do not take a significant amount of time Splitting in modules slows stuff down Compiler optimisations lead to cross module slowdowns Free monad libraries, by constructing trees, obscures the program structure to the optimiser preventing inlining."/>
+<meta itemprop="name" content="Effects for Less">
+<meta itemprop="description" content="Table of Contents  Summary Thoughts Benchmarking  Summary of Alexis King - focusing on benchmarks
+Summary  Real world benchmarks make it difficult to isolate costs Microbenchmarks often seen as synthetic Microbenchmarks need to make sure you&rsquo;re measuring the right thing Might not have broad scope. Effects systems make real world programs hard to benchmark Effects systems tend to have small operations that do not take a significant amount of time Splitting in modules slows stuff down Compiler optimisations lead to cross module slowdowns Free monad libraries, by constructing trees, obscures the program structure to the optimiser preventing inlining.">
+<meta itemprop="datePublished" content="2020-11-13T14:05:31+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T14:05:31+00:00" />
+<meta itemprop="wordCount" content="544">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>My New Hugo Site</h1>
+</header>
+
+<div class="content-container">
+<main><h1>Effects for Less</h1>
+<h1 id="table-of-contents">Table of Contents</h1>
+<ol>
+<li><a href="#org2e764ad">Summary</a></li>
+<li><a href="#orgf005e51">Thoughts</a></li>
+<li><a href="#org40aae97">Benchmarking</a></li>
+</ol>
+<p>Summary of Alexis King - focusing on benchmarks</p>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h1 id="summary">Summary</h1>
+<ul>
+<li>Real world benchmarks make it difficult to isolate costs</li>
+<li>Microbenchmarks often seen as synthetic</li>
+<li>Microbenchmarks need to make sure you&rsquo;re measuring the right thing</li>
+<li>Might not have broad scope.</li>
+<li>Effects systems make real world programs hard to benchmark</li>
+<li>Effects systems tend to have small operations that do not take a significant amount of time</li>
+<li>Splitting in modules slows stuff down</li>
+<li>Compiler optimisations lead to cross module slowdowns</li>
+<li>Free monad libraries, by constructing trees, obscures the program structure to the optimiser preventing inlining.</li>
+<li>For monad transformers, entire overhead can be eliminated by inlining.</li>
+<li>GHC does full type erasure</li>
+<li>GHC doesn&rsquo;t do monomorphisation (storing the source in the interface file and generating a function for each combination of concrete types)</li>
+<li>Actual way is turning typeclass constraints into higher order functions and passing a record corresponding to the typeclass defintions - called dictionary passing style.</li>
+<li>Can&rsquo;t inline because effects are passed in as arguments in the dictionary.</li>
+<li>Known calls expose strictness info.</li>
+<li>Unknown calls to bind are a problem</li>
+</ul>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h1 id="thoughts">Thoughts</h1>
+<ul>
+<li>The relevance this has to our problem is that the authors of monad-bayes acknowledged that the overhead was is the inference transformer stack so we need to construct a benchmark that directly measures the cost of operations relating to the inference transformer stack without having too much numerical obfuscation in the way.</li>
+<li>A microbenchmark seems appropriate then which tries to make use of the inference transformers.</li>
+<li>Need a benchmark where the relation of inference transformer operations to numerical code is an appreciable amount of time.
+<ul>
+<li>Need to see if the cost of some inference transformers is higher than others so it would be good to have different algos that use different inference transformers to see if the general cost of effects is the important part of if the individual transformers are what is slow.</li>
+</ul>
+</li>
+<li>Need to assess the cost of bind as well we need this to be fast.</li>
+<li>Need to construct a benchmark that is robust to program changes i.e. cross module / inlining etc.</li>
+</ul>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h1 id="benchmarking">Benchmarking</h1>
+<ul>
+<li>We are concerned with the performance of the inference transformer system.</li>
+<li>We therefore want to construct benchmarks that directly measure the cost of the inference transformer system.</li>
+<li>We are currently unaware if this is due to the <em>whole</em> inference transformer system or the performance of the concrete transformers.</li>
+<li>It is necessary to construct a suite of benchmarks to determine this</li>
+<li>PMMH may be a good candidate for whole system benchmarking as it uses all transformers</li>
+<li>We will have to think about tests for the individual concerete transformers.</li>
+<li>We need to work out how to evaluate what a given profiler output says - does this mean we need a hand rolled library to see what we get with no effects?</li>
+<li>Re the above: how do we work out what costs the most i.e. cost of bind vs inference transformer dispatch</li>
+<li>Work out a plan of action based on the answers to the above questions i.e. if the problem is concrete monads we need to come up with faster ones, if the problem is effect dispatch and bind which solution do we try first? This requires a list of the techniques and the relative approaches / advantages.</li>
+</ul>
+<div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="http://min-nguyen.github.io/research/approaches-for-monad-bayes/" title="Approaches for Monad Bayes"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Approaches for Monad Bayes</a>
+<a class="nav nav-next" href="http://min-nguyen.github.io/monad-bayes/" title="Monad Bayes">Next - Monad Bayes <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>
