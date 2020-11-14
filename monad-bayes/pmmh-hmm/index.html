@@ -177,13 +177,13 @@ data ObservedState = Obs { obs :: Int } deriving Show data LatentState = Lat { l
     <span style="color:#66d9ef">case</span> ys <span style="color:#66d9ef">of</span>
       (<span style="color:#66d9ef">Left</span> <span style="color:#66d9ef">_</span>)    <span style="color:#f92672">-&gt;</span> <span style="color:#a6e22e">error</span> <span style="color:#e6db74">&#34;naughty&#34;</span>
       (<span style="color:#66d9ef">Right</span> obsData) <span style="color:#f92672">-&gt;</span> sampleIO <span style="color:#f92672">$</span> <span style="color:#66d9ef">do</span>
-              pmmhRes <span style="color:#f92672">&lt;-</span> prior <span style="color:#f92672">$</span> pmmh nsteps <span style="color:#ae81ff">14</span> nparticles paramsPrior 
+              pmmhRes <span style="color:#f92672">&lt;-</span> prior <span style="color:#f92672">$</span> pmmh nsteps <span style="color:#ae81ff">14</span> nparticles paramsPrior
                                       (scoreModel obsData initialLatState)
               return pmmhRes
 </code></pre></div><ol>
 <li>
 <p>Running <code>pmmh</code> on our HMM returns a value of type:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">pmmh</span> nsteps <span style="color:#ae81ff">14</span> nparticles paramsPrior (scoreModel obsData initialLatState) 
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">pmmh</span> nsteps <span style="color:#ae81ff">14</span> nparticles paramsPrior (scoreModel obsData initialLatState)
    <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadInfer</span> m <span style="color:#f92672">=&gt;</span> m [[(<span style="color:#66d9ef">Params</span>, <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)]]
 </code></pre></div></li>
 <li>
@@ -199,7 +199,7 @@ data ObservedState = Obs { obs :: Int } deriving Show data LatentState = Lat { l
 <span style="color:#a6e22e">runWeighted</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Weighted</span> m a <span style="color:#f92672">-&gt;</span> m (a, <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)
 <span style="color:#a6e22e">runWeighted</span> (<span style="color:#66d9ef">Weighted</span> m) <span style="color:#f92672">=</span> runStateT m <span style="color:#ae81ff">1</span>
 </code></pre></div><p>In this context however, using <code>prior</code> on <code>pmmh</code> will return us parameters in the form of the history of all the particles and their associated probabilities/weightings for each step during Metropolis-Hastings (for some confusing reason).</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">prior</span> <span style="color:#f92672">$</span> pmmh nsteps <span style="color:#ae81ff">14</span> nparticles paramsPrior (scoreModel obsData initialLatState) 
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">prior</span> <span style="color:#f92672">$</span> pmmh nsteps <span style="color:#ae81ff">14</span> nparticles paramsPrior (scoreModel obsData initialLatState)
    <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadSample</span> m <span style="color:#f92672">=&gt;</span> m [[(<span style="color:#66d9ef">Params</span>, <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)]]
 </code></pre></div></li>
 </ol>

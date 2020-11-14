@@ -77,7 +77,7 @@ These are plausible components for benchmarking the performance of individual co
 </code></pre></div></li>
 <li>
 <p><strong>Weighted</strong></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Execute the program using the prior distribution, while </span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Execute the program using the prior distribution, while</span>
 <span style="color:#75715e">--   accumulating likelihood. (StateT is more efficient than WriterT).</span>
 <span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Weighted</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">StateT</span> (<span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>) m a)
    <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadIO</span>, <span style="color:#66d9ef">MonadTrans</span>, <span style="color:#66d9ef">MonadSample</span>)
@@ -86,7 +86,7 @@ These are plausible components for benchmarking the performance of individual co
 <p><strong>Population</strong></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | A collection of weighted samples, or particles.</span>
 <span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Population</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Population</span> (<span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">ListT</span> m) a)
-   <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadIO</span>, 
+   <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadIO</span>,
              <span style="color:#66d9ef">MonadSample</span>, <span style="color:#66d9ef">MonadCond</span>, <span style="color:#66d9ef">MonadInfer</span>)
 </code></pre></div></li>
 <li>
@@ -122,7 +122,7 @@ These are plausible components for benchmarking the performance of individual co
   (b <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Sequential</span> (<span style="color:#66d9ef">Population</span> m) a) <span style="color:#f92672">-&gt;</span>
   m [[(a, <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)]]
 <span style="color:#a6e22e">pmmh</span> t k n param model <span style="color:#f92672">=</span>
-  mh t (param <span style="color:#f92672">&gt;&gt;=</span> runPopulation <span style="color:#f92672">.</span> pushEvidence <span style="color:#f92672">.</span> 
+  mh t (param <span style="color:#f92672">&gt;&gt;=</span> runPopulation <span style="color:#f92672">.</span> pushEvidence <span style="color:#f92672">.</span>
                   <span style="color:#66d9ef">Pop</span><span style="color:#f92672">.</span>hoist lift <span style="color:#f92672">.</span> smcSystematic k n <span style="color:#f92672">.</span> model)
 </code></pre></div><p>This is a good example of benchmarking for whole inference transformer systems.
 It uses <code>Traced</code>, <code>Sequential</code>, and <code>Population</code> which consists of the <code>Weighted</code> and <code>ListT</code>

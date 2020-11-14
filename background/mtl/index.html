@@ -65,7 +65,7 @@ type Environment = [(String, Int)] type Counter = Int newtype M a = M (ReaderT E
 <span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">MaybeT</span> m a    <span style="color:#f92672">=</span> <span style="color:#66d9ef">MaybeT</span>  { runMaybeT  <span style="color:#f92672">::</span> m (<span style="color:#66d9ef">Maybe</span> a) }
 
 <span style="color:#66d9ef">data</span>    <span style="color:#66d9ef">List</span>  a       <span style="color:#f92672">=</span> <span style="color:#66d9ef">Cons</span> a (<span style="color:#66d9ef">List</span> a) <span style="color:#f92672">|</span> <span style="color:#66d9ef">Nil</span>
-<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">ListT</span> m a     <span style="color:#f92672">=</span> <span style="color:#66d9ef">ListT</span>   { runListT   <span style="color:#f92672">::</span> m [a] }  
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">ListT</span> m a     <span style="color:#f92672">=</span> <span style="color:#66d9ef">ListT</span>   { runListT   <span style="color:#f92672">::</span> m [a] }
 
 <span style="color:#66d9ef">data</span>    <span style="color:#66d9ef">Either</span>  e a   <span style="color:#f92672">=</span> <span style="color:#66d9ef">Left</span> e <span style="color:#f92672">|</span> <span style="color:#66d9ef">Right</span> a
 <span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">ExceptT</span> e m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">ExceptT</span> { runExceptT <span style="color:#f92672">::</span> m (<span style="color:#66d9ef">Either</span> e a) }

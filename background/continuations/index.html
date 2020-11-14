@@ -222,7 +222,7 @@ which will invoke <code>f3</code> which will invoke <code>k3</code>.</li>
   y <span style="color:#f92672">&lt;-</span> impFib (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">2</span>)
   return (x <span style="color:#f92672">+</span> y)
 
-  
+
 <span style="color:#f92672">=</span> <span style="color:#75715e">{- expanding out impFib -}</span>
   <span style="color:#f92672">...</span>
   x <span style="color:#f92672">&lt;-</span> <span style="color:#66d9ef">do</span> when (n <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) (ret <span style="color:#ae81ff">1</span>)
@@ -234,8 +234,8 @@ which will invoke <code>f3</code> which will invoke <code>k3</code>.</li>
           <span style="color:#f92672">...</span>
   return (x <span style="color:#f92672">+</span> y)
 
- 
-<span style="color:#f92672">=</span> <span style="color:#75715e">{- when False _ k = k () -}</span> 
+
+<span style="color:#f92672">=</span> <span style="color:#75715e">{- when False _ k = k () -}</span>
   <span style="color:#75715e">{- (mx &gt;&gt;= f) k = mx (\x -&gt; f x k) -}</span>
   <span style="color:#f92672">...</span>
   x <span style="color:#f92672">&lt;-</span> (when (n <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span>) (ret <span style="color:#ae81ff">1</span>) (<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> impFib (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) (<span style="color:#f92672">...</span>))) ()
@@ -244,21 +244,21 @@ which will invoke <code>f3</code> which will invoke <code>k3</code>.</li>
           <span style="color:#f92672">...</span>
   return (x <span style="color:#f92672">+</span> y)
 
-  
-<span style="color:#f92672">=</span> <span style="color:#75715e">{- when True mx k = mx k -}</span> 
+
+<span style="color:#f92672">=</span> <span style="color:#75715e">{- when True mx k = mx k -}</span>
   <span style="color:#75715e">{- (mx &gt;&gt;= f) k = mx (\x -&gt; f x k) -}</span>
   <span style="color:#f92672">...</span>
   x <span style="color:#f92672">&lt;-</span> (ret <span style="color:#ae81ff">1</span>) (<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> impFib (n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) (<span style="color:#f92672">...</span>)) ()
   y <span style="color:#f92672">&lt;-</span> (ret <span style="color:#ae81ff">1</span>) (<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> when (n <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span>) (ret <span style="color:#ae81ff">1</span>) (<span style="color:#f92672">...</span>))
 
-  
+
 <span style="color:#f92672">=</span> <span style="color:#75715e">{- ret x = \_ -&gt; id x -}</span>
   <span style="color:#f92672">...</span>
   x <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> id <span style="color:#ae81ff">1</span>
   y <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> id <span style="color:#ae81ff">1</span>
   return (x <span style="color:#f92672">+</span> y)
 
-  
+
 <span style="color:#f92672">=</span> <span style="color:#75715e">{- (mx &gt;&gt;= f) k = mx (\x -&gt; f x k) -}</span>
   <span style="color:#f92672">...</span>
   (<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> id <span style="color:#ae81ff">1</span>) (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> (<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> id <span style="color:#ae81ff">1</span>) (<span style="color:#a6e22e">\</span>y <span style="color:#f92672">-&gt;</span> return (<span style="color:#ae81ff">1</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>)))

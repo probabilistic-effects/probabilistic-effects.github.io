@@ -17,7 +17,7 @@
 :root {}
 </style>
 <meta property="og:title" content="Research Journal" />
-<meta property="og:description" content="• Scrum Meeting 1 (Meng &#43; Sam &#43; Minh)
+<meta property="og:description" content="• Scrum Meeting 1 (MW &#43; SF &#43; MN)
   Can the inference monad transformer stack of a program be inferred/fixed at compile time?
   Identifying smaller goals and intermediate research ideas and what is valuable to do:
  What&rsquo;s the line between papers and a very good blog post? (new things are papers) How can research/observations across monad-bayes be generalised? It is possible to do an empirical evaluation and target software dev audiences Programming languages field lacks proper evaluations; it is possible to question existing &ldquo;folklore&rdquo; with new observed results&quot; It is important to know what the benchmarking tool can and can&rsquo;t do - when experimenting we must always ask what can the tool do for me." />
@@ -27,18 +27,18 @@
 <meta property="article:modified_time" content="2020-11-13T14:05:57+00:00" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Research Journal"/>
-<meta name="twitter:description" content="• Scrum Meeting 1 (Meng &#43; Sam &#43; Minh)
+<meta name="twitter:description" content="• Scrum Meeting 1 (MW &#43; SF &#43; MN)
   Can the inference monad transformer stack of a program be inferred/fixed at compile time?
   Identifying smaller goals and intermediate research ideas and what is valuable to do:
  What&rsquo;s the line between papers and a very good blog post? (new things are papers) How can research/observations across monad-bayes be generalised? It is possible to do an empirical evaluation and target software dev audiences Programming languages field lacks proper evaluations; it is possible to question existing &ldquo;folklore&rdquo; with new observed results&quot; It is important to know what the benchmarking tool can and can&rsquo;t do - when experimenting we must always ask what can the tool do for me."/>
 <meta itemprop="name" content="Research Journal">
-<meta itemprop="description" content="• Scrum Meeting 1 (Meng &#43; Sam &#43; Minh)
+<meta itemprop="description" content="• Scrum Meeting 1 (MW &#43; SF &#43; MN)
   Can the inference monad transformer stack of a program be inferred/fixed at compile time?
   Identifying smaller goals and intermediate research ideas and what is valuable to do:
  What&rsquo;s the line between papers and a very good blog post? (new things are papers) How can research/observations across monad-bayes be generalised? It is possible to do an empirical evaluation and target software dev audiences Programming languages field lacks proper evaluations; it is possible to question existing &ldquo;folklore&rdquo; with new observed results&quot; It is important to know what the benchmarking tool can and can&rsquo;t do - when experimenting we must always ask what can the tool do for me.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:57+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:57+00:00" />
-<meta itemprop="wordCount" content="1793">
+<meta itemprop="wordCount" content="1400">
 
 
 
@@ -50,7 +50,7 @@
 
 <div class="content-container">
 <main><h1>Research Journal</h1>
-<p><strong>• Scrum Meeting 1 (Meng + Sam + Minh)</strong></p>
+<p><strong>• Scrum Meeting 1 (MW + SF + MN)</strong></p>
 <ul>
 <li>
 <p>Can the inference monad transformer stack of a program be inferred/fixed at compile time?</p>
@@ -66,162 +66,104 @@
 </ul>
 </li>
 </ul>
-<p><strong>• Scrum Meeting 2 (Meng + Sam + Minh)</strong></p>
+<p><strong>• Scrum Meeting 2 (MW + SF + MN)</strong></p>
 <ul>
-<li>Meeting with Alessio</li>
-<li>They now have a visualiser for the profiling info :0 cool</li>
-<li>Also reading up on three different effect system optimisation approaches inc
+<li>
+<p>Meeting with AZ</p>
+</li>
+<li>
+<p>Visualiser set up for the profiling info</p>
+</li>
+<li>
+<p>Reading up on three different effect system optimisation approaches inc:</p>
 <ul>
-<li>Alexis King delimited things and the Cont monad. Jamie is being nice and helpful</li>
-<li>something else Csongor used</li>
-<li>staging</li>
-<li>tagless final style
+<li>Alexis King - delimited continuations and the Cont monad.</li>
+<li>Codensity transformations (Csongor used this in his generic deriving paper)</li>
+<li>Staging (perhaps see JW&rsquo;s staged parser combinator paper)</li>
+<li>Tagless final style
 <ul>
-<li>Sam has read this paper. Here are her notes:
-Sam F: Typed tagless final style if a good approach from embedding a DSL Pros: Types are preserved Efficient Doesn&rsquo;t get stuck Can express pattern matching and non-compositional things Extensible The heart of this style is adding a type param polymorphism and parameterisation.
-Nick W: “it is a precursor to algebraic effects” Tagless final style and algebraic effects are just implementations within a broader field, it would be better to understand the general specification of how to embed properly Following Nick’s advice I will now read a few papers that give me a broader insight into the field of algebraic effects, to get the more general view, instead of focusing on a specific implementation
+<li>SF has read this paper. Here are their notes:
+Typed tagless final style if a good approach from embedding a DSL Pros: Types are preserved Efficient Doesn&rsquo;t get stuck Can express pattern matching and non-compositional things Extensible The heart of this style is adding a type param polymorphism and parameterisation.
+NW: “it is a precursor to algebraic effects” Tagless final style and algebraic effects are just implementations within a broader field, it would be better to understand the general specification of how to embed properly Following Nick’s advice I will now read a few papers that give me a broader insight into the field of algebraic effects, to get the more general view, instead of focusing on a specific implementation
 Suggested papers: &ldquo;Handlers of Algebraic Effects, Programming and Reasoning with Algebraic Effects and Effect Handlers, From Theory to Practice of Algebraic Effects and Handlers (Sam started reading the first, but found it a bit hard because I lacked knowledge in that area).</li>
 </ul>
 </li>
 </ul>
 </li>
-<li>plan = implement using three different systems then see what happens
-Meng: sounds like a lot of work
-Minh: yes this is just our path, hopefully we will find something interesting on the way
-Meng: just use a minimal calculus fro experiments, then have Monad Bayes as the big example</li>
-<li>Monad Bayes is a shallow embedding, so naturally it is less efficient than a deep embedding
-Research is like digging for gold. Sometimes you find big, sometimes you find small.
-Engineers did for coal, scientists dig for gold.
-Remember PhD research will accelerate. It is not a linear path. Matt didnt know what he was doing till end of second year. Everyone has a period of uncertainty. This is fine. Everything will be okay.
-In academia you will constantly be haunted by the guilt of research vs teaching.
-Protect your research time!!!</li>
-<li>Meng: Minh you have good plans how will you execute</li>
-<li>Minh: A and I have weekly meetings so that should keep us churning. Currently reading and writing up notes, while also doing some coding and discussing each week. progressing well</li>
-<li>Meng: reading with a purpose is good! Reading with purpose is the best!</li>
+<li>
+<p>Plan = Current direction is to implement using three different effect system approaches and then evaluate; hopefully something interesting will come out of this.</p>
+</li>
+<li>
+<p>Suggestion (MW): Just use a minimal calculus for experiments, and then have Monad Bayes as the big example.</p>
+</li>
+<li>
+<p>Suggestion (MW): Evaluate whether the embedding of Monad Bayes' DSL is shallow/deep and how this affects performance; shallow embeddings are naturally less efficient than deep embeddings.</p>
+</li>
+<li>
+<p>Weekly meetings set up between MN &amp; AZ to keep discussions and progress churning. Currently reading with purpose and writing up notes, while also doing some coding/profiling and discussing each week. progressing well.</p>
+</li>
 </ul>
-<p><strong>• Slack Conversation (Minh + Jamie)</strong></p>
+<p><strong>• Slack (MN + JW)</strong></p>
 <ul>
 <li>
-<p>Minh: Do you know a good paper/resource on how staging can be used to optimise effect systems in general?</p>
+<p>Does there exist a good paper/resource on how staging can be used to optimise effect systems in general?</p>
 </li>
 <li>
-<p>Jamie Willis: nope, it hasn&rsquo;t been done in general yet - there are people working on this. Staged SOP and the Parsley paper both provide meaningful nuggets about how to use staging for optimisation</p>
+<p>Nope, it hasn&rsquo;t been done in general yet - there are people (NW) working on this. Additionally, the staged SOP and the Parsley paper both provide meaningful nuggets about how to use staging for optimisation.</p>
 </li>
 </ul>
-<p><strong>• Slack Conversation (Minh + Nick)</strong></p>
+<p><strong>• Slack (MN + NW)</strong></p>
+<ul>
+<li>Touched base with NW on project status:
+<ul>
+<li>Current idea is take the monad-bayes (which is a slow probabilistic programming library in Haskell) and implement a similar idea using different effect systems to understand what happens and why to the performance - hopefully something interesting will come out of it
+&amp; asked about staging on optimising effect systems (as a potential direction for improving monad-bayes).</li>
+<li>Sounds promising</li>
+</ul>
+</li>
+<li>Asked about existing papers/resources about using staging to optimise effect systems in general (with the intention to apply as a possible direction towards improving monad-bayes)
+<ul>
+<li>NW is working on such a paper; it is most likely a natural combination of the work on staging with MP and the Fusion for Free work.</li>
+</ul>
+</li>
+<li>Need to set up meeting with NW when a valuable discussion is to be had about the current state of the project. We are still currently invested in reading.</li>
+<li>Suggested related paper: <a href="https://dl.acm.org/doi/pdf/10.1145/3408975">https://dl.acm.org/doi/pdf/10.1145/3408975</a></li>
+</ul>
+<p><strong>• Discussion following conversation with NW (MH + AZ)</strong></p>
 <ul>
 <li>
-<p>Minh: Do you know a good paper/resource on how staging can be used to optimize effect systems?</p>
+<p>That <a href="https://dl.acm.org/doi/pdf/10.1145/3408975">link</a> looks more like actually writing an effect system, not using an existing one. There is a slight reticence to get involved in actually creating effect systems. However that direction may potentially be a good place to go in the future,; a natural path after using all of these effect systems (of interest) would probably be developing an effect system. AZ not particularly interested in this at the moment, but could be for MN.</p>
 </li>
 <li>
-<p>Nick: Hah, I am working on this at the moment. I think it&rsquo;s a natural combination of the work on staging I&rsquo;ve been doing with Matt and the Fusion for Free work. By the way, I think I was waiting for you and Alessio to get in touch about putting something together? Did I drop a ball?</p>
+<p>Fusion for free with staging seems like a pretty obviously successful idea. AZ has a vague intuition for how that might work, but not confidenjt enough to see the path forward there (w.r.t what NW is working on - not related to probabilistic-effects)</p>
 </li>
 <li>
-<p>Minh: No balls have been dropped, we&rsquo;re progressing, but nothing exists which is worth your time yet, just still a lot of reading</p>
+<p>Intuition is that fusion for free is relevant to probabilistic-effects, but Alexis King&rsquo;s Eff library is the best bet.</p>
 </li>
 <li>
-<p>Nick: You&rsquo;re asking about staging and effects: is it because you want to go in that direction, or just curiosity?</p>
+<p>With respect to MW&rsquo;s suggestion on a restricted calculus, this needs some thought, but is likely a good/possible direction.</p>
 </li>
 <li>
-<p>Minh: Because we most likely want to explore that direction. I think the current idea is take the monad-bayes (which is a slow probabilistic programming library in Haskell) and implement a similar idea using different effect systems to understand what happens and why to the performance - hopefully something interesting will come out of it</p>
+<p>The <code>Eff</code> library exists as a fork of GHC - we can just use that fork with the patch and the library. <code>Eff</code> is quite early stage but it looks stable enough for us to use. This is a probably the best starting point. We also have the <code>monad-bayes</code> the library so it shouldn&rsquo;t be a huge step re-implementing, and if it works, it would obviously be the best suggestion. Why rewrite everything in a complex way when you can just move to the same system but better?</p>
 </li>
 <li>
-<p>Nick: That all sounds promising. It&rsquo;d be good to meet and chat about it all at some point, but I appreciate that you and Alessio might still be reading. This&rsquo;ll probably be related: <a href="https://dl.acm.org/doi/pdf/10.1145/3408975">https://dl.acm.org/doi/pdf/10.1145/3408975</a></p>
+<p>One of the next best (computationally-related) goals would be to work out how to get Alexis King&rsquo;s patch and library working. This looks like the patch branch: <a href="https://github.com/lexi-lambda/ghc-proposals/tree/delimited-continuation-primops">https://github.com/lexi-lambda/ghc-proposals/tree/delimited-continuation-primops</a></p>
 </li>
 <li>
-<p>Minh: Definitely, i&rsquo;ll see where we&rsquo;re at and try to propose a good conversation when we&rsquo;re ready + thanks!</p>
+<p>How do we turn this into research, rather than simply an application of a different effect system to an existing library?</p>
 </li>
 <li>
-<p>Nick: You&rsquo;re welcome!</p>
+<p>The research aspect would be comparing the different methods in my opinion. If we&rsquo;re looking for new <em>things</em>, then maybe the stuff NW is working on? It is possible that <em>just</em> staging it or <em>just</em> using codensity/fusion stuff would count as novel research, given that JW has a paper on staging parsley. Additionally, we believe that case studies/methodology papers like &ldquo;how to optimise something built on an effect system&rdquo; are important research, however sometimes academia can be a bit snooty.</p>
+</li>
+<li>
+<p>If we think a case study methodology is too risky (out of a fear of some kind of lack of appreciation) maybe just staging or doing fusion would be best as that would be novel. Staging is just more involved and would require more novel insight / the path is less charted, whereas <code>eff</code> would likely be easier to reimplement <code>monad-bayes</code> with essentially. If we feel more inclined to take a case study approach initially, going to <code>eff</code> would be the best first move. Either option is plausible, but we&rsquo;ll end up doing <code>eff</code> either way as it&rsquo;s the best bet to actually make it faster.
+Additionally, we&rsquo;ll be able to reach a milestone faster and feel a bit better about taking other approaches.</p>
+</li>
+<li>
+<p>Optimistically, we could get the <code>eff</code> content done by the end of the year or early January.</p>
 </li>
 </ul>
-<p><strong>• Discussion following previous chat with Nick (Minh + Alessio)</strong></p>
-<ul>
-<li>
-<p>Alessio: We were meant to be doing something with him?</p>
-</li>
-<li>
-<p>Minh: I asked him like a few months ago if he&rsquo;d like to talk with us about what we&rsquo;re doing and offer some insight, and he seemed quite interested</p>
-</li>
-<li>
-<p>Alessio: Fair enough. That link looks more like actually writing an effect system, not using an existing one. I&rsquo;m a bit reticent to get involved in actually creating effect systems</p>
-</li>
-<li>
-<p>Minh: Yeah that&rsquo;s fair enough</p>
-</li>
-<li>
-<p>Alessio: Might be a good place to go after potentially - as in, a natural path after using these effect systems would probably be developing one. It&rsquo;s not something i&rsquo;m particularly interested in at the moment but it might be for you</p>
-</li>
-<li>
-<p>Minh: Mmm yeah, suppose we&rsquo;ll see how things go</p>
-</li>
-<li>
-<p>Alessio: Fusion for free w/ staging seems like a p obviously successful idea
-I have the vague intuition for how that might work. But I&rsquo;m not smart enough to see the path forward there. I mean what nick said he was working on, (nothing to do with us).</p>
-</li>
-<li>
-<p>Minh: Do you feel fusion for free is relevant</p>
-</li>
-<li>
-<p>Alessio: My intuition says yes but my head says that Alexis kings library is our best bet. Also, I see that Meng suggested a restricted calculus - I need to mull on that but I can see it being possible</p>
-</li>
-<li>
-<p>Minh: The thing is with <code>Eff</code>, is that just a case of waiting for her proposal to come through?</p>
-</li>
-<li>
-<p>Alessio: Her library exists as a fork of GHC. We can just use that fork with the patch and the library. No need to wait</p>
-</li>
-<li>
-<p>Minh: Oh that&rsquo;s been done? Nice.</p>
-</li>
-<li>
-<p>Alessio: Yeah, I think Eff is like early stage but it looks stable enough for us to use. I think we should start there in my opinion. We have the library so it shouldn&rsquo;t be a huge step re-implementing. And to be honest I think if it works it&rsquo;s obviously the best suggestion. Why rewrite everything in a complex way when you can just move to the same system but better? If you want something to do currently which is computational related, i think working out how to get the Alexis King&rsquo;s patch and library working is a good idea.</p>
-</li>
-<li>
-<p>Minh: Sounds good</p>
-</li>
-<li>
-<p>Alessio: This looks like the patch branch: <a href="https://github.com/lexi-lambda/ghc-proposals/tree/delimited-continuation-primops">https://github.com/lexi-lambda/ghc-proposals/tree/delimited-continuation-primops</a></p>
-</li>
-<li>
-<p>Minh: I&rsquo;m also looking at it in a way of how do i turn this into research, rather than a use case.</p>
-</li>
-<li>
-<p>Alessio: Not too sure there to be honest - the research aspect would be comparing the different methods in my opinion. If you&rsquo;re looking for new <em>things</em>, then maybe the stuff Nick is working on? I think <em>just</em> staging it or <em>just</em> using codensity/fusion stuff would count as novel research, given that Jamie has a paper on staging parsley</p>
-</li>
-<li>
-<p>Minh: That&rsquo;s true</p>
-</li>
-<li>
-<p>Alessio: I also think case studies/methodology papers like &ldquo;how to optimise something built on an effect system&rdquo; are research but sometimes academia can be a bit snooty.
-In my opinion it&rsquo;s the most important research but academia gonna academia.</p>
-</li>
-<li>
-<p>Minh: Yeah that&rsquo;s my annoyance too</p>
-</li>
-<li>
-<p>Alessio: Its up to you I guess. If you think it&rsquo;s too risky maybe just staging or doing fusion would be best as that would be novel. But if you&rsquo;re more inclined to do the case study stuff I think going to <code>eff</code> would be the best first move. I&rsquo;m open to either but I think I&rsquo;ll end up doing eff either way as I think it&rsquo;s the best bet to actually make it faster</p>
-</li>
-<li>
-<p>Minh: What&rsquo;s too risky?</p>
-</li>
-<li>
-<p>Alessio: I mean like you&rsquo;d rather not do the case study methodology think out of a fear of some kind of lack of appreciation</p>
-</li>
-<li>
-<p>Minh: Oh, by using Eff? Why do you see that as a case study as opposed to taking a staging or fusion approach on monad-bayes?</p>
-</li>
-<li>
-<p>Alessio: I think staging is just more involved and would require more novel insight / the path is less charted. I think Eff would be easier to reimplement with essentially</p>
-</li>
-<li>
-<p>Minh: Ah okay i get you. I agree that starting with Eff is the best idea - we&rsquo;ll be able to reach a milestone faster and feel a bit better about taking other approaches (or i will at least).</p>
-</li>
-<li>
-<p>Alessio: I think we can get that done by the end of the year, or early Jan. Who knows, we might run into problems.</p>
-</li>
-</ul>
-<p><strong>Meeting (Minh + Alessio)</strong></p>
+<p><strong>Meeting (MN + AZ)</strong></p>
 <p>Analysing profile report on PMMH inference for a HMM:</p>
 <p><img src="https://i.ibb.co/6mv24Cp/pmmh-prof.png" alt=""></p>
 <p>The key points of interest are:</p>

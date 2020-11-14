@@ -181,7 +181,7 @@ do more inference, and so on.</p>
 </code></pre></div><p><strong>Coroutine</strong></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- Suspending, resumable monadic computations.</span>
 <span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Coroutine</span> s m r <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> {
-   <span style="color:#75715e">-- | Run the next step of a `Coroutine` computation. The result of the </span>
+   <span style="color:#75715e">-- | Run the next step of a `Coroutine` computation. The result of the</span>
    <span style="color:#75715e">-- | step execution will be either a suspension or the final coroutine result.</span>
    resume <span style="color:#f92672">::</span> m (<span style="color:#66d9ef">Either</span> (s (<span style="color:#66d9ef">Coroutine</span> s m r)) r)
    }

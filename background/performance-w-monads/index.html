@@ -61,24 +61,24 @@ For example, consider the following MTL monad stack.
 <span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">DRM</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">DRM</span> { unDRM <span style="color:#f92672">::</span> <span style="color:#66d9ef">ErrorT</span> <span style="color:#66d9ef">Finish</span> (<span style="color:#66d9ef">RWS</span> () <span style="color:#66d9ef">DNA</span> <span style="color:#66d9ef">RNA</span>) a }
      <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">MonadState</span> <span style="color:#66d9ef">DNA</span>, <span style="color:#66d9ef">MonadWriter</span> <span style="color:#66d9ef">RNA</span>, <span style="color:#66d9ef">MonadError</span> <span style="color:#66d9ef">Finish</span>, <span style="color:#66d9ef">Monad</span>)
 <span style="color:#75715e">-- | Inductive case: This tells us that as we know there is a MonadState and MonadWriter instance</span>
-<span style="color:#75715e">--   somewhere in the stack (i.e. RWST) where the state is type DNA and the writer&#39;s log is type RNA, </span>
+<span style="color:#75715e">--   somewhere in the stack (i.e. RWST) where the state is type DNA and the writer&#39;s log is type RNA,</span>
 <span style="color:#75715e">--   then DRM (or equivalently, ErrorT) is also an instance of MonadState and MonadWriter.</span>
 <span style="color:#75715e">-- | Base case: This tells us that as we known there is a MonadError instance somewhere in the stack</span>
 <span style="color:#75715e">--   (i.e. the outermost transformer ErrorT) where the error is type Finish, then trivially DRM</span>
-<span style="color:#75715e">--   (or equivalently ErrorT) is an instance of MonadError. </span>
+<span style="color:#75715e">--   (or equivalently ErrorT) is an instance of MonadError.</span>
 
 </code></pre></div><p>Unrolling this looks like:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Take all involved monad transformers&#39; associated parameters (the state DNA, the log RNA, and </span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Take all involved monad transformers&#39; associated parameters (the state DNA, the log RNA, and</span>
 <span style="color:#75715e">--   the error Finish) from the monad stack and create a type alias containing these.</span>
 <span style="color:#66d9ef">type</span> <span style="color:#66d9ef">DRM</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">DRMonad</span> <span style="color:#66d9ef">Finish</span> <span style="color:#66d9ef">DNA</span> <span style="color:#66d9ef">RNA</span>
 
-<span style="color:#75715e">-- | Redefine monad stack newtype to be parameterised by each of the monads&#39; associated parameters </span>
-<span style="color:#75715e">--   from the stack (e, s, and w). </span>
+<span style="color:#75715e">-- | Redefine monad stack newtype to be parameterised by each of the monads&#39; associated parameters</span>
+<span style="color:#75715e">--   from the stack (e, s, and w).</span>
 <span style="color:#75715e">-- | Running the original monad stack would yield a type &#34;s -&gt; (Either e a, s, w)&#34;</span>
 <span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">DRMonad</span> e s w a <span style="color:#f92672">=</span> <span style="color:#66d9ef">DRMonad</span> { runDRMonad <span style="color:#f92672">::</span> s <span style="color:#f92672">-&gt;</span> (<span style="color:#66d9ef">Either</span> e a, s, w) }
 
-<span style="color:#75715e">-- | We then create a monad instance for it, where (&gt;&gt;=) is defined to capture all of our </span>
-<span style="color:#75715e">--   monads&#39; effects. </span>
+<span style="color:#75715e">-- | We then create a monad instance for it, where (&gt;&gt;=) is defined to capture all of our</span>
+<span style="color:#75715e">--   monads&#39; effects.</span>
 <span style="color:#66d9ef">instance</span> (<span style="color:#66d9ef">Monoid</span> m, <span style="color:#66d9ef">Error</span> e) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">DRMonad</span> e s w) <span style="color:#66d9ef">where</span>
    return x <span style="color:#f92672">=</span> <span style="color:#66d9ef">DRMonad</span> (<span style="color:#a6e22e">\</span>s <span style="color:#f92672">-&gt;</span> (<span style="color:#66d9ef">Right</span> x, s, mempty))
    (<span style="color:#f92672">&gt;&gt;=</span>)    <span style="color:#f92672">=</span> bindDrMonad
@@ -86,7 +86,7 @@ For example, consider the following MTL monad stack.
 <span style="color:#75715e">{-# INLINE bindDRMonad  #-}</span>
 <span style="color:#75715e">-- | This first performs the State monad&#39;s bind operation</span>
 <span style="color:#a6e22e">bindDRMonad</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monoid</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">DRMonad</span> e s w a <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">DRMonad</span> e s w b) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">DRMonad</span> e s w b
-<span style="color:#a6e22e">bindDRMonad</span> m f <span style="color:#f92672">=</span> <span style="color:#66d9ef">DRMonad</span> <span style="color:#f92672">$</span> 
+<span style="color:#a6e22e">bindDRMonad</span> m f <span style="color:#f92672">=</span> <span style="color:#66d9ef">DRMonad</span> <span style="color:#f92672">$</span>
 <span style="color:#75715e">-- Perform the State monad&#39;s effect</span>
 <span style="color:#75715e">-- &gt; Run the DRMonad m on state s to get (Either e a, s, w)</span>
    <span style="color:#a6e22e">\</span>s <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">let</span> (x&#39;, s&#39;, w) <span style="color:#f92672">=</span> (runDRMonad m) s
@@ -100,7 +100,7 @@ For example, consider the following MTL monad stack.
 <span style="color:#75715e">-- &gt; Run the new DRMonad m on the new state s&#39; to get (Either e b, s, w)</span>
                                        (x&#39;&#39;, s&#39;&#39;, w&#39;) <span style="color:#f92672">=</span> (runDRMonad m&#39;) s&#39;
 <span style="color:#75715e">-- &gt; Append the new message onto the writer&#39;s log</span>
-                                   <span style="color:#66d9ef">in</span>  (x&#39;&#39;, s&#39;&#39;, w `mappend` w&#39;) 
+                                   <span style="color:#66d9ef">in</span>  (x&#39;&#39;, s&#39;&#39;, w `mappend` w&#39;)
 </code></pre></div><h3 id="unrolling-ordinary-monad-transformer-stacks">Unrolling Ordinary Monad Transformer Stacks</h3>
 <p>To wrap a monad transformer m<!-- raw HTML omitted -->2<!-- raw HTML omitted -->T around a monad m<!-- raw HTML omitted -->1<!-- raw HTML omitted --> means that we expect there to exist a function runM<!-- raw HTML omitted -->2<!-- raw HTML omitted -->T which takes m<!-- raw HTML omitted -->2<!-- raw HTML omitted -->T (m<!-- raw HTML omitted -->1<!-- raw HTML omitted --> &hellip;) and returns the monad (m<!-- raw HTML omitted -->1<!-- raw HTML omitted --> &hellip;) containing the effectful context of monad m<!-- raw HTML omitted -->2<!-- raw HTML omitted -->.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">
@@ -108,7 +108,7 @@ For example, consider the following MTL monad stack.
 <span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">MaybeT</span> m a    <span style="color:#f92672">=</span> <span style="color:#66d9ef">MaybeT</span>  { runMaybeT  <span style="color:#f92672">::</span> m (<span style="color:#66d9ef">Maybe</span> a) }
 
 <span style="color:#66d9ef">data</span>    <span style="color:#66d9ef">List</span>  a       <span style="color:#f92672">=</span> <span style="color:#66d9ef">Cons</span> a (<span style="color:#66d9ef">List</span> a) <span style="color:#f92672">|</span> <span style="color:#66d9ef">Nil</span>
-<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">ListT</span> m a     <span style="color:#f92672">=</span> <span style="color:#66d9ef">ListT</span>   { runListT   <span style="color:#f92672">::</span> m [a] }  
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">ListT</span> m a     <span style="color:#f92672">=</span> <span style="color:#66d9ef">ListT</span>   { runListT   <span style="color:#f92672">::</span> m [a] }
 
 <span style="color:#66d9ef">data</span>    <span style="color:#66d9ef">Either</span>  e a   <span style="color:#f92672">=</span> <span style="color:#66d9ef">Left</span> e <span style="color:#f92672">|</span> <span style="color:#66d9ef">Right</span> a
 <span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">ExceptT</span> e m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">ExceptT</span> { runExceptT <span style="color:#f92672">::</span> m (<span style="color:#66d9ef">Either</span> e a)
@@ -146,7 +146,7 @@ For example, consider the following MTL monad stack.
 </code></pre></div><p>An important point is that <code>M</code>&rsquo;s <code>(&gt;&gt;=)</code> operation isn&rsquo;t used. In many situations, this lets us effectively avoid a layer of interpretation in a lot of the code which uses <code>M</code>.</p>
 <p>As an example, consider the following code which would clearly benefit from using the <code>Maybe</code> monad.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">liftMaybe2</span> <span style="color:#f92672">::</span> (a <span style="color:#f92672">-&gt;</span> b <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Maybe</span> c) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Maybe</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Maybe</span> b <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Maybe</span> c
-<span style="color:#a6e22e">liftMaybe2</span> f a b <span style="color:#f92672">=</span> 
+<span style="color:#a6e22e">liftMaybe2</span> f a b <span style="color:#f92672">=</span>
    <span style="color:#66d9ef">case</span> a <span style="color:#66d9ef">of</span> <span style="color:#66d9ef">Nothing</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Nothing</span>
              <span style="color:#66d9ef">Just</span> a&#39; <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">case</span> b <span style="color:#66d9ef">of</span> <span style="color:#66d9ef">Nothing</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Nothing</span>
                                   <span style="color:#66d9ef">Just</span> b&#39; <span style="color:#f92672">-&gt;</span> f a&#39; b&#39;
@@ -177,10 +177,10 @@ For example, consider the following MTL monad stack.
 </code></pre></div></li>
 <li>
 <p>In the CPS-representation, we&rsquo;re specializing bind to the two possible constructors (Just and Nothing), and the case analysis is now &ldquo;built-in&rdquo; into return' and mzero':</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">return&#39;</span> a   <span style="color:#66d9ef">:=</span> return a <span style="color:#f92672">&gt;&gt;=</span> 
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">return&#39;</span> a   <span style="color:#66d9ef">:=</span> return a <span style="color:#f92672">&gt;&gt;=</span>
              <span style="color:#f92672">=</span> (<span style="color:#66d9ef">Just</span> a <span style="color:#f92672">&gt;&gt;=</span>)
              <span style="color:#f92672">=</span> <span style="color:#a6e22e">\</span>f <span style="color:#f92672">-&gt;</span> f a
-<span style="color:#a6e22e">mzero&#39;</span>      <span style="color:#66d9ef">:=</span> mzero <span style="color:#f92672">&gt;&gt;=</span>    
+<span style="color:#a6e22e">mzero&#39;</span>      <span style="color:#66d9ef">:=</span> mzero <span style="color:#f92672">&gt;&gt;=</span>
              <span style="color:#f92672">=</span> (<span style="color:#66d9ef">Nothing</span> <span style="color:#f92672">&gt;&gt;=</span>)
              <span style="color:#f92672">=</span> <span style="color:#a6e22e">\</span>f <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Nothing</span>
 </code></pre></div></li>
