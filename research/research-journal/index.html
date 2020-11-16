@@ -38,7 +38,7 @@
  What&rsquo;s the line between papers and a very good blog post? (new things are papers) How can research/observations across monad-bayes be generalised? It is possible to do an empirical evaluation and target software dev audiences Programming languages field lacks proper evaluations; it is possible to question existing &ldquo;folklore&rdquo; with new observed results&quot; It is important to know what the benchmarking tool can and can&rsquo;t do - when experimenting we must always ask what can the tool do for me.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:57+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:57+00:00" />
-<meta itemprop="wordCount" content="1489">
+<meta itemprop="wordCount" content="1728">
 
 
 
@@ -195,6 +195,18 @@ Briefly summarised, we were introduced to:</p>
 <li>How to understand various core-level syntax</li>
 <li>The general workflow needed when investigating/identifying inefficiencies in programs</li>
 <li>Common problematic fragments of code to look out for in the core program.</li>
+</ul>
+<p>Thoughts:</p>
+<ul>
+<li>There is definitely a place for a good tutorial paper on how to do all of this (understanding Haskell core, the relationship between surface-level code and core, and identifying possible optimisations). If we pay strong attention to what we do in the next few weeks and write up our process, this would be a good contribution towards the general question of how to optimise a Haskell program. What we&rsquo;re about to do is what a lot of people do without any resources. A quick outline of such a paper would be to: 1) emphasize the process of profiling your code dumping the core of the highly used functions, and 2) distill what it is one should looking out for in the core. This could be a good Haskell symposium paper.</li>
+</ul>
+<p>From this, our next targets are:</p>
+<ul>
+<li>Compile <code>monad-bayes</code> with the <code>dump-core</code> plugin on, and invest time in figuring out where performance issues lie in the core code.</li>
+<li>Writing the hand-rolled versions of instances for all the inference transformers of <code>monad-bayes</code> (there&rsquo;s an incomplete page <a href="./../background/performance-w-monads">here</a> on unrolling monad transformers), and compare the core for both the hand-rolled version and the <code>monad-bayes</code> library itself, and identify what is slow.</li>
+<li>Look for some resources (e.g. tutorials or talks) on understanding core.</li>
+<li>To record/write up our workflow and stream of consciousness as we progress on understanding how to optimise <code>monad-bayes</code> by using core.</li>
+<li>Have a work session during weekend on 21/11/2020</li>
 </ul>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
