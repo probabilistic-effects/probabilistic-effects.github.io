@@ -38,7 +38,7 @@
  What&rsquo;s the line between papers and a very good blog post? (new things are papers) How can research/observations across monad-bayes be generalised? It is possible to do an empirical evaluation and target software dev audiences Programming languages field lacks proper evaluations; it is possible to question existing &ldquo;folklore&rdquo; with new observed results&quot; It is important to know what the benchmarking tool can and can&rsquo;t do - when experimenting we must always ask what can the tool do for me.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:57+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:57+00:00" />
-<meta itemprop="wordCount" content="1401">
+<meta itemprop="wordCount" content="1489">
 
 
 
@@ -186,6 +186,15 @@ Additionally, we&rsquo;ll be able to reach a milestone faster and feel a bit bet
 <p>This prompts the questions:</p>
 <ul>
 <li>What definitions of <code>(&gt;&gt;=)</code>, <code>liftA2</code>, and <code>pure</code> are generated as a result of using <code>deriving</code>, and why are these inefficient for our case?</li>
+</ul>
+<p><strong>Meeting (MN + AZ + JW)</strong></p>
+<p>Following the previous meeting, this was an extremely helpful discussion (with JW) about how to proceed given the profiler report. Content from this meeting is fully elaborate on <a href="./../benchmarking/haskell-core">here</a>.
+Briefly summarised, we were introduced to:</p>
+<ul>
+<li>The ghc-option/dependency <code>dump-core</code> as a means of finding out what core Haskell code is generated from surface-level Haskell code</li>
+<li>How to understand various core-level syntax</li>
+<li>The general workflow needed when investigating/identifying inefficiencies in programs</li>
+<li>Common problematic fragments of code to look out for in the core program.</li>
 </ul>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
