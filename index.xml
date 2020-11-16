@@ -179,6 +179,16 @@ A HMM is specified by the following components:
     </item>
     
     <item>
+      <title>Haskell Core</title>
+      <link>https://probabilistic-effects.github.io/benchmarking/haskell-core/</link>
+      <pubDate>Fri, 13 Nov 2020 13:49:05 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/benchmarking/haskell-core/</guid>
+      <description>Understanding Haskell Core The best way to understand why a profiling report outputs certain performance metrics (for Haskell) is to dive into the actual core itself, which is what the surface-level Haskell code compiles down into. To inspect the core in a coherent manner, we can add the following to either our package.yaml file (when using stack):
+ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (when using cabal):</description>
+    </item>
+    
+    <item>
       <title>Continuations</title>
       <link>https://probabilistic-effects.github.io/background/continuations/</link>
       <pubDate>Fri, 13 Nov 2020 13:40:41 +0000</pubDate>
