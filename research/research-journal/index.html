@@ -38,7 +38,7 @@
  What&rsquo;s the line between papers and a very good blog post? (new things are papers) How can research/observations across monad-bayes be generalised? It is possible to do an empirical evaluation and target software dev audiences Programming languages field lacks proper evaluations; it is possible to question existing &ldquo;folklore&rdquo; with new observed results&quot; It is important to know what the benchmarking tool can and can&rsquo;t do - when experimenting we must always ask what can the tool do for me.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:57+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:57+00:00" />
-<meta itemprop="wordCount" content="1908">
+<meta itemprop="wordCount" content="2556">
 
 
 
@@ -132,10 +132,10 @@ Suggested papers: &ldquo;Handlers of Algebraic Effects&rdquo;, &ldquo;Programmin
 <p><strong>• Discussion following conversation with NW (MH + AZ)</strong></p>
 <ul>
 <li>
-<p>That <a href="https://dl.acm.org/doi/pdf/10.1145/3408975">link</a> looks more like actually writing an effect system, not using an existing one. There is a slight reticence to get involved in actually creating effect systems. However that direction may potentially be a good place to go in the future,; a natural path after using all of these effect systems (of interest) would probably be developing an effect system. AZ not particularly interested in this at the moment, but could be for MN.</p>
+<p>That <a href="https://dl.acm.org/doi/pdf/10.1145/3408975">link</a> looks more like actually writing an effect system, not using an existing one. There is a slight reticence to get involved in actually creating effect systems. However that direction may potentially be a good place to go in the future; a natural path after using all of these effect systems (of interest) would probably be developing an effect system. AZ not particularly interested in this at the moment, but could be for MN.</p>
 </li>
 <li>
-<p>Fusion for free with staging seems like a pretty obviously successful idea. AZ has a vague intuition for how that might work, but not confidenjt enough to see the path forward there (w.r.t what NW is working on - not related to probabilistic-effects)</p>
+<p>Fusion for free with staging seems like a pretty obviously successful idea. AZ has a vague intuition for how that might work, but not confident enough to see the path forward there (w.r.t what NW is working on - not related to probabilistic-effects)</p>
 </li>
 <li>
 <p>Intuition is that fusion for free is relevant to probabilistic-effects, but Alexis King&rsquo;s Eff library is the best bet.</p>
@@ -234,6 +234,41 @@ Briefly summarised, we were introduced to:</p>
 <p>Running <code>stack build</code> now generates a folder called <code>dump-core</code>, containing <code>html</code> files for visualisations of the core Haskell code generated from our program.</p>
 <p><img src="https://i.ibb.co/9sqQwzG/dump-core-7.png" alt=""></p>
 </li>
+</ul>
+<p><strong>Debugging - Getting dump-core to generate the desired files (MN)</strong></p>
+<ul>
+<li>
+<p>Given the below configuration of <code>package.yaml</code>, cabal does not generate any executables for the <code>library</code> fields, so running <code>stack build</code> with <code>dump-core</code> will unhelpfully generate a <code>Paths_&lt;package_name&gt;.html</code> file, part of which represents our code found in the <code>src</code> directory.</p>
+<p><img src="https://i.ibb.co/DGFsDPT/dump-core-1-0.png" alt=""></p>
+</li>
+<li>
+<p>In order to generate core for desired files in directory <code>src</code>, we need to either:</p>
+<ol>
+<li>Move <code>Main.hs</code> to <code>src</code> and change the <code>source-dirs</code> field under <code>executables</code> from <code>app</code> to <code>src</code></li>
+<li>Add <code>src</code> to the <code>source-dirs</code> field under <code>executables</code>, and add the <code>dependencies</code> under <code>library</code> to the <code>dependencies</code> under <code>executables</code>.
+The second option is shown below:</li>
+</ol>
+<p><img src="https://i.ibb.co/D16HmRt/dump-core-1-1.png" alt=""></p>
+</li>
+</ul>
+<p><strong>Meeting (MN + AZ)</strong></p>
+<p>To do in preparation for work session on Sunday (22/11/2020):</p>
+<ul>
+<li>Clone <code>monad-bayes</code> and link it as a local library by placing it in the same stack project/folder as <code>probalistic-programming</code>. Then dump the core code for it.</li>
+<li>Read and write up <a href="https://wiki.haskell.org/Performance/GHC#Looking_at_the_Core">tutorials</a> on core + get a gist of existing resources around optimising Haskell and what remains unexplored/unwritten about.</li>
+<li>Familiarise ourselves with hand-rolling monad transformers.</li>
+</ul>
+<p><strong>Meeting (MN + MW + RP)</strong></p>
+<ul>
+<li>It&rsquo;s useful to know if performance improves linearly/asymptotically or remains linear/asymptotic, following the first attempt at optimising <code>monad-bayes</code> e.g. by hand-rolling the inference transformers.</li>
+<li>In response to the question on using <code>Eff</code>, &ldquo;how do we turn this into research, rather than simply an application of a different effect system to an existing library?&rdquo;, we can ask ourselves whether this application is straightforward. If it isn&rsquo;t straightforward, then there&rsquo;s probably a research element in it. It is definitely right to try to use what existing libraries/tools are already there. The suspicion is that, along the way, we will find something within these existing approaches that is worth researching, as there will be some problems to be addressed and changes to be made. Until we have exhausted existing options, it would be wrong to start our own. This would be a requirement from reviewers that we are not reinventing the wheel.</li>
+<li><code>Eff</code> is not a mature library at all - if we were to make progress understanding and using it to reimplement the <code>monad-bayes</code> system in that setting, that would already be building towards some sort of contribution which a lot of interesting stuff is likely to come out of.
+Eventually, it could maybe feed into the evolution of the <code>Eff</code> library, or similarly with <code>monad-bayes</code>. There are two or three different directions we could imagine making progress in: one is a better version of <code>monad-bayes</code> or probabilistic programming in Haskell, another is a better version of <code>Eff</code>.</li>
+<li>This is definitely research/publishable somewhere, the only question is if it is ICFP etc. We&rsquo;re in a good position in the sense that we have quite an ambitious goal in mind and we have a plan with multiple paths of achieving that, but we haven&rsquo;t arrived yet because we don&rsquo;t know what we&rsquo;ll end up with. It&rsquo;s extremely likely that opportunities (for getting side-tracked onto more concrete research) will appear during this process.</li>
+<li>We have atleast two concrete targets at the moment: 1) Using <code>Eff</code> to reimplement <code>monad-bayes</code> (sounds like a good thing to pursue) 2) Hand-rolling <code>monad-bayes</code> and seeing if there is some kind of asymptotic change in performance, and if there is, then we&rsquo;ve atleast identified the problem there.</li>
+<li>Research almost always starts with a concrete example - once we understand it, then we can see how much we can generalise it.</li>
+<li>It&rsquo;s a good sign that we are taking ideas from multiple sources, and indicates that the work is not straightforward. (Taking an idea from one paper and applying it, is quite worrying, whereas being able to show that we have taken ideas from multiple papers is promising.)</li>
+<li>Good idea to collect a literature review around <code>probabilistic-effects</code> in order to have a more concrete mind-map of research directions, and organize them around how they might contribute to our research going forward.</li>
 </ul>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
