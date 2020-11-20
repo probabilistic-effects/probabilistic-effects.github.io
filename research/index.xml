@@ -13,7 +13,7 @@
       <pubDate>Fri, 13 Nov 2020 14:05:57 +0000</pubDate>
       
       <guid>https://probabilistic-effects.github.io/research/research-journal/</guid>
-      <description>• Scrum Meeting 1 (MW + SF + MN) (03/11/2020)
+      <description>• Scrum Meeting 1 (MW + SF + MN) 03/11/2020
   Can the inference monad transformer stack of a program be inferred/fixed at compile time?
   Identifying smaller goals and intermediate research ideas and what is valuable to do:
  What&amp;rsquo;s the line between papers and a very good blog post? (new things are papers) How can research/observations across monad-bayes be generalised? It is possible to do an empirical evaluation and target software dev audiences Programming languages field lacks proper evaluations; it is possible to question existing &amp;ldquo;folklore&amp;rdquo; with new observed results&amp;quot; It is important to know what the benchmarking tool can and can&amp;rsquo;t do - when experimenting we must always ask what can the tool do for me.</description>
