@@ -38,7 +38,7 @@
  What&rsquo;s the line between papers and a very good blog post? (new things are papers) How can research/observations across monad-bayes be generalised? It is possible to do an empirical evaluation and target software dev audiences Programming languages field lacks proper evaluations; it is possible to question existing &ldquo;folklore&rdquo; with new observed results&quot; It is important to know what the benchmarking tool can and can&rsquo;t do - when experimenting we must always ask what can the tool do for me.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:57+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:57+00:00" />
-<meta itemprop="wordCount" content="2785">
+<meta itemprop="wordCount" content="2977">
 
 
 
@@ -276,39 +276,43 @@ Eventually, it could maybe feed into the evolution of the <code>Eff</code> libra
 <li>Cloned <code>monad-bayes</code> as a local package to <a href="https://github.com/probabilistic-effects/probabilistic-programming"><code>probabilistic-programming</code></a> repo and re-organized project.</li>
 <li>Dumped the core of <code>monad-bayes</code>.</li>
 </ul>
-<p><strong>Activity (MN + AZ)</strong>     <em>22/11/2020</em></p>
+<p><strong>Meeting (MN + AZ)</strong>     <em>22/11/2020</em></p>
 <ul>
-<li>
-<p>Looked at core of <code>monad-bayes</code>.</p>
-</li>
-<li>
-<p>The two components of interest from the profiling report were:</p>
+<li></li>
+<li>Looked at core of files <code>Population.hs</code> and <code>Weighted.hs</code> from <code>monad-bayes</code>.</li>
+<li>The two components of interest from the profiling report were:
 <ul>
 <li>
 <p><code>(&gt;&gt;=)</code> from <code>Population.hs</code>, which is essentially how <code>(&gt;&gt;=)</code> works for <code>StateT (Log Double) (ListT m) a)</code> if we ignore the <code>newtype</code> wrappers.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Population</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Population</span> (<span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">ListT</span> m) a)
   <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadIO</span>, <span style="color:#66d9ef">MonadSample</span>, <span style="color:#66d9ef">MonadCond</span>, <span style="color:#66d9ef">MonadInfer</span>)
-</code></pre></div></li>
-</ul>
-<p>The version of <code>StateT</code> that <code>monad-bayes</code> uses is from the <code>mtl-2.2.2</code> library.</p>
-<ul>
+</code></pre></div><p>The version of <code>StateT</code> that <code>monad-bayes</code> uses is from the <code>mtl-2.2.2</code> library.</p>
+<p><img src="https://i.ibb.co/1LJQjTw/dump-core-2-6.png" alt=""></p>
+</li>
 <li>
 <p><code>liftA2</code> and <code>pure</code> from <code>Weighted.hs</code>, which is essentially how <code>liftA2</code> and <code>pure</code> work for <code>StateT (Log Double) m a</code> if we ignore the <code>newtype</code> wrapper.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Weighted</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">StateT</span> (<span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>) m a)
   <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadIO</span>, <span style="color:#66d9ef">MonadTrans</span>, <span style="color:#66d9ef">MonadSample</span>)
-</code></pre></div></li>
+</code></pre></div><p>The version of <code>ListT</code> that <code>monad-bayes</code> uses if from the <code>transformers-0.5.2.0</code> library (this is deprecated in all later versions).</p>
+<p><img src="https://i.ibb.co/4t4nkY8/dump-core-2-4.png" alt="">
+<img src="https://i.ibb.co/4Y0Hdyp/dump-core-2-5.png" alt=""></p>
+<p>We were unable to expand out the generated core of these, as <code>StateT</code> and <code>ListT</code> belong to libraries external to the stack project. Hence, the next steps were to clone the necessary libraries locally and dump their core.</p>
+</li>
 </ul>
-<p>The version of <code>ListT</code> that <code>monad-bayes</code> uses if from the <code>transformers-0.5.2.0</code> library (this is deprecated in all later versions).</p>
 </li>
-<li>
-<p>Cloned <code>mtl-2.2.2</code> locally into <a href="https://github.com/probabilistic-effects/probabilistic-programming"><code>probabilistic-programming</code></a> repo. (The local copy of <code>monad-bayes</code> does not yet use the local version of <code>mtl-2.2.2</code>.)</p>
-</li>
-<li>
-<p>Dumped the core of <code>mtl-2.2.2</code>.</p>
-</li>
-<li>
-<p>Tried to clone <code>transformers-0.5.2.0</code> locally into <a href="https://github.com/probabilistic-effects/probabilistic-programming"><code>probabilistic-programming</code></a> repo, but ran into &ldquo;duplicate instance declarations&rdquo; error due to the definitions in the local <code>transformers-0.5.2.0</code> package clashing with <code>GHC.Base</code>. Currently unsure how to solve this.</p>
-</li>
+<li>Cloned <code>mtl-2.2.2</code> locally into <a href="https://github.com/probabilistic-effects/probabilistic-programming"><code>probabilistic-programming</code></a> repo. (The local copy of <code>monad-bayes</code> does not yet use the local version of <code>mtl-2.2.2</code>.)
+<img src="https://i.ibb.co/bz1YT6Y/dump-core-2-0.png" alt=""></li>
+<li>Dumped the core of <code>mtl-2.2.2</code>.</li>
+<li>Tried to clone <code>transformers-0.5.2.0</code> locally into <a href="https://github.com/probabilistic-effects/probabilistic-programming"><code>probabilistic-programming</code></a> repo, but ran into &ldquo;duplicate instance declarations&rdquo; error due to the definitions in the local <code>transformers-0.5.2.0</code> package clashing with <code>GHC.Base</code>. Currently unsure how to solve this.
+<img src="https://i.ibb.co/PQbmvjd/dump-core-2-2.png" alt="">
+<img src="https://i.ibb.co/xz0nvJm/dump-core-2-1.png" alt=""></li>
+<li>Discussed/learned about process of handrolling monad transformers in <code>mtl</code>.</li>
+</ul>
+<p><strong>Activity (MN)</strong>     <em>23/11/2020</em></p>
+<ul>
+<li>Explained issue to JW about being unable to expand definitions for <code>&gt;&gt;=</code> and <code>liftA2</code> in core for <code>monad-bayes</code>, and having trouble cloning and dumping the core of the <code>mtl</code> and <code>transformers</code> libraries locally.
+JW : Being unable to expand out definitions for <code>&gt;&gt;=</code> and <code>liftA2</code> is problematic to begin with - if the dumped core has referenced these functions, then the inliner isn&rsquo;t doing its job. In <a href="https://github.com/J-mie6/ParsleyHaskell"><code>parsley</code></a> which is a cabal project, he has compiled with <code>-O2</code> by placing <code>optimization:2</code> in the <a href="https://github.com/J-mie6/ParsleyHaskell/blob/master/cabal.project"><code>cabal.project</code></a> file, which allows this inlining to occur. As we&rsquo;re using stack, I&rsquo;m currently unable to find how this flag translates into a <code>package.yaml</code> or <code>stack.yaml</code> file.</li>
+<li>Next step is to figure out cabal, create a cabal project for <a href="https://github.com/probabilistic-effects/probabilistic-programming"><code>probabilistic-programming</code></a>, add the <code>optimization:2</code> option, and inspect if anything has changed in the dumped core.</li>
 </ul>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
