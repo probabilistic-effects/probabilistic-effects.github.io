@@ -38,7 +38,7 @@
  What&rsquo;s the line between papers and a very good blog post? (new things are papers) How can research/observations across monad-bayes be generalised? It is possible to do an empirical evaluation and target software dev audiences Programming languages field lacks proper evaluations; it is possible to question existing &ldquo;folklore&rdquo; with new observed results&quot; It is important to know what the benchmarking tool can and can&rsquo;t do - when experimenting we must always ask what can the tool do for me.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:57+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:57+00:00" />
-<meta itemprop="wordCount" content="3567">
+<meta itemprop="wordCount" content="3594">
 
 
 
@@ -381,6 +381,15 @@ ghcup set 8.6.5
 <p>Placing an <code>INLINE</code> pragma on these functions results in the following core, with the previous calls being inlined:</p>
 <p><img src="https://i.ibb.co/HC0Yqj8/image-1.png" alt=""></p>
 <p>Additionally, the <code>$w$c&gt;&gt;=</code> (from <code>Bayes.Traced.Static</code>) at the top is suspicious - it looks like one of the arguments is a monadic value, and so it&rsquo;s forced to use a <code>&gt;&gt;=</code> because it doesn&rsquo;t know what the monadic value is.</p>
+</li>
+</ul>
+<p><strong>Activity (MN)</strong>     <em>25/11/2020</em></p>
+<ul>
+<li>
+<p>Learning and writing up of a <a href="./../haskell-core">small case study</a> on optimising <code>Parsley</code> using Haskell core.</p>
+</li>
+<li>
+<p>Organized <code>probabilistic-programming</code> repo, and added benchmarks program and folder.</p>
 </li>
 </ul>
 <div class="edit-meta">
