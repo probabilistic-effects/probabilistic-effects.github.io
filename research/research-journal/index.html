@@ -38,7 +38,7 @@
  What&rsquo;s the line between papers and a very good blog post? (new things are papers) How can research/observations across monad-bayes be generalised? It is possible to do an empirical evaluation and target software dev audiences Programming languages field lacks proper evaluations; it is possible to question existing &ldquo;folklore&rdquo; with new observed results&quot; It is important to know what the benchmarking tool can and can&rsquo;t do - when experimenting we must always ask what can the tool do for me.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:57+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:57+00:00" />
-<meta itemprop="wordCount" content="3594">
+<meta itemprop="wordCount" content="3719">
 
 
 
@@ -278,7 +278,6 @@ Eventually, it could maybe feed into the evolution of the <code>Eff</code> libra
 </ul>
 <p><strong>Meeting (MN + AZ)</strong>     <em>22/11/2020</em></p>
 <ul>
-<li></li>
 <li>Looked at core of files <code>Population.hs</code> and <code>Weighted.hs</code> from <code>monad-bayes</code>.</li>
 <li>The two components of interest from the profiling report were:
 <ul>
@@ -318,7 +317,12 @@ Eventually, it could maybe feed into the evolution of the <code>Eff</code> libra
 <p>As we&rsquo;re using stack, I&rsquo;m currently unable to find how the optimization flag translates into a <code>package.yaml</code> or <code>stack.yaml</code> file (it&rsquo;s definitely not <code>ghc-options: O2</code>). Next step is to figure out cabal, create a cabal project for <a href="https://github.com/probabilistic-effects/probabilistic-programming"><code>probabilistic-programming</code></a>, add the <code>optimization:2</code> option, and inspect if anything has changed in the dumped core.</p>
 </li>
 </ul>
-<p><strong>Activity (MN )</strong>     <em>24/11/2020</em></p>
+<p><strong>Meeting (MN + SF + MW + WZ)</strong>     <em>24/11/2020</em></p>
+<ul>
+<li>A big flaw of <code>monad-bayes</code> is that they are calling references, so inlining will speed this up; for some this is folklore, for others they just aren&rsquo;t aware. This is an topic we should probably try and clarify (pass knowledge on) to people.</li>
+<li>A good idea is to explore how relevant this occurence actually is and see if others have this problem. Software developers can write refutal papers which is uncommon in functional programming. To write these papers the paper to be refuted must either be an important example, or address many less important examples. Hence for such a proposed paper to be written, we should find one important example of this problem, or many small ones.</li>
+</ul>
+<p><strong>Activity (MN)</strong>     <em>24/11/2020</em></p>
 <ul>
 <li>
 <p>Got out of cabal hell</p>
@@ -414,7 +418,7 @@ Published on 13 Nov 2020
 <ul class="sub-menu">
 <li class="active"><a href="https://probabilistic-effects.github.io/research/research-journal/">Research Journal</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/">Potential Approaches to Improving Monad Bayes</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less - Alexis King&#39;s Talk Summary</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/research/literature-review/">Literature Review</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/research/haskell-core/">Haskell Core</a></li>
 </ul>

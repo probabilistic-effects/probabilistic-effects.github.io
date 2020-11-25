@@ -39,7 +39,7 @@
     </item>
     
     <item>
-      <title>Effects for Less - Alexis King&#39;s Talk Summary</title>
+      <title>Effects for Less</title>
       <link>https://probabilistic-effects.github.io/research/effects-for-less/</link>
       <pubDate>Fri, 13 Nov 2020 14:05:31 +0000</pubDate>
       
@@ -203,7 +203,7 @@ A HMM is specified by the following components:
       <pubDate>Fri, 13 Nov 2020 13:49:05 +0000</pubDate>
       
       <guid>https://probabilistic-effects.github.io/research/haskell-core/</guid>
-      <description>Understanding Haskell Core The best way to understand why a profiling report outputs certain performance metrics (for Haskell) is to dive into the actual core itself, which is what the surface-level Haskell code compiles down into. To inspect the core in a coherent manner, we can add the following to either our package.yaml file (when using stack):
+      <description>Process of Optimising Haskell Core The best way to understand why a profiling report outputs certain performance metrics (for Haskell) is to dive into the actual core itself, which is what the surface-level Haskell code compiles down into. To inspect the core in a coherent manner, we can add the following to either our package.yaml file (when using stack):
 ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (when using cabal):</description>
     </item>
     

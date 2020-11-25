@@ -17,7 +17,7 @@
 :root {}
 </style>
 <meta property="og:title" content="Haskell Core" />
-<meta property="og:description" content="Understanding Haskell Core The best way to understand why a profiling report outputs certain performance metrics (for Haskell) is to dive into the actual core itself, which is what the surface-level Haskell code compiles down into. To inspect the core in a coherent manner, we can add the following to either our package.yaml file (when using stack):
+<meta property="og:description" content="Process of Optimising Haskell Core The best way to understand why a profiling report outputs certain performance metrics (for Haskell) is to dive into the actual core itself, which is what the surface-level Haskell code compiles down into. To inspect the core in a coherent manner, we can add the following to either our package.yaml file (when using stack):
 ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (when using cabal):" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://probabilistic-effects.github.io/research/haskell-core/" />
@@ -25,14 +25,14 @@ ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (w
 <meta property="article:modified_time" content="2020-11-13T13:49:05+00:00" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Haskell Core"/>
-<meta name="twitter:description" content="Understanding Haskell Core The best way to understand why a profiling report outputs certain performance metrics (for Haskell) is to dive into the actual core itself, which is what the surface-level Haskell code compiles down into. To inspect the core in a coherent manner, we can add the following to either our package.yaml file (when using stack):
+<meta name="twitter:description" content="Process of Optimising Haskell Core The best way to understand why a profiling report outputs certain performance metrics (for Haskell) is to dive into the actual core itself, which is what the surface-level Haskell code compiles down into. To inspect the core in a coherent manner, we can add the following to either our package.yaml file (when using stack):
 ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (when using cabal):"/>
 <meta itemprop="name" content="Haskell Core">
-<meta itemprop="description" content="Understanding Haskell Core The best way to understand why a profiling report outputs certain performance metrics (for Haskell) is to dive into the actual core itself, which is what the surface-level Haskell code compiles down into. To inspect the core in a coherent manner, we can add the following to either our package.yaml file (when using stack):
+<meta itemprop="description" content="Process of Optimising Haskell Core The best way to understand why a profiling report outputs certain performance metrics (for Haskell) is to dive into the actual core itself, which is what the surface-level Haskell code compiles down into. To inspect the core in a coherent manner, we can add the following to either our package.yaml file (when using stack):
 ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (when using cabal):">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="2653">
+<meta itemprop="wordCount" content="2696">
 
 
 
@@ -44,7 +44,7 @@ ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (w
 
 <div class="content-container">
 <main><h1>Haskell Core</h1>
-<h3 id="understanding-haskell-core">Understanding Haskell Core</h3>
+<h3 id="process-of-optimising-haskell-core">Process of Optimising Haskell Core</h3>
 <p>The best way to understand why a profiling report outputs certain performance metrics (for Haskell) is to dive into the actual core itself, which is what the surface-level Haskell code compiles down into. To inspect the core in a coherent manner, we can add the following to either our <code>package.yaml</code> file (when using <code>stack</code>):</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">    <span style="color:#f92672">ghc-options</span>:
     - <span style="color:#ae81ff">dump-core</span>
@@ -209,9 +209,10 @@ Usually we will see something we&rsquo;re unhappy with. In the above case, there
 <p>Here as well is a specialised <code>StateT + FreshT (&lt;*&gt;)</code>.</p>
 <p><img src="https://i.ibb.co/J5gv9sg/image-23.png" alt=""></p>
 <p>(CPS can be used to get rid of all the stupid tuples&hellip;)</p>
-<p>Q: Did you have to ensure anything in particular in your code to ensure specialization happened, e.g. I notice there being cases of non-concrete monads m in type definitions, did you make sure that it was always possible to work m out?
-A: I didn&rsquo;t do anything, GHC can specialise the monads when it sees them concretely then the inliner works its magic on the specialised code to form what you see there.
-In the ideal, monads should be just as fast as the hand written equivalent. The reason GHC left the <code>traverseCombinator</code> function alone, is because it wasn&rsquo;t marked with the <code>INLINABLE</code> pragma, so it doesn&rsquo;t have the code in the interface file (in other words, it doesn&rsquo;t know what it is in the other file). If we then chuck an <code>INLINABLE</code> pragma on it, let&rsquo;s see how it affects the core of the function we saw before:</p>
+<p><strong>Q</strong>: Were any particular code changes necessary to ensure that the program specialised, e.g. there are cases of non-concrete monads <code>m</code> in type definitions, are any actions needed to make sure that GHC can work <code>m</code> out?</p>
+<p><strong>A</strong>: Nope &ndash; GHC can specialise the monads when it sees them concretely then the inliner works its magic on the specialised code to form what we see there.
+In the ideal, monads should be just as fast as the hand written equivalent.</p>
+<p>The reason GHC left the <code>traverseCombinator</code> function alone, is because it wasn&rsquo;t marked with the <code>INLINABLE</code> pragma, so it doesn&rsquo;t have the code in the interface file (in other words, it doesn&rsquo;t know what it is in the other file). If we then chuck an <code>INLINABLE</code> pragma on it, let&rsquo;s see how it affects the core of the function we saw before:</p>
 <p><img src="https://i.ibb.co/q5SXCkJ/image-21.png" alt=""></p>
 <p>We can see that it still calls <code>traverseCombinator</code>, but it has an <code>$s</code> this time and there are no arguments passed to it. Let&rsquo;s take a peek inside:</p>
 <p><img src="https://i.ibb.co/F5NNs3w/image-20.png" alt=""></p>
@@ -225,6 +226,11 @@ it is inlined into the function, and the internals are simplified further. The <
 <img src="https://i.ibb.co/rH5JCxf/image-16.png" alt="">
 <img src="https://i.ibb.co/wKjY9HG/image-15.png" alt=""></p>
 <p>The <code>$wg</code> function above is the <code>postprocess</code> function.</p>
+<p>The moral of the story is: if we don&rsquo;t see <code>$w</code> or <code>$s</code> in the core anywhere, optimisations are not on.</p>
+<ul>
+<li><code>$w</code> is usually prepended to functions that the compiler as unwrapped some of the arguments for (eliminating a pattern match).</li>
+<li><code>$s</code> is usually prepended to specialised functions.</li>
+</ul>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
@@ -247,7 +253,7 @@ Published on 13 Nov 2020
 <ul class="sub-menu">
 <li class=""><a href="https://probabilistic-effects.github.io/research/research-journal/">Research Journal</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/">Potential Approaches to Improving Monad Bayes</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less - Alexis King&#39;s Talk Summary</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/research/literature-review/">Literature Review</a></li>
 <li class="active"><a href="https://probabilistic-effects.github.io/research/haskell-core/">Haskell Core</a></li>
 </ul>
