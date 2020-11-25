@@ -32,7 +32,7 @@ ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (w
 ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (when using cabal):">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="1994">
+<meta itemprop="wordCount" content="2653">
 
 
 
@@ -179,6 +179,52 @@ Usually we will see something we&rsquo;re unhappy with. In the above case, there
 <p>The relationship between the profiling information and the core, is more obvious than the relationship between the profiling information and the original code. We can use the profiler to guide us to the parts of the core that we want to look at.</p>
 <p>Additionally, although memory leaks might not be what our performance issues are, they also could be. In Haskell, it&rsquo;s not called a memory leak, it&rsquo;s a space leak which is a bunch of unevaluated thunks which is causing a long chain of computation. The memory is held on to by the thunks even though it is potentially not used. If we see lots of heap activity, this could be a sign that laziness in our program is adding overhead. Also, if we are seeing a lot of objects being churned through (even if they are going through quite fast), we could ask &ldquo;are those objects necessary, or could they have been unboxed and thrown away?&rdquo;.</p>
 <p>In the core visualisation, we also can highlight over certain fragments of code, and in the top right corner, this shows us the type information and also strictness properties. Even though something may appear to be lazy, we can identify that something is actually a strict binding (because it says <code>S</code> rather than <code>L</code>).</p>
+<h3 id="case-study-parsley">Case Study: Parsley</h3>
+<p>Here&rsquo;s an example of when the generated core has inlined and eliminated all the <code>ST</code> occurrences. We have the following code:</p>
+<p><img src="https://i.ibb.co/yVRgmJ3/image-35.png" alt=""></p>
+<p><img src="https://i.ibb.co/R41yDnn/image-34.png" alt=""></p>
+<p>So the reader monad should be milling around. This is <code>cata4</code>:</p>
+<p><img src="https://i.ibb.co/R7rmRZ0/image-33.png" alt=""></p>
+<p>And we have this function, <code>evalPush</code>:</p>
+<p><img src="https://i.ibb.co/9c7cRVX/image-32.png" alt=""></p>
+<p>But in the core, we can see the reader monad has been completely eliminated. There is no <code>fmap</code>, and no <code>IFunctor</code> instance from the <code>cata4</code> - it&rsquo;s just made as a recursive function.</p>
+<p><img src="https://i.ibb.co/Mnd8wMS/image-31.png" alt=""></p>
+<p>Here is another example - this involves <code>StateT + Reader</code></p>
+<p><img src="https://i.ibb.co/GQMcmJY/image-30.png" alt=""></p>
+<p>Let&rsquo;s go find this in the core and verify again the abstraction is gone.</p>
+<p><img src="https://i.ibb.co/857R8BB/image-29.png" alt=""></p>
+<p>Now there is that suspicious looking bit here:</p>
+<p><img src="https://i.ibb.co/J7b77n6/image-28.png" alt=""></p>
+<p>but the $s around here are indications of specialisation. We can visit these in this file and see what&rsquo;s up.</p>
+<p><img src="https://i.ibb.co/P9TkzV6/image-27.png" alt=""></p>
+<p>That&rsquo;s the code - it hasn&rsquo;t been marked as inline and it&rsquo;s quite big, so the compiler is probably reluctant to inline it (or specialise it a lot), but let&rsquo;s check the core:</p>
+<p><img src="https://i.ibb.co/wWqJ0mP/image-26.png" alt=""></p>
+<p>So it&rsquo;s unpacked the dictionary straight into the function. You can see that here:</p>
+<p><img src="https://i.ibb.co/z2DM5Yr/image-25.png" alt=""></p>
+<p>But it&rsquo;s not as optimised as it could have been (probably because it wasn&rsquo;t told it could specialise across the file boundary (this is defined in a different core dumped file)so it&rsquo;s optimised as much as it could generally but hasn&rsquo;t optimised it specifically to <code>StateT</code> as it could have done. That&rsquo;s a shame, but fixable easily (if JW cared about the internal library performance).</p>
+<p>Now to go and check out the specialised applicative state functions!</p>
+<p><img src="https://i.ibb.co/YfJhkYB/image-24.png" alt=""></p>
+<p>It&rsquo;s created an app for <code>readerT + stateT</code>. We can see the <code>r1</code> from <code>reader</code>, and <code>s'</code> from <code>state</code> in there. There are no references to the original dictionaries, or indeed the original functions from either <code>ReaderT</code> or <code>StateT</code>.</p>
+<p>The file is however, full of crap. There are a lot of dead specialised instances etc.</p>
+<p>Here as well is a specialised <code>StateT + FreshT (&lt;*&gt;)</code>.</p>
+<p><img src="https://i.ibb.co/J5gv9sg/image-23.png" alt=""></p>
+<p>(CPS can be used to get rid of all the stupid tuples&hellip;)</p>
+<p>Q: Did you have to ensure anything in particular in your code to ensure specialization happened, e.g. I notice there being cases of non-concrete monads m in type definitions, did you make sure that it was always possible to work m out?
+A: I didn&rsquo;t do anything, GHC can specialise the monads when it sees them concretely then the inliner works its magic on the specialised code to form what you see there.
+In the ideal, monads should be just as fast as the hand written equivalent. The reason GHC left the <code>traverseCombinator</code> function alone, is because it wasn&rsquo;t marked with the <code>INLINABLE</code> pragma, so it doesn&rsquo;t have the code in the interface file (in other words, it doesn&rsquo;t know what it is in the other file). If we then chuck an <code>INLINABLE</code> pragma on it, let&rsquo;s see how it affects the core of the function we saw before:</p>
+<p><img src="https://i.ibb.co/q5SXCkJ/image-21.png" alt=""></p>
+<p>We can see that it still calls <code>traverseCombinator</code>, but it has an <code>$s</code> this time and there are no arguments passed to it. Let&rsquo;s take a peek inside:</p>
+<p><img src="https://i.ibb.co/F5NNs3w/image-20.png" alt=""></p>
+<p>Now the <code>reader</code> and <code>state</code> monad code has been inlined and optimised within this function. Interestingly, the specialiser wanted to specialise, but the inliner chose not to inline the <code>expose</code> parameter, which looks like this:</p>
+<p><img src="https://i.ibb.co/JkcXtjH/image-19.png" alt=""></p>
+<p>Another thing to notice is that, before when the <code>expose</code> parameter was left there, it made the code more complex than it needed to be (because the expose function used here is actually just <code>pure</code> roughly). After having marked <code>traverseCombinator</code> as <code>INLINE</code>,
+it is inlined into the function, and the internals are simplified further. The <code>eta</code> is the reader context. We can obviously see that the state is being passed around happily - that&rsquo;s as optimal as it gets, and all GHC needed to go from the slower only-unwrapped version to this fully inlined and optimised version was an <code>INLINE</code> pragma.</p>
+<p><img src="https://i.ibb.co/nMn8HHf/image-18.png" alt=""></p>
+<p>GHC has also done the same with the other use of <code>traverseCombinator</code>:</p>
+<p><img src="https://i.ibb.co/LPMpN6Q/image-17.png" alt="">
+<img src="https://i.ibb.co/rH5JCxf/image-16.png" alt="">
+<img src="https://i.ibb.co/wKjY9HG/image-15.png" alt=""></p>
+<p>The <code>$wg</code> function above is the <code>postprocess</code> function.</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
