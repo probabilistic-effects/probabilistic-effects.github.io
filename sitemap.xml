@@ -13,6 +13,11 @@
   </url>
   
   <url>
+    <loc>https://probabilistic-effects.github.io/tooling/cabal/</loc>
+    <lastmod>2020-11-13T14:05:41+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/</loc>
     <lastmod>2020-11-13T14:05:41+00:00</lastmod>
   </url>
@@ -99,6 +104,11 @@
   
   <url>
     <loc>https://probabilistic-effects.github.io/monad-bayes/</loc>
+    <lastmod>2020-11-13T13:50:31+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://probabilistic-effects.github.io/tooling/</loc>
     <lastmod>2020-11-13T13:50:31+00:00</lastmod>
   </url>
   
