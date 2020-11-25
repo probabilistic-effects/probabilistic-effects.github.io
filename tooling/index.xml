@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Monad Bayes on Probabilistic Effects.  λθ</title>
+    <title>Tooling on Probabilistic Effects.  λθ</title>
     <link>https://probabilistic-effects.github.io/tooling/</link>
-    <description>Recent content in Monad Bayes on Probabilistic Effects.  λθ</description>
+    <description>Recent content in Tooling on Probabilistic Effects.  λθ</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Fri, 13 Nov 2020 13:50:31 +0000</lastBuildDate><atom:link href="https://probabilistic-effects.github.io/tooling/index.xml" rel="self" type="application/rss+xml" />
