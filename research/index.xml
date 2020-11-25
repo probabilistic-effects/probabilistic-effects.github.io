@@ -49,5 +49,15 @@ Summary  Real world benchmarks make it difficult to isolate costs Microbenchmark
  Practical Probabilistic Programming with Monads - Ścibior, Adam, Zoubin Ghahramani, and Andrew D. Gordon. Proceedings of the 2015 ACM SIGPLAN Symposium on Haskell. 2015. Functional Programming for Modular Bayesian Inference - Ścibior, Adam, Ohad Kammar, and Zoubin Ghahramani. Proceedings of the ACM on Programming Languages 2. ICFP (2018): 1-29. Formally Justified and Modular Bayesian Inference for Probabilistic Programs - Ścibior, Adam Michał. Diss. University of Cambridge, 2019.</description>
     </item>
     
+    <item>
+      <title>Haskell Core</title>
+      <link>https://probabilistic-effects.github.io/research/haskell-core/</link>
+      <pubDate>Fri, 13 Nov 2020 13:49:05 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/research/haskell-core/</guid>
+      <description>Understanding Haskell Core The best way to understand why a profiling report outputs certain performance metrics (for Haskell) is to dive into the actual core itself, which is what the surface-level Haskell code compiles down into. To inspect the core in a coherent manner, we can add the following to either our package.yaml file (when using stack):
+ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (when using cabal):</description>
+    </item>
+    
   </channel>
 </rss>
