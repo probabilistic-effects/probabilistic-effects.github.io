@@ -38,7 +38,7 @@
  What&rsquo;s the line between papers and a very good blog post? (new things are papers) How can research/observations across monad-bayes be generalised? It is possible to do an empirical evaluation and target software dev audiences Programming languages field lacks proper evaluations; it is possible to question existing &ldquo;folklore&rdquo; with new observed results&quot; It is important to know what the benchmarking tool can and can&rsquo;t do - when experimenting we must always ask what can the tool do for me.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:57+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:57+00:00" />
-<meta itemprop="wordCount" content="3719">
+<meta itemprop="wordCount" content="3923">
 
 
 
@@ -360,7 +360,7 @@ ghcup set 8.6.5
 <p>The hope is that we won&rsquo;t find any <code>&gt;&gt;=</code>s if the optimiser has successfully removed them from the function. If we look at the <code>pmmh</code> function from <code>PMMH.hs</code> of <code>monad-bayes</code>:</p>
 <p><img src="https://i.ibb.co/vwTBtrR/image-9.png" alt="">
 <img src="https://i.ibb.co/hXWdFpv/image-8.png" alt=""></p>
-<p>This function itself won&rsquo;t be able to optimise because it needs a concrete instance of <code>MonadInfer</code>, but this isn&rsquo;t necessarily a problem. What we need to look at is when we <em>use</em> this function with something concrete. So let&rsquo;s look at <code>inferModel</code> from <code>PmmhHmm.hs</code> of <code>probabilistic-programming</code> which uses <code>pmmh</code>; the <code>MonadInfer m</code> concretises to <code>IO</code> because we called <code>sampleIO</code> of <code>monad-bayes</code> on it.</p>
+<p>This function itself won&rsquo;t be able to optimise because it needs a concrete instance of <code>wwwMonadInfer</code>, but this isn&rsquo;t necessarily a problem. What we need to look at is when we <em>use</em> this function with something concrete. So let&rsquo;s look at <code>inferModel</code> from <code>PmmhHmm.hs</code> of <code>probabilistic-programming</code> which uses <code>pmmh</code>; the <code>MonadInfer m</code> concretises to <code>IO</code> because we called <code>sampleIO</code> of <code>monad-bayes</code> on it.</p>
 <p><img src="https://i.ibb.co/Hn11cqs/image-6.png" alt="">
 <img src="https://i.ibb.co/L8sSSFZ/image-5.png" alt=""></p>
 <p>The hope is that the call to <code>pmmh</code> (represented by the green-highlighted <code>lvl</code>) would have been inlined - however this is not the case, as it simply references <code>pmmh</code> from the <code>monad-bayes</code> library, which has <em>not</em> been marked as <code>INLINE</code> or <code>INLINABLE</code>. This means GHC isn&rsquo;t specialising it, so the program still performs dictionary lookups when that code is compiled.</p>
@@ -395,6 +395,13 @@ ghcup set 8.6.5
 <li>
 <p>Organized <a href="https://github.com/probabilistic-effects/probabilistic-programming"><code>probabilistic-programming</code></a> repo, and added benchmarking program and folder.</p>
 </li>
+</ul>
+<p><strong>Meeting (MN + AZ)</strong>      <em>27/11/2020</em></p>
+<ul>
+<li>Research hypothesis currently would be that all of this inlining results in a faster library. Need to go back and benchmark &amp; record timings for each optimisation change on <code>monad-bayes</code> when looking at core to see whether things have actually improved. Benchmark program will be PMMH inference on a HMM.</li>
+<li>Need to create a handrolled version of <code>monad-bayes</code> (w.r.t its inference transformers), and also continue inlining to see how fast we can get the current version of <code>monad-bayes</code>. If the inlined version can reach the speed of the handrolled version, then it is sufficiently fast.</li>
+<li>Why has GHC not inlined certain definitions automatically? Need to write up on how the GHC inliner works, and get a good understanding of inlining.</li>
+<li>There&rsquo;s a discussion to be had about how this style of doing things is bad - if your program is not reaching the desired performance and it&rsquo;s not obvious as to how to optimise your program, it could be indicative that the compiler is doing something wrong. If such problems need to be solved by looking at core and then simply adding an inline pragma to certain functions, this seems like a pretty sub-optimal way to be writing programs.</li>
 </ul>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
