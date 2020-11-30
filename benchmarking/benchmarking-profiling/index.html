@@ -35,7 +35,7 @@ This should be under the test directory, e.g. test/BenchmarkProgram.hs which con
 testPmmh :: Int -&gt; IO () testPmmh nsteps = do observedStates &lt;- generateData initLatentState initParams nsteps print observedStates   The program that calls the profiling functions should ideally be test/Spec.">
 <meta itemprop="datePublished" content="2020-11-13T14:02:28+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:02:28+00:00" />
-<meta itemprop="wordCount" content="1777">
+<meta itemprop="wordCount" content="2072">
 
 
 
@@ -107,6 +107,53 @@ testPmmh :: Int -&gt; IO () testPmmh nsteps = do observedStates &lt;- generateDa
 </code></pre><p>And then by running the following, the <code>--output</code> option directs our program to write a report to the file <code>spec.html</code>:</p>
 <pre><code>./Spec --output spec.html
 </code></pre><p>Clicking <code>spec.html</code> opens this report.</p>
+</li>
+</ol>
+<hr>
+<h2 id="benchmarking-with-criterion--cabal">Benchmarking With Criterion &amp; Cabal</h2>
+<ol>
+<li>
+<p>The benchmark program we intend to profile needs to have a function which takes one argument (influencing the computational effort of executing the program) - this is the function we directly call for profiling.</p>
+<p>This can be under the <code>src</code> directory, e.g. <code>src/PmmhHmm.hs</code> which contains a function:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">testPmmh</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> ()
+<span style="color:#a6e22e">testPmmh</span> nsteps <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+   observedStates <span style="color:#f92672">&lt;-</span> generateData initLatentState initParams nsteps
+   print observedStates
+</code></pre></div></li>
+<li>
+<p>The program that calls the profiling functions should ideally be <code>benchmarking/BenchmarkProgram.hs</code> and be the <code>Main</code> module. This needs to import both the benchmarked program and criterion.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">module</span> Main <span style="color:#66d9ef">where</span>
+
+<span style="color:#66d9ef">import</span> BenchmarkProgram
+<span style="color:#66d9ef">import</span> Criterion.Main
+</code></pre></div><p>It should contain a <code>main</code> function which details how benchmarking is performed. (This isn&rsquo;t the optimal usage of Criterion&rsquo;s tools, but this is still the core idea).</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">main</span> <span style="color:#f92672">=</span> defaultMain [
+  bgroup <span style="color:#e6db74">&#34;pmmhTest&#34;</span> [ bench <span style="color:#e6db74">&#34;10&#34;</span>  <span style="color:#f92672">$</span> whnf testPmmh <span style="color:#ae81ff">10</span>
+                    , bench <span style="color:#e6db74">&#34;20&#34;</span>  <span style="color:#f92672">$</span> whnf testPmmh <span style="color:#ae81ff">20</span>
+                    , bench <span style="color:#e6db74">&#34;40&#34;</span>  <span style="color:#f92672">$</span> whnf testPmmh <span style="color:#ae81ff">40</span>
+                    , bench <span style="color:#e6db74">&#34;80&#34;</span>  <span style="color:#f92672">$</span> whnf testPmmh <span style="color:#ae81ff">80</span>
+                    , bench <span style="color:#e6db74">&#34;160&#34;</span> <span style="color:#f92672">$</span> whnf testPmmh <span style="color:#ae81ff">160</span>
+                    ]
+  ]
+</code></pre></div></li>
+<li>
+<p>The <code>.cabal</code> file should contain the following (the build dependencies need to import our own package if the benchmarking program uses exposed modules from our own library):</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#ae81ff">executable benchmark-program</span>
+   <span style="color:#f92672">main-is</span>:             <span style="color:#ae81ff">BenchmarkProgram.hs</span>
+   <span style="color:#f92672">build-depends</span>:       <span style="color:#ae81ff">base &gt;=4.11 &amp;&amp; &lt;4.14,</span>
+                        <span style="color:#ae81ff">criterion,</span>
+                        <span style="color:#ae81ff">probabilistic-programming, -- our package name</span>
+                        <span style="color:#ae81ff">mtl &gt;=2.2.2 &amp;&amp; &lt;2.3,</span>
+                        <span style="color:#ae81ff">statistics &gt;=0.14.0 &amp;&amp; &lt;0.16,</span>
+                        <span style="color:#ae81ff">log-domain &gt;=0.12 &amp;&amp; &lt;0.14,</span>
+                        <span style="color:#ae81ff">megaparsec</span>
+   <span style="color:#f92672">default-language</span>:    <span style="color:#ae81ff">Haskell2010</span>
+   <span style="color:#f92672">hs-source-dirs</span>:      <span style="color:#ae81ff">benchmarking</span>
+</code></pre></div></li>
+<li>
+<p>Next, within the <code>benchmarking</code> directory, we can then compile <code>BenchmarkProgram.hs</code> and execute it with the command line arguments <code>--output benchmark-results.html</code> where the <code>--output</code> option directs our program to write a report to the file <code>benchmark-results.html</code>. Writing <code>--</code> after <code>cabal run &lt;executable&gt;</code> lets us specify any following command line arguments to the executable.</p>
+<pre><code>cabal run benchmark-program -- --output benchmark-results.html
+</code></pre><p>Clicking <code>benchmark-results.html</code> opens this report.</p>
 </li>
 </ol>
 <hr>
