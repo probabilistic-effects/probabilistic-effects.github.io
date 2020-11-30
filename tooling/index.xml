@@ -13,7 +13,8 @@
       <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
       
       <guid>https://probabilistic-effects.github.io/tooling/cabal/</guid>
-      <description></description>
+      <description>The executable field specifies the part of the package which can be executed with cabal run &amp;lt;executable&amp;gt;.
+ main-is - The executable file containing a Main module and the function main. build-depends - Other library packages from which modules are imported. This can contain modules from the current package itself if they are found in the exposed-modules field of the library, by specifying the name of our package. hs-source-dirs - The local directories from which the executable can be found (leave empty if it isn&amp;rsquo;t inside a directory) and any other local modules it imports (if they aren&amp;rsquo;t found in the build-depends field).</description>
     </item>
     
   </channel>
