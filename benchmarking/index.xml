@@ -8,6 +8,17 @@
     <language>en-us</language>
     <lastBuildDate>Fri, 13 Nov 2020 13:49:05 +0000</lastBuildDate><atom:link href="https://probabilistic-effects.github.io/benchmarking/index.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Benchmark Log</title>
+      <link>https://probabilistic-effects.github.io/benchmarking/benchmark-log/</link>
+      <pubDate>Fri, 13 Nov 2020 14:02:28 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/benchmarking/benchmark-log/</guid>
+      <description>PMMH Inference on HMM This details the benchmarks for a program using monad-bayes to run PMMH inference on a HMM, whilst tactically adding various {-# INLINE #-} pragmas to functions of the monad-bayes library in response to analysing the Haskell core generated.
+Source Program
+main = defaultMain [ bgroup &amp;#34;runPmmh&amp;#34; [ bench &amp;#34;(100, 100, 100)&amp;#34; $ whnfIO $ runPmmh (100, 100, 100) ] ] runPmmh :: (Int, Int, Int) -&amp;gt; IO () runPmmh (n_mhsteps, n_timesteps, n_particles) = do particleWeightings &amp;lt;- inferModel n_mhsteps n_timesteps n_particles print particleWeightings  Original Code   Inline pragma added to pmmh function   Inline pragma added to pmmh &amp;amp; pushEvidence functions   Inline pragma added to pmmh, pushEvidence, &amp;amp; hoist functions   Inline pragma added to pmmh, pushEvidence, hoist, &amp;amp; mhTrans functions  </description>
+    </item>
+    
+    <item>
       <title>How to Benchmark and Profile</title>
       <link>https://probabilistic-effects.github.io/benchmarking/benchmarking-profiling/</link>
       <pubDate>Fri, 13 Nov 2020 14:02:28 +0000</pubDate>

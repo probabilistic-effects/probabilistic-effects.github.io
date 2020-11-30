@@ -38,7 +38,7 @@
  What&rsquo;s the line between papers and a very good blog post? (new things are papers) How can research/observations across monad-bayes be generalised? It is possible to do an empirical evaluation and target software dev audiences Programming languages field lacks proper evaluations; it is possible to question existing &ldquo;folklore&rdquo; with new observed results&quot; It is important to know what the benchmarking tool can and can&rsquo;t do - when experimenting we must always ask what can the tool do for me.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:57+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:57+00:00" />
-<meta itemprop="wordCount" content="3923">
+<meta itemprop="wordCount" content="3945">
 
 
 
@@ -403,6 +403,11 @@ ghcup set 8.6.5
 <li>Why has GHC not inlined certain definitions automatically? Need to write up on how the GHC inliner works, and get a good understanding of inlining.</li>
 <li>There&rsquo;s a discussion to be had about how this style of doing things is bad - if your program is not reaching the desired performance and it&rsquo;s not obvious as to how to optimise your program, it could be indicative that the compiler is doing something wrong. If such problems need to be solved by looking at core and then simply adding an inline pragma to certain functions, this seems like a pretty sub-optimal way to be writing programs.</li>
 </ul>
+<p><strong>Activity (MN)</strong>      <em>30/11/2020</em></p>
+<ul>
+<li>Figured out and <a href="http://localhost:1313/benchmarking/benchmarking-profiling/#benchmarking-with-criterion--cabal">wrote up</a> how to work criterion with cabal</li>
+<li>Recorded <a href="../../benchmarking/benchmark-log">benchmarks</a> for differently inlined versions of <code>monad-bayes</code></li>
+</ul>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
@@ -453,6 +458,7 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/benchmarking/">Benchmarking</a>
   
 <ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmark-log/">Benchmark Log</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmarking-profiling/">How to Benchmark and Profile</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/benchmarking/monad-bayes-components/">Relevant Components of Monad Bayes for Profiling</a></li>
 </ul>
