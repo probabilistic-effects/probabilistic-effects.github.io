@@ -17,7 +17,7 @@
 :root {}
 </style>
 <meta property="og:title" content="Benchmark Log" />
-<meta property="og:description" content="PMMH Inference on HMM This details the benchmarks for a program using monad-bayes to run PMMH inference on a HMM, whilst tactically adding various {-# INLINE #-} pragmas to functions of the monad-bayes library in response to analysing the Haskell core generated.
+<meta property="og:description" content="PMMH Inference on HMM This details the benchmarks for a program using monad-bayes to run PMMH inference on a HMM, whilst tactically adding various {-# INLINE #-} pragmas to functions of the monad-bayes library in response to analysing the Haskell core generated. Each benchmark is the average over 4 iterations.
 Source Program
 main = defaultMain [ bgroup &#34;runPmmh&#34; [ bench &#34;(100, 100, 100)&#34; $ whnfIO $ runPmmh (100, 100, 100) ] ] runPmmh :: (Int, Int, Int) -&gt; IO () runPmmh (n_mhsteps, n_timesteps, n_particles) = do particleWeightings &lt;- inferModel n_mhsteps n_timesteps n_particles print particleWeightings  Original Code   Inline pragma added to pmmh function   Inline pragma added to pmmh &amp; pushEvidence functions   Inline pragma added to pmmh, pushEvidence, &amp; hoist functions   Inline pragma added to pmmh, pushEvidence, hoist, &amp; mhTrans functions  " />
 <meta property="og:type" content="article" />
@@ -26,16 +26,16 @@ main = defaultMain [ bgroup &#34;runPmmh&#34; [ bench &#34;(100, 100, 100)&#34; 
 <meta property="article:modified_time" content="2020-11-13T14:02:28+00:00" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Benchmark Log"/>
-<meta name="twitter:description" content="PMMH Inference on HMM This details the benchmarks for a program using monad-bayes to run PMMH inference on a HMM, whilst tactically adding various {-# INLINE #-} pragmas to functions of the monad-bayes library in response to analysing the Haskell core generated.
+<meta name="twitter:description" content="PMMH Inference on HMM This details the benchmarks for a program using monad-bayes to run PMMH inference on a HMM, whilst tactically adding various {-# INLINE #-} pragmas to functions of the monad-bayes library in response to analysing the Haskell core generated. Each benchmark is the average over 4 iterations.
 Source Program
 main = defaultMain [ bgroup &#34;runPmmh&#34; [ bench &#34;(100, 100, 100)&#34; $ whnfIO $ runPmmh (100, 100, 100) ] ] runPmmh :: (Int, Int, Int) -&gt; IO () runPmmh (n_mhsteps, n_timesteps, n_particles) = do particleWeightings &lt;- inferModel n_mhsteps n_timesteps n_particles print particleWeightings  Original Code   Inline pragma added to pmmh function   Inline pragma added to pmmh &amp; pushEvidence functions   Inline pragma added to pmmh, pushEvidence, &amp; hoist functions   Inline pragma added to pmmh, pushEvidence, hoist, &amp; mhTrans functions  "/>
 <meta itemprop="name" content="Benchmark Log">
-<meta itemprop="description" content="PMMH Inference on HMM This details the benchmarks for a program using monad-bayes to run PMMH inference on a HMM, whilst tactically adding various {-# INLINE #-} pragmas to functions of the monad-bayes library in response to analysing the Haskell core generated.
+<meta itemprop="description" content="PMMH Inference on HMM This details the benchmarks for a program using monad-bayes to run PMMH inference on a HMM, whilst tactically adding various {-# INLINE #-} pragmas to functions of the monad-bayes library in response to analysing the Haskell core generated. Each benchmark is the average over 4 iterations.
 Source Program
 main = defaultMain [ bgroup &#34;runPmmh&#34; [ bench &#34;(100, 100, 100)&#34; $ whnfIO $ runPmmh (100, 100, 100) ] ] runPmmh :: (Int, Int, Int) -&gt; IO () runPmmh (n_mhsteps, n_timesteps, n_particles) = do particleWeightings &lt;- inferModel n_mhsteps n_timesteps n_particles print particleWeightings  Original Code   Inline pragma added to pmmh function   Inline pragma added to pmmh &amp; pushEvidence functions   Inline pragma added to pmmh, pushEvidence, &amp; hoist functions   Inline pragma added to pmmh, pushEvidence, hoist, &amp; mhTrans functions  ">
 <meta itemprop="datePublished" content="2020-11-13T14:02:28+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:02:28+00:00" />
-<meta itemprop="wordCount" content="121">
+<meta itemprop="wordCount" content="129">
 
 
 
@@ -48,7 +48,7 @@ main = defaultMain [ bgroup &#34;runPmmh&#34; [ bench &#34;(100, 100, 100)&#34; 
 <div class="content-container">
 <main><h1>Benchmark Log</h1>
 <h3 id="pmmh-inference-on-hmm">PMMH Inference on HMM</h3>
-<p>This details the benchmarks for a program using <code>monad-bayes</code> to run PMMH inference on a HMM, whilst tactically adding various <code>{-# INLINE #-}</code> pragmas to functions of the <code>monad-bayes</code> library in response to analysing the Haskell core generated.</p>
+<p>This details the benchmarks for a program using <code>monad-bayes</code> to run PMMH inference on a HMM, whilst tactically adding various <code>{-# INLINE #-}</code> pragmas to functions of the <code>monad-bayes</code> library in response to analysing the Haskell core generated. Each benchmark is the average over 4 iterations.</p>
 <p><strong>Source Program</strong></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">main</span> <span style="color:#f92672">=</span> defaultMain [
   bgroup <span style="color:#e6db74">&#34;runPmmh&#34;</span> [ bench <span style="color:#e6db74">&#34;(100, 100, 100)&#34;</span>  <span style="color:#f92672">$</span> whnfIO <span style="color:#f92672">$</span> runPmmh (<span style="color:#ae81ff">100</span>, <span style="color:#ae81ff">100</span>, <span style="color:#ae81ff">100</span>)
