@@ -38,7 +38,7 @@
  What&rsquo;s the line between papers and a very good blog post? (new things are papers) How can research/observations across monad-bayes be generalised? It is possible to do an empirical evaluation and target software dev audiences Programming languages field lacks proper evaluations; it is possible to question existing &ldquo;folklore&rdquo; with new observed results&quot; It is important to know what the benchmarking tool can and can&rsquo;t do - when experimenting we must always ask what can the tool do for me.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:57+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:57+00:00" />
-<meta itemprop="wordCount" content="4047">
+<meta itemprop="wordCount" content="3590">
 
 
 
@@ -346,45 +346,10 @@ ghcup install 8.6.5
 ghcup set 8.6.5
 </code></pre></div></li>
 <li>
-<p>Added <code>cabal.project</code> file with <code>optimization:2</code> flag to project, and then analysed the dumped core of <code>Population.hs</code> and <code>Weighted.hs</code> of <code>monad-bayes</code>.</p>
-<p><img src="https://i.ibb.co/RpdvP7G/image-14.png" alt=""></p>
-<p>It turns out that we should expect to see these definitions, however if we use <code>optimization:2</code>, then we should also expect them to not actually be used. This is because GHC generates a lot of garbage that it doesn&rsquo;t seem to want to remove, but when we go to places where they would have been used, we should be able to find that they aren&rsquo;t actually there.</p>
+<p>Added <code>cabal.project</code> file with <code>optimization:2</code> flag to project.</p>
 </li>
 <li>
-<p>Here is <code>scoreModel</code> from <code>PmmhHmm.hs</code> of <code>probabilistic-programming</code>.</p>
-<p><img src="https://i.ibb.co/nPg76CB/image-12.png" alt="">
-<img src="https://i.ibb.co/0VRhHLW/image-11.png" alt=""></p>
-<p>We can see that there aren&rsquo;t any of the abstractions in there; this core looks pretty good, however <code>logProbability</code> is a numerical computation which could be inlined.</p>
-</li>
-<li>
-<p>The hope is that we won&rsquo;t find any <code>&gt;&gt;=</code>s if the optimiser has successfully removed them from the function. If we look at the <code>pmmh</code> function from <code>PMMH.hs</code> of <code>monad-bayes</code>:</p>
-<p><img src="https://i.ibb.co/vwTBtrR/image-9.png" alt="">
-<img src="https://i.ibb.co/hXWdFpv/image-8.png" alt=""></p>
-<p>This function itself won&rsquo;t be able to optimise because it needs a concrete instance of <code>wwwMonadInfer</code>, but this isn&rsquo;t necessarily a problem. What we need to look at is when we <em>use</em> this function with something concrete. So let&rsquo;s look at <code>inferModel</code> from <code>PmmhHmm.hs</code> of <code>probabilistic-programming</code> which uses <code>pmmh</code>; the <code>MonadInfer m</code> concretises to <code>IO</code> because we called <code>sampleIO</code> of <code>monad-bayes</code> on it.</p>
-<p><img src="https://i.ibb.co/Hn11cqs/image-6.png" alt="">
-<img src="https://i.ibb.co/L8sSSFZ/image-5.png" alt=""></p>
-<p>The hope is that the call to <code>pmmh</code> (represented by the green-highlighted <code>lvl</code>) would have been inlined - however this is not the case, as it simply references <code>pmmh</code> from the <code>monad-bayes</code> library, which has <em>not</em> been marked as <code>INLINE</code> or <code>INLINABLE</code>. This means GHC isn&rsquo;t specialising it, so the program still performs dictionary lookups when that code is compiled.</p>
-</li>
-<li>
-<p>The <code>monad-bayes</code> library from <code>hackage</code> was removed as a build dependency, and the local clone of <code>monad-bayes</code> is now used as a dependency instead.</p>
-<p><img src="https://i.ibb.co/QXTPhZ4/dump-core-3-0.png" alt=""></p>
-</li>
-<li>
-<p>The <code>INLINE</code> pragma was added to <code>pmmh</code> of <code>monad-bayes</code>.</p>
-<p><img src="https://i.ibb.co/MZ15RN0/dump-core-3-1.png" alt=""></p>
-<p>Revisiting the <code>inferModel</code> function, we can now see that the call to <code>pmmh</code> (previously represented by <code>lvl</code>) has been inlined with what is now called <code>$w$spmmh</code>.</p>
-<ul>
-<li><code>$w</code> is usually prepended to functions that the compiler has unwrapped some of the arguments for (which eliminates a pattern match).</li>
-<li><code>$s</code> is usually prepended to functions that the compiler has specialised.</li>
-</ul>
-</li>
-<li>
-<p>Let&rsquo;s now visit the new version of <code>pmmh</code>, called <code>$w$spmmh</code>.</p>
-<p><img src="https://i.ibb.co/SQb1B5P/image-3.png" alt=""></p>
-<p>This immediately looks a lot better than before, as it has been specialised and has had its arguments unwrapped. There still exists some possible optimisations. When seeing occurrences of calls such as <code>$s$fMonadStateT_$c&gt;&gt;=</code>, we can see it&rsquo;s being passed to <code>mhTrans</code> - this is concerning and suggests that <code>mhTrans</code> along with other functions in similar situations such as <code>pushEvidence</code> and <code>hoist</code> can be inlined.</p>
-<p>Placing an <code>INLINE</code> pragma on these functions results in the following core, with the previous calls being inlined:</p>
-<p><img src="https://i.ibb.co/HC0Yqj8/image-1.png" alt=""></p>
-<p>Additionally, the <code>$w$c&gt;&gt;=</code> (from <code>Bayes.Traced.Static</code>) at the top is suspicious - it looks like one of the arguments is a monadic value, and so it&rsquo;s forced to use a <code>&gt;&gt;=</code> because it doesn&rsquo;t know what the monadic value is.</p>
+<p>Performed some <a href="../../approaches/inlining-monad-bayes">analysis and optimisations</a> on the dumped core of <code>monad-bayes</code>, specifically with <code>Population.hs</code> and <code>Weighted.hs</code>.</p>
 </li>
 </ul>
 <p><strong>Activity (MN)</strong>     <em>25/11/2020</em></p>
@@ -408,13 +373,17 @@ ghcup set 8.6.5
 <li>Figured out and <a href="http://localhost:1313/benchmarking/benchmarking-profiling/#benchmarking-with-criterion--cabal">wrote up</a> how to work criterion with cabal</li>
 <li>Recorded <a href="../../benchmarking/benchmark-log">benchmarks</a> for differently inlined versions of <code>monad-bayes</code></li>
 </ul>
-<p><strong>Meeting (MN + SF + MW)</strong>      <em>27/11/2020</em></p>
+<p><strong>Meeting (MN + SF + MW)</strong>      <em>01/12/2020</em></p>
 <ul>
 <li>Manually adding inline pragmas is needed to improve program performance, but we need to look at the core to know where to put them.</li>
 <li>Need to benchmark again with more iterations to get a better average, and continue looking at opportunities to inline <code>monad-bayes</code>.</li>
 <li>The necessity to inline at the user level is problematic as we can&rsquo;t expect the user of the DSL to know this stuff.</li>
 <li>Need to look at MP&rsquo;s thesis. It has a survey of inlining techniques and all about how GHC behaves.</li>
 <li>What is an effect system? Apparently <code>mtl</code> is not.</li>
+</ul>
+<p><strong>Activity (MN)</strong>      <em>01/12/2020</em></p>
+<ul>
+<li>Performed some more <a href="../../approaches/inlining-monad-bayes">analysis and optimisations</a> on the dumped core of <code>monad-bayes</code>.</li>
 </ul>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
@@ -432,6 +401,14 @@ Published on 13 Nov 2020
 <nav class="open-menu">
 <ul>
 <li class=""><a href="https://probabilistic-effects.github.io/">Home</a></li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/approaches/">Approaches</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/approaches/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
+</ul>
+  
+</li>
 
 <li class="parent"><a href="https://probabilistic-effects.github.io/research/">Research</a>
   

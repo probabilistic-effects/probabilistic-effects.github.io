@@ -3,10 +3,10 @@
 <head><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Markov Chains - Probabilistic Effects.  λθ</title>
+<title>Approaches - Probabilistic Effects.  λθ</title>
 <meta name="generator" content="Hugo 0.78.2" />
 <link href="https://probabilistic-effects.github.io//index.xml" rel="alternate" type="application/rss+xml">
-<link rel="canonical" href="https://probabilistic-effects.github.io/background/markov-chain/">
+<link rel="canonical" href="https://probabilistic-effects.github.io/approaches/">
 <link rel="stylesheet" href="https://probabilistic-effects.github.io/css/theme.min.css">
 <script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
 <link rel="stylesheet" href="https://probabilistic-effects.github.io/css/chroma.min.css">
@@ -16,64 +16,31 @@
 <script src="https://probabilistic-effects.github.io/js/bundle.js"></script><style>
 :root {}
 </style>
-<meta property="og:title" content="Markov Chains" />
-<meta property="og:description" content="Markov Chain A Markov Chain is a stochastic model describing a sequence of possible events in which the probability of each event depends only on the state attained in the previous event.
-A Markov chain is a model that tells us about the probabilities of sequences of random variables, states, each of which can take on values from some set.
-Formally, a Markov chain is specified by the following components:" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://probabilistic-effects.github.io/background/markov-chain/" />
-<meta property="article:published_time" content="2020-11-13T13:58:20+00:00" />
-<meta property="article:modified_time" content="2020-11-13T13:58:20+00:00" />
+<meta property="og:title" content="Approaches" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://probabilistic-effects.github.io/approaches/" />
+<meta property="og:updated_time" content="2020-11-13T13:52:51+00:00" />
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="Markov Chains"/>
-<meta name="twitter:description" content="Markov Chain A Markov Chain is a stochastic model describing a sequence of possible events in which the probability of each event depends only on the state attained in the previous event.
-A Markov chain is a model that tells us about the probabilities of sequences of random variables, states, each of which can take on values from some set.
-Formally, a Markov chain is specified by the following components:"/>
-<meta itemprop="name" content="Markov Chains">
-<meta itemprop="description" content="Markov Chain A Markov Chain is a stochastic model describing a sequence of possible events in which the probability of each event depends only on the state attained in the previous event.
-A Markov chain is a model that tells us about the probabilities of sequences of random variables, states, each of which can take on values from some set.
-Formally, a Markov chain is specified by the following components:">
-<meta itemprop="datePublished" content="2020-11-13T13:58:20+00:00" />
-<meta itemprop="dateModified" content="2020-11-13T13:58:20+00:00" />
-<meta itemprop="wordCount" content="152">
-
-
-
-<meta itemprop="keywords" content="" />
+<meta name="twitter:title" content="Approaches"/>
+<meta name="twitter:description" content=""/>
+<meta itemprop="name" content="Approaches">
+<meta itemprop="description" content="">
 </head>
 <body><div class="container"><header>
 <h1>Probabilistic Effects.  λθ</h1>
 </header>
 
 <div class="content-container">
-<main><h1>Markov Chains</h1>
-<h3 id="markov-chain">Markov Chain</h3>
-<p>A Markov Chain is a stochastic model describing a sequence of possible events in which the probability of each event depends only on the state attained in the previous event.</p>
-<p><img src="https://i.ibb.co/GRgZBQR/markov-chain.png" alt=""></p>
-<p>A Markov chain is a model that tells us about the probabilities of sequences of random variables, <em>states</em>, each of which can take on values from some set.</p>
-<p>Formally, a Markov chain is specified by the following components:</p>
-<ul>
-<li>
-<p>A set of N <strong>states</strong></p>
-<p><em>Q = q<!-- raw HTML omitted -->1<!-- raw HTML omitted -->, q<!-- raw HTML omitted -->2<!-- raw HTML omitted -->, &hellip;, q<!-- raw HTML omitted -->N<!-- raw HTML omitted --></em></p>
-</li>
-<li>
-<p>A <strong>transition probability matrix</strong> <em>A</em>, each <em>a<!-- raw HTML omitted -->ij<!-- raw HTML omitted --></em> representing the probability of moving from state <em>i</em> to state <em>j</em>, such that: ∀i. Σ<!-- raw HTML omitted -->j=1<!-- raw HTML omitted --><!-- raw HTML omitted -->n<!-- raw HTML omitted --> a<!-- raw HTML omitted -->ij<!-- raw HTML omitted --> = 1</p>
-<p><em>A = a<!-- raw HTML omitted -->11<!-- raw HTML omitted -->, a<!-- raw HTML omitted -->12<!-- raw HTML omitted -->, &hellip;, a<!-- raw HTML omitted -->n1<!-- raw HTML omitted -->, &hellip;, a<!-- raw HTML omitted -->nn<!-- raw HTML omitted --></em></p>
-</li>
-<li>
-<p>An <strong>initial probability distribution</strong> over states. π<!-- raw HTML omitted -->i<!-- raw HTML omitted --> is the probability that the Markov chain will start in state <em>i</em>. Some states may have π<!-- raw HTML omitted -->j<!-- raw HTML omitted --> = 0, meaning that they cannot be initial states. Also, Σ<!-- raw HTML omitted -->j=1<!-- raw HTML omitted --><!-- raw HTML omitted -->n<!-- raw HTML omitted --> π<!-- raw HTML omitted -->i<!-- raw HTML omitted --> = 1</p>
-<p><em>π = π<!-- raw HTML omitted -->1<!-- raw HTML omitted -->, π<!-- raw HTML omitted -->2<!-- raw HTML omitted -->, &hellip;, π<!-- raw HTML omitted -->N<!-- raw HTML omitted --></em></p>
-</li>
-</ul>
+<main><h1>Approaches</h1><p><a href="./inlining-monad-bayes">Inlining Monad Bayes</a></p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
 
 <br>
 Published on 13 Nov 2020
-<br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/background/mcmc-mh/" title="MCMC and MH"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - MCMC and MH</a>
-<a class="nav nav-next" href="https://probabilistic-effects.github.io/background/hidden-markov-model/" title="Hidden Markov Model">Next - Hidden Markov Model <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+<br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/" title="Index"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Index</a>
+<a class="nav nav-next" href="https://probabilistic-effects.github.io/approaches/inlining-monad-bayes/" title="Inlining Monad Bayes">Next - Inlining Monad Bayes <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
 </nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
 </footer>
 </main>
@@ -83,7 +50,7 @@ Published on 13 Nov 2020
 <ul>
 <li class=""><a href="https://probabilistic-effects.github.io/">Home</a></li>
 
-<li class=""><a href="https://probabilistic-effects.github.io/approaches/">Approaches</a>
+<li class="parent active"><a href="https://probabilistic-effects.github.io/approaches/">Approaches</a>
   
 <ul class="sub-menu">
 <li class=""><a href="https://probabilistic-effects.github.io/approaches/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
@@ -131,7 +98,7 @@ Published on 13 Nov 2020
   
 </li>
 
-<li class="parent"><a href="https://probabilistic-effects.github.io/background/">Background</a>
+<li class=""><a href="https://probabilistic-effects.github.io/background/">Background</a>
   
 <ul class="sub-menu">
 <li class=""><a href="https://probabilistic-effects.github.io/background/staging/">Staging</a></li>
@@ -139,7 +106,7 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/background/performance-w-monads/">Performance With Monads</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/mtl/">MTL</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/mcmc-mh/">MCMC and MH</a></li>
-<li class="active"><a href="https://probabilistic-effects.github.io/background/markov-chain/">Markov Chains</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/markov-chain/">Markov Chains</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/hidden-markov-model/">Hidden Markov Model</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/delimited-continuations/">Delimited Continuations</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>

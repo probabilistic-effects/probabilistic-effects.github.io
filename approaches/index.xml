@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Approaches on Probabilistic Effects.  λθ</title>
+    <link>https://probabilistic-effects.github.io/approaches/</link>
+    <description>Recent content in Approaches on Probabilistic Effects.  λθ</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 13 Nov 2020 13:52:51 +0000</lastBuildDate><atom:link href="https://probabilistic-effects.github.io/approaches/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Inlining Monad Bayes</title>
+      <link>https://probabilistic-effects.github.io/approaches/inlining-monad-bayes/</link>
+      <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/approaches/inlining-monad-bayes/</guid>
+      <description>Analysing the dumped core of Population.hs and Weighted.hs of monad-bayes:
+It turns out that we should expect to see these definitions, however if we use optimization:2, then we should also expect them to not actually be used. This is because GHC generates a lot of garbage that it doesn&amp;rsquo;t seem to want to remove, but when we go to places where they would have been used, we should be able to find that they aren&amp;rsquo;t actually there.</description>
+    </item>
+    
+  </channel>
+</rss>
