@@ -220,13 +220,35 @@ A HMM is specified by the following components:
     </item>
     
     <item>
-      <title>Haskell Core</title>
-      <link>https://probabilistic-effects.github.io/research/haskell-core/</link>
+      <title>Case Study: Optimising Parsley</title>
+      <link>https://probabilistic-effects.github.io/research/parsley-case-study/</link>
       <pubDate>Fri, 13 Nov 2020 13:49:05 +0000</pubDate>
       
-      <guid>https://probabilistic-effects.github.io/research/haskell-core/</guid>
-      <description>Process of Optimising Haskell Core The best way to understand why a profiling report outputs certain performance metrics (for Haskell) is to dive into the actual core itself, which is what the surface-level Haskell code compiles down into. To inspect the core in a coherent manner, we can add the following to either our package.yaml file (when using stack):
+      <guid>https://probabilistic-effects.github.io/research/parsley-case-study/</guid>
+      <description>Process of Optimising Haskell Core
+The best way to understand why a profiling report outputs certain performance metrics (for Haskell) is to dive into the actual core itself, which is what the surface-level Haskell code compiles down into. To inspect the core in a coherent manner, we can add the following to either our package.yaml file (when using stack):
 ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (when using cabal):</description>
+    </item>
+    
+    <item>
+      <title>Haskell Core</title>
+      <link>https://probabilistic-effects.github.io/background/haskell-core/</link>
+      <pubDate>Fri, 13 Nov 2020 13:49:05 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/background/haskell-core/</guid>
+      <description>• Core Language
+The definition of the core language of GHC is given below - all source programs are compiled into this core language. All optimisation passes are in terms of this core language rather than the source programs.
+data Expr b = Var Id | Lit Literal | App (Expr b) (Arg b) | Lam b (Expr b) | Let (Bind b) (Expr b) | Case (Expr b) b Type [Alt b] | Cast (Expr b) Coercion | Tick (Tickish Id) (Expr b) | Type Type | Coercion Coercion type Arg b = Expr b type Alt b = (AltCon, [b], Expr b) data AltCon = DataAlt DataCon | LitAlt Literal | DEFAULT data Bind b = NonRec b (Expr b) | Rec [(b, (Expr b))] • Basic Optimisations on Core</description>
+    </item>
+    
+    <item>
+      <title>Inlining</title>
+      <link>https://probabilistic-effects.github.io/background/inlining/</link>
+      <pubDate>Fri, 13 Nov 2020 13:49:05 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/background/inlining/</guid>
+      <description>The most critical optimisation for an automatic optimiser is inlining. Inlining is the enabling optimisation which replaces a function name by the definition of that function. After a function definition has been inlined, new optimisation opportunities are now evident to the optimiser such as the previously discussed β-reduction and know-case elimination optimisations.
+The difficulty with inlining is that on its own it is not a beneficial code transformation. Inlining a function which does not unlock any further optimisation possibilities is wasted work which increases code size.</description>
     </item>
     
     <item>

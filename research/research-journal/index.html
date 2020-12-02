@@ -38,7 +38,7 @@
  What&rsquo;s the line between papers and a very good blog post? (new things are papers) How can research/observations across monad-bayes be generalised? It is possible to do an empirical evaluation and target software dev audiences Programming languages field lacks proper evaluations; it is possible to question existing &ldquo;folklore&rdquo; with new observed results&quot; It is important to know what the benchmarking tool can and can&rsquo;t do - when experimenting we must always ask what can the tool do for me.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:57+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:57+00:00" />
-<meta itemprop="wordCount" content="3762">
+<meta itemprop="wordCount" content="3774">
 
 
 
@@ -355,7 +355,7 @@ ghcup set 8.6.5
 <p><strong>Activity (MN)</strong>     <em>25/11/2020</em></p>
 <ul>
 <li>
-<p>Learning and writing up of a <a href="./../haskell-core">small case study</a> on optimising <a href="https://github.com/J-mie6/ParsleyHaskell"><code>Parsley</code></a> using Haskell core.</p>
+<p>Learning and writing up of a <a href="./../case-study-parsley">small case study</a> on optimising <a href="https://github.com/J-mie6/ParsleyHaskell"><code>Parsley</code></a> using Haskell core.</p>
 </li>
 <li>
 <p>Organized <a href="https://github.com/probabilistic-effects/probabilistic-programming"><code>probabilistic-programming</code></a> repo, and added benchmarking program and folder.</p>
@@ -394,6 +394,10 @@ ghcup set 8.6.5
 <li>Just by looking at the profiling report of our benchmark program, in theory it <em>should</em> be significantly faster than what we have at the moment, as most of the time is still being spent on operations such as <code>bind</code>, <code>liftA2</code> and <code>pure</code>.</li>
 <li>Is it actually folklore that monad transformers are slow? What&rsquo;s the general impression of performance between different effect systems?</li>
 </ul>
+<p><strong>Activity (MN)</strong>     <em>02/12/2020</em></p>
+<ul>
+<li>Reading and writing up relevant parts of MP&rsquo;s thesis.</li>
+</ul>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
@@ -426,7 +430,7 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/">Potential Approaches to Improving Monad Bayes</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/research/literature-review/">Literature Review</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/research/haskell-core/">Haskell Core</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/parsley-case-study/">Case Study: Optimising Parsley</a></li>
 </ul>
   
 </li>
@@ -470,6 +474,8 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/background/markov-chain/">Markov Chains</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/hidden-markov-model/">Hidden Markov Model</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/delimited-continuations/">Delimited Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/haskell-core/">Haskell Core</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
 </ul>
   

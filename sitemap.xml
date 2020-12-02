@@ -133,7 +133,17 @@
   </url>
   
   <url>
-    <loc>https://probabilistic-effects.github.io/research/haskell-core/</loc>
+    <loc>https://probabilistic-effects.github.io/research/parsley-case-study/</loc>
+    <lastmod>2020-11-13T13:49:05+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://probabilistic-effects.github.io/background/haskell-core/</loc>
+    <lastmod>2020-11-13T13:49:05+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://probabilistic-effects.github.io/background/inlining/</loc>
     <lastmod>2020-11-13T13:49:05+00:00</lastmod>
   </url>
   

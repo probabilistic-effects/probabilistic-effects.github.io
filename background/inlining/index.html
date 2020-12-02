@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Inlining - Probabilistic Effects.  λθ</title>
+<meta name="generator" content="Hugo 0.78.2" />
+<link href="https://probabilistic-effects.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="https://probabilistic-effects.github.io/background/inlining/">
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="https://probabilistic-effects.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="Inlining" />
+<meta property="og:description" content="The most critical optimisation for an automatic optimiser is inlining. Inlining is the enabling optimisation which replaces a function name by the definition of that function. After a function definition has been inlined, new optimisation opportunities are now evident to the optimiser such as the previously discussed β-reduction and know-case elimination optimisations.
+The difficulty with inlining is that on its own it is not a beneficial code transformation. Inlining a function which does not unlock any further optimisation possibilities is wasted work which increases code size." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://probabilistic-effects.github.io/background/inlining/" />
+<meta property="article:published_time" content="2020-11-13T13:49:05+00:00" />
+<meta property="article:modified_time" content="2020-11-13T13:49:05+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Inlining"/>
+<meta name="twitter:description" content="The most critical optimisation for an automatic optimiser is inlining. Inlining is the enabling optimisation which replaces a function name by the definition of that function. After a function definition has been inlined, new optimisation opportunities are now evident to the optimiser such as the previously discussed β-reduction and know-case elimination optimisations.
+The difficulty with inlining is that on its own it is not a beneficial code transformation. Inlining a function which does not unlock any further optimisation possibilities is wasted work which increases code size."/>
+<meta itemprop="name" content="Inlining">
+<meta itemprop="description" content="The most critical optimisation for an automatic optimiser is inlining. Inlining is the enabling optimisation which replaces a function name by the definition of that function. After a function definition has been inlined, new optimisation opportunities are now evident to the optimiser such as the previously discussed β-reduction and know-case elimination optimisations.
+The difficulty with inlining is that on its own it is not a beneficial code transformation. Inlining a function which does not unlock any further optimisation possibilities is wasted work which increases code size.">
+<meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
+<meta itemprop="wordCount" content="1409">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>Probabilistic Effects.  λθ</h1>
+</header>
+
+<div class="content-container">
+<main><h1>Inlining</h1>
+<p>The most critical optimisation for an automatic optimiser is inlining. Inlining is the enabling optimisation which replaces a function name by the definition of that function. After a function definition has been inlined, new optimisation opportunities are now evident to the optimiser such as the previously discussed β-reduction and know-case elimination optimisations.</p>
+<p>The difficulty with inlining is that on its own it is not a beneficial code transformation. Inlining a function which does not unlock any further optimisation possibilities is wasted work which increases code size. Therefore any automatic partial evaluator must decide at what thresholds functions must be inlined and what factors about the call-site must
+be taken into account when making an inlining decision. Unfortunately designing a library which relies on these thresholds and decisions is inadvisable. Small changes to the source program can have big changes on which thresholds are breached and understanding how your changes will affect the thresholds is very difficult.</p>
+<h3 id="inlining-thresholds">Inlining Thresholds</h3>
+<p>When each function is defined, the body of the function is analysed and metrics are calculated about under what conditions the compiler considers it worthwhile to inline the function.</p>
+<p><strong>• Code Size</strong></p>
+<p>The size of an unfolding is also a heuristic measure with the understanding the inlining a lot of &ldquo;big&rdquo; definitions will lead to a very &ldquo;big&rdquo; problem, which will take a long time to optimise. The flags controlling inlining are given below:</p>
+<ul>
+<li><code>-funfolding-creation-threshold</code> &ndash; Functions under this size will be given unfoldings and can therefore be inlined.</li>
+<li><code>-funfolding-dict-discount</code> &ndash; The argument discount is the argument is a dictionary.</li>
+<li><code>-funfolding-fun-discount</code> &ndash; The argument discount if the argument is a function.</li>
+<li><code>-funfolding-use-threshold</code> &ndash; The threshold for deciding whether to inline a function at the call-site. The size is after the argument discounts have been applied.</li>
+</ul>
+<p><strong>• When is a function not inlined?</strong></p>
+<p>The first two restrictions are conservative, aimed at reducing the chance of the inliner looping or creating very large intermediate programs. In GHC the inliner never inlines a recursive definition which is conservative and predictable. Bottoming functions are not inlined as they are lifted to the top-level and inlining them would undo this work.</p>
+<ul>
+<li>Self-recursive functions are never inlined</li>
+<li>Functions which are &ldquo;too big&rdquo; are not inlined. The threshold is controlled by the <code>-funfolding-use-threshold</code> flag.</li>
+<li>Functions which are known to bottom (undefined - a computation which never completes successfully) are not inlined.</li>
+</ul>
+<p><strong>• Loop-Breakers</strong></p>
+<p>To prevent recursive functions from being inlined, some care is needed to deal with mutually recursive groups. For each mutually recursive group of functions, dependency analysis is performed and then a single loop-breaker is chosen which breaks any cyclic dependencies. The loop-breaker is never inlined, but other functions in the group can be. The loop-breaker is decided based on a heuristic which attempts to select the member of the group which would benefit least from being inlined. The choice of loop-breaker affects how a program is optimised but the programmer has little control about which member of a recursive group is chosen. This explains why self-recursive functions are never inlined as they are always chosen as the loop-breaker for their recursive group of size one.</p>
+<p><strong>• When is a function inlined?</strong></p>
+<p>For each function definition the body of the function is analysed and the &ldquo;unfolding guidance&rdquo; is calculated. There are two varieties of unfolding guidance: <code>UnfWhen</code> and <code>UnflfGoodArgs</code>.</p>
+<p>For normal identifiers, <code>UnfIfGoodArgs</code> stipulates under what conditions the compiler thinks inlining would be beneficial, and it calculates this using three factors:</p>
+<ol>
+<li>The size of the function definition - this is taken into account to avoid creating program bloat.</li>
+<li>A discount for each argument which has already been evaluated to WHNF (weak head normal form). The argument discounts are used to encourage the inlining of functions which are guaranteed to unleash further optimisations opportunities.</li>
+<li>A discount if the function appears in a scrutinee position. If an argument appears in a scrutinee position in the body of a function, then inlining that function will cause the <code>case</code> to be reduced. Also, if the function itself returns a constructor, then inlining the function into a scrutinee position will enable the <code>case</code> to be eliminated.</li>
+</ol>
+<p>These facts are all calculated by looking at the definition of a function. The size and discounts are unitless, created solely for the purpose of informing the inlining heuristic.</p>
+<p><strong>• Call Site Heuritstics</strong></p>
+<p>At the call site (a call site of a function is the location (line of code) where the function is called), the unfolding guidance is used to decide whether to inline the function call.</p>
+<ol>
+<li>The expression is &ldquo;work-free&rdquo;, i.e. we are not going to duplicate a lot of work by inlining it.</li>
+<li>The unfolding is small enough, as calculated using the guidance.</li>
+<li>There is some perceived benefit to inlining into this context. For example, inlining into a scrutinee position.</li>
+</ol>
+<p>The important take-home message from this description is that there are two halves to making an inlining decision: the <em>definition site</em> and the <em>call site</em>. At the definition site, certain criteria are set up which determine the decision about whether to inline at the call-site when more context is available.</p>
+<h3 id="controlling-inlining">Controlling Inlining</h3>
+<p>The compiler is naturally conservative when deciding whether to inline a function as if an incorrect decision is made, the resulting compilation can take a very long time and use a lot of memory. Therefore it is sometimes necessary for experts to direct the optimiser in more precise ways using compiler options of function-specific pragmas. These mechanisms can be used to control whether and how non-recursive functions are inlined. Recursive functions will still never be inlined.</p>
+<h5 id="pragmas">Pragmas</h5>
+<p>• <code>INLINE</code> : This is the most well-known and dangerous way of controlling inlining. By annotating a function with <code>INLINE</code> you inform the compiler to always inline the function regardless of its size or calling context. Not only does the <code>INLINE</code> pragma force the function to be inlined at every call site, it also changes what is inlined. If a function is inlined naturally then the optimised unfolding will be used to replace the function name. With the pragma, instead the unoptimised unfolding is used which amounts to an unoptimised version of the user-written right-hand side of the function being inserted directly.</p>
+<p>• <code>INLINABLE</code> : This pragma is far more benign than <code>INLINE</code>. Instead of
+influencing the inlining decision from the call site, the pragma only overrides the <code>-funfolding-creation-threshold</code> option and makes sure the unfolding for a definition is included in the interface file. Like the <code>INLINE</code> pragma, it is the unoptimised definition which is included. Despite its name, the pragma is mainly used for ensuring the definition of recursive functions is made available in interface files so that they can
+be specialised across modules.</p>
+<p>• <code>NOINLINE</code> : There is also the instruction <code>NOINLINE</code> which indicates that a function should never be inlined (the usual reason for using <code>NOINLINE</code> is in conjunction with (rewrite) <code>RULES</code> pragmas).</p>
+<p>These three pragmas can be augmented with &ldquo;phase annotations&rdquo;. Phases count down from the initial starting phase. By default this is two, hence there are phases two, one, and zero. Each phase corresponds to one run of the main simplifier in the optimisation pipeline. Adding a phase annotation to an <code>INLINE</code>, <code>INLINABLE</code>, or <code>NOINLINE</code> pragma affects which of these phases the pragma is active in.</p>
+<p>These phase annotations provide a way to loosely control the order definitions get inlined into each other in the attempt to remedy the situation where function bodies become too big to inline due to other definitions being inlined into the body. For example, if a function <code>f</code> contains a lot of other functions which when inlined would make <code>f</code> itself too large to inline under the default heuristics, then <code>f</code> could be marked with <code>INLINE[2]</code> so that it is inlined before its body.</p>
+<p>It is also worthwhile when dealing with rewrite rules to mark definitions which we want to interact with these rules with <code>INLINE[0]</code>, so that they they are not inlined until the last phase and the rule matching facility has the greatest opportunity to rewrite expressions before they are removed by inlining.</p>
+<p>Below describes how the phase annotations interact with the <code>INLINE</code> and <code>NOINLINE</code> pragmas.</p>
+<ul>
+<li><code>INLINE[k]</code> &ndash; Do not inline until phase k and then be very keen to inline</li>
+<li><code>NOINLINE[k]</code> &ndash; Do not inline until phase k and then inline as normal</li>
+<li><code>INLINE[~k]</code> &ndash; Be keen to inline until phase k but then do not inline it</li>
+<li><code>NOINLINE[~k]</code> &ndash; Inline normally until phase k but then do not inline it</li>
+</ul>
+<div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/background/haskell-core/" title="Haskell Core"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Haskell Core</a>
+<a class="nav nav-next" href="https://probabilistic-effects.github.io/background/continuations/" title="Continuations">Next - Continuations <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<nav class="open-menu">
+<ul>
+<li class=""><a href="https://probabilistic-effects.github.io/">Home</a></li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/approaches/">Approaches</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/approaches/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/research/">Research</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/research/research-journal/">Research Journal</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/">Potential Approaches to Improving Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/literature-review/">Literature Review</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/parsley-case-study/">Case Study: Optimising Parsley</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/">Monad Bayes</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/inference-transformers/">Inference Transformers</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/pmmh-hmm/">Implementing HMM Simulation and Inference (using PMMH)</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/conditioning-scoring/">How Conditioning and Scoring Works</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/">Tooling</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/cabal/">Cabal</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/">Benchmarking</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmark-log/">Benchmark Log</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmarking-profiling/">How to Benchmark and Profile</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/monad-bayes-components/">Relevant Components of Monad Bayes for Profiling</a></li>
+</ul>
+  
+</li>
+
+<li class="parent"><a href="https://probabilistic-effects.github.io/background/">Background</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/background/staging/">Staging</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/smc-pmmh/">SMC and PMMH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/performance-w-monads/">Performance With Monads</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mtl/">MTL</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mcmc-mh/">MCMC and MH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/markov-chain/">Markov Chains</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/hidden-markov-model/">Hidden Markov Model</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/delimited-continuations/">Delimited Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/haskell-core/">Haskell Core</a></li>
+<li class="active"><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
+</ul>
+  
+</li>
+</ul>
+</nav>
+
+
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>
