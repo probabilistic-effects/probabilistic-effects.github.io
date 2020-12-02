@@ -32,7 +32,7 @@ ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (w
 ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (when using cabal):">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="2696">
+<meta itemprop="wordCount" content="2799">
 
 
 
@@ -231,6 +231,9 @@ it is inlined into the function, and the internals are simplified further. The <
 <li><code>$w</code> is usually prepended to functions that the compiler as unwrapped some of the arguments for (eliminating a pattern match).</li>
 <li><code>$s</code> is usually prepended to specialised functions.</li>
 </ul>
+<p>If we happen to inline a particular function and this results in a slower program, this implies that the code size is too big - so this leads to memory problems (cache issues). If the function isn&rsquo;t being optimised after it has been inlined, then it shouldn&rsquo;t be inlined.</p>
+<p><strong>Q:</strong> Is it ever the case that you can undo an inline for some other function, and keep the new inline (which previously resulted in slower performance), so that it results in an overall better run-time?</p>
+<p><strong>A:</strong> Yes. You can set the phase of the inliner. You can say &ldquo;inline past phase 2&rdquo; etc.</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 

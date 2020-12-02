@@ -32,7 +32,7 @@ It turns out that we should expect to see these definitions, however if we use o
 It turns out that we should expect to see these definitions, however if we use optimization:2, then we should also expect them to not actually be used. This is because GHC generates a lot of garbage that it doesn&rsquo;t seem to want to remove, but when we go to places where they would have been used, we should be able to find that they aren&rsquo;t actually there.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="486">
+<meta itemprop="wordCount" content="508">
 
 
 
@@ -60,7 +60,7 @@ It turns out that we should expect to see these definitions, however if we use o
 <p>The hope is that we won&rsquo;t find any <code>&gt;&gt;=</code>s if the optimiser has successfully removed them from the function. If we look at the <code>pmmh</code> function from <code>PMMH.hs</code> of <code>monad-bayes</code>:</p>
 <p><img src="https://i.ibb.co/vwTBtrR/image-9.png" alt="">
 <img src="https://i.ibb.co/hXWdFpv/image-8.png" alt=""></p>
-<p>This function itself won&rsquo;t be able to optimise because it needs a concrete instance of <code>wwwMonadInfer</code>, but this isn&rsquo;t necessarily a problem. What we need to look at is when we <em>use</em> this function with something concrete. So let&rsquo;s look at <code>inferModel</code> from <code>PmmhHmm.hs</code> of <code>probabilistic-programming</code> which uses <code>pmmh</code>; the <code>MonadInfer m</code> concretises to <code>IO</code> because we called <code>sampleIO</code> of <code>monad-bayes</code> on it.</p>
+<p>This function itself won&rsquo;t be able to optimise because it needs a concrete instance of <code>MonadInfer</code>, but this isn&rsquo;t necessarily a problem. What we need to look at is when we <em>use</em> this function with something concrete. So let&rsquo;s look at <code>inferModel</code> from <code>PmmhHmm.hs</code> of <code>probabilistic-programming</code> which uses <code>pmmh</code>; the <code>MonadInfer m</code> concretises to <code>IO</code> because we called <code>sampleIO</code> of <code>monad-bayes</code> on it.</p>
 <p><img src="https://i.ibb.co/Hn11cqs/image-6.png" alt="">
 <img src="https://i.ibb.co/L8sSSFZ/image-5.png" alt=""></p>
 <p>The hope is that the call to <code>pmmh</code> (represented by the green-highlighted <code>lvl</code>) would have been inlined - however this is not the case, as it simply references <code>pmmh</code> from the <code>monad-bayes</code> library, which has <em>not</em> been marked as <code>INLINE</code> or <code>INLINABLE</code>. This means GHC isn&rsquo;t specialising it, so the program still performs dictionary lookups when that code is compiled.</p>
@@ -85,6 +85,12 @@ It turns out that we should expect to see these definitions, however if we use o
 <p>Placing an <code>INLINE</code> pragma on these functions results in the following core, with the previous calls being inlined:</p>
 <p><img src="https://i.ibb.co/HC0Yqj8/image-1.png" alt=""></p>
 <p>Additionally, the <code>$w$c&gt;&gt;=</code> (from <code>Bayes.Traced.Static</code>) at the top is suspicious - it looks like one of the arguments is a monadic value, and so it&rsquo;s forced to use a <code>&gt;&gt;=</code> because it doesn&rsquo;t know what the monadic value is.</p>
+</li>
+<li>
+<p>Let&rsquo;s then inline the definition of <code>&gt;&gt;=</code> for the <code>Traced</code> monad inside <code>Bayes.Traced.Static</code>.</p>
+<p><img src="https://i.ibb.co/JBsjLPB/dump-core-4-0.png" alt=""></p>
+<p>This successfully inlines the call to <code>&gt;&gt;=</code> inside <code>inferModel</code>.</p>
+<p><img src="https://i.ibb.co/ydq7ZZS/dump-core-4-1.png" alt=""></p>
 </li>
 </ul>
 <div class="edit-meta">

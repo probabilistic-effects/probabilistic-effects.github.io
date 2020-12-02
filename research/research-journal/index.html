@@ -38,7 +38,7 @@
  What&rsquo;s the line between papers and a very good blog post? (new things are papers) How can research/observations across monad-bayes be generalised? It is possible to do an empirical evaluation and target software dev audiences Programming languages field lacks proper evaluations; it is possible to question existing &ldquo;folklore&rdquo; with new observed results&quot; It is important to know what the benchmarking tool can and can&rsquo;t do - when experimenting we must always ask what can the tool do for me.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:57+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:57+00:00" />
-<meta itemprop="wordCount" content="3590">
+<meta itemprop="wordCount" content="3762">
 
 
 
@@ -384,6 +384,15 @@ ghcup set 8.6.5
 <p><strong>Activity (MN)</strong>      <em>01/12/2020</em></p>
 <ul>
 <li>Performed some more <a href="../../approaches/inlining-monad-bayes">analysis and optimisations</a> on the dumped core of <code>monad-bayes</code>.</li>
+</ul>
+<p><strong>Meeting (MN + RP + MW)</strong>      <em>01/12/2020</em></p>
+<ul>
+<li>What&rsquo;s a reasonable expectation for the percentage run-time of bind?</li>
+<li>Because <code>monad-bayes</code> uses the deprecated version of <code>ListT</code>, it&rsquo;s a possibility that <code>ListT</code> isn&rsquo;t as optimal as possible.</li>
+<li>Newtypes don&rsquo;t incur any unwrapping/rewrapping of data types at run-time, so any <code>newtypes</code> in monad-bayes are not inherently problematic.</li>
+<li>Being able to achieve good performance just by inlining could point to some interesting opportunities, but it&rsquo;s not necessarily a bad thing if we&rsquo;re unable to get very far in optimisations by just inlining; this could tell a story about other approaches (e.g. template Haskell, fusion, eff, algebraic effects), and it could say something about <code>mtl</code> itself.</li>
+<li>Just by looking at the profiling report of our benchmark program, in theory it <em>should</em> be significantly faster than what we have at the moment, as most of the time is still being spent on operations such as <code>bind</code>, <code>liftA2</code> and <code>pure</code>.</li>
+<li>Is it actually folklore that monad transformers are slow? What&rsquo;s the general impression of performance between different effect systems?</li>
 </ul>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
