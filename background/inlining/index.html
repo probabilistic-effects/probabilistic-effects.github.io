@@ -32,7 +32,7 @@ The difficulty with inlining is that on its own it is not a beneficial code tran
 The difficulty with inlining is that on its own it is not a beneficial code transformation. Inlining a function which does not unlock any further optimisation possibilities is wasted work which increases code size.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="1409">
+<meta itemprop="wordCount" content="1509">
 
 
 
@@ -101,6 +101,7 @@ be specialised across modules.</p>
 <li><code>INLINE[~k]</code> &ndash; Be keen to inline until phase k but then do not inline it</li>
 <li><code>NOINLINE[~k]</code> &ndash; Inline normally until phase k but then do not inline it</li>
 </ul>
+<p>The greatest issue with the <code>INLINE</code> pragma story is that a decision is made at the definition site about how each function should behave at the call site. As a first approximation, it is desirable to inline a function if it is applied to a statically or partially statically known argument (which is the purpose of the argument discounts) &ndash; whether this will happen is not known at the definition site. Therefore a certain amount of confidence is required by a library author if they predict (without reservation) that adding an <code>INLINE</code> to a definition will be beneficial to users.</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
