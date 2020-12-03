@@ -115,6 +115,15 @@ The difficulty with inlining is that on its own it is not a beneficial code tran
     </item>
     
     <item>
+      <title>Specialisation</title>
+      <link>https://probabilistic-effects.github.io/background/specialisation/</link>
+      <pubDate>Fri, 13 Nov 2020 13:49:05 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/background/specialisation/</guid>
+      <description>Type class constraints in Haskell are implemented via dictionary passing. A function accepting a type class constraint is passed a record which provides evidence for the constraint. Therefore despite the fact that all instances have been statically resolved before runtime, the dictionaries are still passed to functions which can incur significant overhead.</description>
+    </item>
+    
+    <item>
       <title>Continuations</title>
       <link>https://probabilistic-effects.github.io/background/continuations/</link>
       <pubDate>Fri, 13 Nov 2020 13:40:41 +0000</pubDate>
