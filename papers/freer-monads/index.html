@@ -32,7 +32,7 @@ data It i a = Pure a | Get (i -&gt; It i a) The expression Pure e marks the comp
 data It i a = Pure a | Get (i -&gt; It i a) The expression Pure e marks the computation e that makes no requests, silently working towards a value of the type a.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="1361">
+<meta itemprop="wordCount" content="2413">
 
 
 
@@ -118,7 +118,7 @@ instance Functor (ReaderWriter i o) where
 
 type IT i o a = Free (ReaderWriter i o) a
 </code></pre><p>In general monads do not compose: if <code>M1 a</code> and <code>M2 a</code> are monads, <code>M1 (M2 a)</code> is generally not. Free monads however are a particular form of monads, defined via a functor. Functors do compose.</p>
-<h4 id="42-free-er-monads">4.2 Free-er Monads</h4>
+<h4 id="24-free-er-monads">2.4 Free-er Monads</h4>
 <p>Let&rsquo;s look more carefully at the Monad instance for <code>Free f</code>.</p>
 <pre><code>instance Functor f =&gt; Monad (Free f) where
     return         = Pure
@@ -130,11 +130,70 @@ type IT i o a = Free (ReaderWriter i o) a
     Pure   :: a -&gt; FFree f a
     Impure :: f x -&gt; (x -&gt; FFree f a) -&gt; FFree f a
 </code></pre><p>The first argument of the request signature, <code>f x</code>, tells us the type <code>x</code> of the reply, to be fed into the continuation. Different requests have their own reply types, hence <code>x</code> is existentially quantified.</p>
+<p>The monad instance for <code>FFree f</code> no longer needs the <code>Functor</code> constraint on <code>f</code>.</p>
+<ul>
+<li>Previously with <code>Free f</code> and its associated constructor <code>Impure (f (Free f a))</code>, in order to extend the continuation, we had to <code>fmap</code> the bind of the continuation <code>&gt;&gt;= k</code> into the <code>f (Free f a))</code> embedded in the <code>Impure</code> constructor &ndash; this is because the continuation we&rsquo;re extending is found inside <code>f (Free f a))</code>.</li>
+<li>Now with <code>FFree f</code> and its associated constructor <code>Impure :: f x -&gt; (x -&gt; FFree f a) -&gt; FFree f a</code>, because we already have access to the current continuation (as the second argument of <code>Impure</code>), we no longer need to <code>fmap</code> over anything &ndash; we can directly take the continuation <code>k' :: (x -&gt; FFree f a)</code> and compose it with the new continuation <code>k :: (a -&gt; FFree f b)</code>.</li>
+</ul>
+<pre><code>instance Monad (FFree f) where
+    Impure fx k' &gt;&gt;= k = Impure fx (k' &gt;&gt;&gt; k)
+</code></pre><p><code>FFree f</code> is more satisfying than <code>Free f</code>, because it abstracts more of the common pattern of accumulating continuation. It is more general, not imposing any constraints on <code>f</code> &ndash; it is &ldquo;<em>freer</em>&rdquo;.</p>
 <p>Our Reader-Writer effect then gets the following signature:</p>
 <pre><code>data FReaderWriter i o x where
     Get :: FReaderWriter i o i
     Put :: FReaderWriter i o ()
 </code></pre><p>It is a GADT: the type variable <code>x</code> in <code>FReaderWriter i o x</code> is instantiated depending on the type of the request.</p>
+<p>The type <code>IT i o a</code> can now be represented using the new <code>FFree</code> monad.</p>
+<pre><code>type IT i o a = FFree (FReaderWriter i o) a
+</code></pre><p>Continuing this example of <code>State s</code> (i.e. ReaderWriter), we can now forget not only <code>return</code> and <code>bind</code>, but also the <code>fmap</code> operation, and still recover the state monad through the <code>FFree (State s)</code> construction (where types <code>i</code> and <code>o</code> have been unified as <code>s</code>). This means we no longer have to bother defining the basic monad and fu nctor operations in the first place. We now get not only the <code>Monad</code> instance for free, but also the <code>Functor</code> and <code>Applicative</code> instances.</p>
+<p><strong>Advantages</strong>:</p>
+<ul>
+<li>Because the continuation can now be accessed directly (rather than via <code>fmap</code> which has to rebuild the mapped data structure), the Freer monad is more economical in terms of memory and run-time.</li>
+<li>The explicit continuation in <code>FFree</code> makes it easier to change its representation.</li>
+</ul>
+<h4 id="25-free-er-functors">2.5 Free-er Functors</h4>
+<p>We can show another derivation of <code>FFree</code>. Recall that if <code>f :: * -&gt; *</code> is a functor, we can convert <code>f x</code> to <code>f a</code> whenever we can map <code>x</code> values to <code>a</code> values. If <code>g :: ∗ -&gt; ∗</code> is not a functor, such a conversion is not possible. We can &ldquo;cheat&rdquo; however: although we cannot truly fmap <code>h :: x -&gt; a</code> over <code>g x</code>, we can keep its two operands <code>h</code> &amp; <code>g x</code> as a pair, and assume the mapping as if it were performed:</p>
+<pre><code>data Lan (g :: ∗ -&gt; ∗) a where
+    FMap :: (x -&gt; a) -&gt; g x -&gt; Lan g a
+</code></pre><p>Any further mapping over <code>Lan g a</code> would update the original mapping <code>(x -&gt; a)</code>, leaving <code>g x</code> intact. That is, <code>Lan g</code> is now a formal functor:</p>
+<pre><code>instance Functor (Lan g) where
+    fmap h (FMap h' gx) = FMap (h ◦ h') gx
+</code></pre><p>One may think of this as a free Haskell Functor. We can show that if we substitute <code>Lan g</code> as <code>f</code> in <code>Impure (f (Free f a))</code> of <code>Free f</code>, we get:</p>
+<pre><code>Impure :: (x -&gt; (Free (Lan g) a)) -&gt; g x -&gt; Free (Lan g) a
+</code></pre><p>This is the type of <code>FFree.Impure</code>! Hence, we have:</p>
+<pre><code>type FFRee g = Free (Lan g)
+</code></pre><h4 id="26-from-freeer-monads-to-extensible-effects">2.6 From Free(er) Monads to Extensible Effects</h4>
+<p>The form of free monads, built from functors, lends itself to composability since functors compose. This section demonstrates this composability on freer monads.</p>
+<p>There are two sides to composability: <strong>extensible monad types</strong> and <strong>modular interpreters</strong>.</p>
+<p>A monad type is extensible if we can add a new effect without having to touch or even recompile the old code. The <code>Free f</code> or <code>FFree f</code> lets us do that by the monad type being indexed by the request signature <code>f</code>. In contrast, specifying this signature as an ordinary data type, such as <code>ReaderWriter</code> or the GADT <code>FReaderWriter</code> is not extensible because an ordinary variant data type is a closed union, having a fixed number of variants.</p>
+<p>To represent open unions, we will use the abstract type:</p>
+<pre><code>Union (r :: [∗ -&gt; ∗]) x
+</code></pre><ul>
+<li>The first argument <code>r</code> is a type-level list of effect labels. It lists all effects that are possible in a computation.</li>
+<li>The second argument <code>x</code> is the response type, which depends on a particular request.</li>
+</ul>
+<p>A concrete <code>Union r x</code> value contains one request out of those listed in <code>r</code>.</p>
+<p>In order to achieve extensibility, we must be able to talk about one effect without needing to list all the others, i.e. we need effect polymorphism. To do this, our implementation provides a type class:</p>
+<pre><code>class Member t r where
+    inj :: t v -&gt; Union r v
+    prj :: Union r v -&gt; Maybe (t v)
+</code></pre><p>This asserts that an effect label <code>t</code> occurs in the list <code>r</code>. If an effect is part of the union, its request can be injected and projected.</p>
+<p>Another function, <code>decomp</code>, is provided to orthogonally project from the union, allowing us to decompose the union into either a request labelled <code>t</code>, or a smaller union without <code>t</code>.</p>
+<p>The extensible freer monad, the monad of extensible effects, is hence <code>FFree</code> with <code>f x</code> replaced by the open union <code>Union r x</code>, containing all possible effects:</p>
+<pre><code>data FEFree r a where
+    Pure    :: a -&gt; FEFree r a
+    Impure  :: Union r x -&gt; (x -&gt; FEFree r a) -&gt; FEFree r a
+</code></pre><p>A request label defines a particular effect and its requests. For example, the Reader and Writer effects have the following labels:</p>
+<pre><code>data Reader i x where
+    Get :: Reader i i
+
+data Writer o x where
+    Put :: o -&gt; Writer o ()
+</code></pre><p>We have split the <code>FReaderWriter</code> request signature into its components, to be combined in the open union.</p>
+<p>The simplest <code>Reader</code> computation, <code>ask</code>, can now be written as:</p>
+<pre><code>ask :: Member (Reader i) r =&gt; Eff r i
+ask = Impure (inj Get) return
+</code></pre><p>The signature tells us that <code>ask</code> is an <code>Eff r i</code> computation which includes the <code>Reader i</code> effect, without telling us what other effects may be present. Unlike the previous version of <code>ask</code>, the new one can be used extensibly in programs with other effects.</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 

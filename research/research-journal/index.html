@@ -38,7 +38,7 @@
  What&rsquo;s the line between papers and a very good blog post? (new things are papers) How can research/observations across monad-bayes be generalised? It is possible to do an empirical evaluation and target software dev audiences Programming languages field lacks proper evaluations; it is possible to question existing &ldquo;folklore&rdquo; with new observed results&quot; It is important to know what the benchmarking tool can and can&rsquo;t do - when experimenting we must always ask what can the tool do for me.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:57+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:57+00:00" />
-<meta itemprop="wordCount" content="4054">
+<meta itemprop="wordCount" content="4462">
 
 
 
@@ -435,7 +435,34 @@ ghcup set 8.6.5
 <p><strong>Activity (MN)</strong>     <em>07/12/2020</em></p>
 <ul>
 <li>Learning about the inliner is so unsatisfying.</li>
-<li>Reading up of <a href="http://okmij.org/ftp/Haskell/extensible/more.pdf">Freer Monads, More Extensible Effects</a> (<a href="../../papers/freer-monad">freer</a>).</li>
+<li>Reading and writing up of <a href="http://okmij.org/ftp/Haskell/extensible/more.pdf">Freer Monads, More Extensible Effects</a> (<a href="../../papers/freer-monad">freer</a>).</li>
+</ul>
+<p><strong>Meeting (MN + MW + SF + WZ)</strong>     <em>08/12/2020</em></p>
+<ul>
+<li>MW: Inlining is the first unattractive step to investigate what this can and cant do, this is not necessarily your direction. This doesn&rsquo;t have to be about finding a solution &ndash; it could be finding out what the problem is. Don&rsquo;t worry about small and specific problems, if you collect enough of them, there might be a bigger thing going on.</li>
+<li>MW: Two questions re monad-bayes / similar libs:
+<ol>
+<li>What is the problem (learning about inlining helps to answer this) and can we generalise this problem? What other languages suffer from this? So far we know it is slow, but inlining will help find out <em>why</em> it is slow and what feature is the issue. When we know this, we can see if other languages suffer too.</li>
+<li>What solutions exist for this?</li>
+</ol>
+</li>
+<li>MW: You&rsquo;re making good progress! You are honing in on what the problem is, and all you need to know is enough about the problem in order to write a paper.</li>
+<li>MN: inspiration for folding over neural nets
+<ul>
+<li>Inliner doesn&rsquo;t inline recursive functions because we dont necessarily know how many times it will recurse, but sometimes we do know and dependent types can enforce this unrolling.</li>
+<li>In a neural net you always know how many layers there are.</li>
+<li>Dependent types would also be good to ensuring your neural net is correctly constructed.</li>
+<li>Should I introduce dependent types and staging into the folding neural nets?</li>
+</ul>
+</li>
+<li>MW: It would be a good extension of existing work! The problem anticipated is that the criticism of original paper still stands. This makes it stronger, but you still need to address existing criticism. This extension is better if the first paper is published. Does this addition allow you to dodge the criticism?</li>
+<li>MN: Is it okay to do two things?</li>
+<li>MW: Everyone does multiple things at the same time. Ehat you need to ask is: in the end will I have a thesis? You want to be focused enough to make progress. My suggestion is to press on more with probabilistic programming, changing frequently between research paths is not a good idea. Switching is not the best if you have to drop one.</li>
+<li>MW: For probabilistic programming, think more about the type class dictionary unrolling because that is different from inlining (learnings from MP&rsquo;s thesis background).</li>
+</ul>
+<p><strong>Activity (MN)</strong>     <em>08/12/2020</em></p>
+<ul>
+<li>Reading and writing up of <a href="http://okmij.org/ftp/Haskell/extensible/more.pdf">Freer Monads, More Extensible Effects</a> (<a href="../../papers/freer-monad">freer</a>).</li>
 </ul>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
