@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Freer Monads, More Extensible Effects - Probabilistic Effects.  λθ</title>
+<meta name="generator" content="Hugo 0.78.2" />
+<link href="https://probabilistic-effects.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="https://probabilistic-effects.github.io/papers/freer-monads/">
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="https://probabilistic-effects.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="Freer Monads, More Extensible Effects" />
+<meta property="og:description" content="1. Derivation of Free-er Monad 1.1 Reader Effect Reader computations depend on a value supplied by the environment/context. A side-effect can be understood as an interaction of an expression with its context. The possible requests of a Reader can be specified as a data type.
+data It i a = Pure a | Get (i -&gt; It i a) The expression Pure e marks the computation e that makes no requests, silently working towards a value of the type a." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://probabilistic-effects.github.io/papers/freer-monads/" />
+<meta property="article:published_time" content="2020-11-13T14:05:41+00:00" />
+<meta property="article:modified_time" content="2020-11-13T14:05:41+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Freer Monads, More Extensible Effects"/>
+<meta name="twitter:description" content="1. Derivation of Free-er Monad 1.1 Reader Effect Reader computations depend on a value supplied by the environment/context. A side-effect can be understood as an interaction of an expression with its context. The possible requests of a Reader can be specified as a data type.
+data It i a = Pure a | Get (i -&gt; It i a) The expression Pure e marks the computation e that makes no requests, silently working towards a value of the type a."/>
+<meta itemprop="name" content="Freer Monads, More Extensible Effects">
+<meta itemprop="description" content="1. Derivation of Free-er Monad 1.1 Reader Effect Reader computations depend on a value supplied by the environment/context. A side-effect can be understood as an interaction of an expression with its context. The possible requests of a Reader can be specified as a data type.
+data It i a = Pure a | Get (i -&gt; It i a) The expression Pure e marks the computation e that makes no requests, silently working towards a value of the type a.">
+<meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
+<meta itemprop="wordCount" content="1361">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>Probabilistic Effects.  λθ</h1>
+</header>
+
+<div class="content-container">
+<main><h1>Freer Monads, More Extensible Effects</h1>
+<h3 id="1-derivation-of-free-er-monad">1. Derivation of Free-er Monad</h3>
+<h4 id="11-reader-effect">1.1 Reader Effect</h4>
+<p><code>Reader</code> computations depend on a value supplied by the environment/context. A side-effect can be understood as an interaction of an expression with its context. The possible requests of a <code>Reader</code> can be specified as a data type.</p>
+<pre><code>data It i a = Pure a
+            | Get (i -&gt; It i a)
+</code></pre><p>The expression <code>Pure e</code> marks the computation <code>e</code> that makes no requests, silently working towards a value of the type <code>a</code>. The request <code>Get k</code> asks the context for the (current dynamically-bound) value of type <code>i</code>. Having received the value <code>i</code>, the computation <code>k i :: It i a</code> continues (just the same as monadic binding works), perhaps asking for more values from the context. The argument <code>k</code> in <code>Get k</code> can hence be called a continuation.</p>
+<p>The simplest asking computation is <code>ask</code>, which immediately returns the received value from the context`:</p>
+<pre><code>ask :: It i i
+ask = Get Pure
+</code></pre><p>Larger computations are built with the help of <code>&gt;&gt;=</code>.</p>
+<pre><code>instance Monad (It i) where
+    return :: a -&gt; It i a
+    return = Pure
+    (&gt;&gt;=) :: It i a -&gt; (a -&gt; It i b) -&gt; It i b
+    Pure x &gt;&gt;=   = k x
+    Get k' &gt;&gt;= k = Get (k' &gt;&gt;&gt; k)
+</code></pre><p>The last clause in the definition of bind says that: &ldquo;a computation that waits for an input and then continues as <code>k</code>&rdquo;, and after that, continues as <code>k</code>&quot; is the same as &ldquo;a computation that continues after waiting as the composition of <code>k'</code> and <code>k</code>&rdquo;. The Kleisli composition operation <code>(&gt;&gt;&gt;)</code> is the composition of effectful functions.</p>
+<pre><code>(&gt;&gt;&gt;) :: Monad m =&gt; (a -&gt; m b) -&gt; (b -&gt; m c) -&gt; (a -&gt; m c)
+</code></pre><p>Here are two examples of bigger Reader computations.</p>
+<pre><code>addGet :: Int -&gt; It Int Int
+addGet = ask &gt;&gt;= \i -&gt; return (i + x)
+
+addN :: Int → It Int Int
+addN n = foldl (&gt;&gt;&gt;) return (replicate n addGet) 0
+</code></pre><p>The computations <code>addGet</code> and <code>addN</code> make requests to the context. We need to define how to reply to a request, that is, how to &ldquo;run&rdquo; these computations.</p>
+<p>The following interpreter <code>runReader</code> gives the same value <code>i</code> on each request; the type <code>It i</code> is hence interpreted as the <code>Reader</code> monad.</p>
+<pre><code>runReader :: i -&gt; It i a -&gt; a
+runReader _ (Pure v) = v
+runReader x (Get k) = runReader x (k x)
+</code></pre><p>Unlike how the MTL Reader works, <code>It i a</code> can choose to be interpreted in a different way. For example, if we wanted each request to get a new value as if read from an input stream:</p>
+<pre><code>feedAll :: [i] -&gt; It i a -&gt; a
+feedAll _  (Pure v)      = v
+feedAll [] _             = error &quot;end of stream&quot;
+feedAll (x : xs) (Get k) = feedAll xs (k x)
+</code></pre><h4 id="22-readerwriter-effect">2.2 Reader/Writer Effect</h4>
+<p>We now add another effect - rather than asking a context for a value, we tell the context. This is a Writer.</p>
+<pre><code>data IT i o a = Pure a
+              | Get (i -&gt; IT i o a)
+              | Put o (() -&gt; IT i o a)
+</code></pre><p>The <code>Put o k</code> requests tells the value <code>o</code> to the context. The context then acknowledges this with <code>()</code>, and afterwards, the computation continues as <code>k ()</code> (i.e. a continuation <code>k</code> which is passed <code>()</code> as an argument).</p>
+<p><code>IT i o</code> is also a monad:</p>
+<pre><code>instance Monad (IT i o) where
+    return = Pure
+    Pure x &gt;&gt;= k   = k x
+    Get k' &gt;&gt;= k   = Get (k' &gt;&gt;&gt; k)
+    Put x k' &gt;&gt;= k = Put x (k' &gt;&gt;&gt; k)
+</code></pre><p>Again, the last clause in the definition of bind says that: &ldquo;a computation that tells the context and continues as <code>k</code>, and then as <code>k</code>&rdquo; is the same as &ldquo;a computation that tells the context and continues as the composition of <code>k'</code> and <code>k</code>&rdquo;.</p>
+<p>In the <code>MTL</code> version of the <code>Writer</code> monad, the told value must have a <code>Monoid</code> type. In contrast, <code>IT i o</code> has no such constraints. If we wanted to write an interpreter for <code>IT</code> which interpreted it as a <code>Writer</code> which accumulates the told values in a monoid, we could do so by adding the monoid constraint to the interpreter.</p>
+<pre><code>runRdWriter :: Monoid o =&gt; i -&gt; IT i o a -&gt; (a, o)
+runRdWriter i m = loop mempty m
+    where
+    loop acc (Pure x)  = (x, acc)
+    loop acc (Get k)   = loop acc (k i )
+    loop acc (Put o k) = loop (acc `mappend` o) (k ())
+</code></pre><p>The <code>IT i o</code> computation is an extension of <code>It i</code>. Data types are themselves not extensible, therefore, we have to change the data type name and modify the signatures of <code>addGet</code> and <code>addN</code>, even if their code does not care about the new writer effect and remains essentially the same.</p>
+<h4 id="23-free-monad">2.3 Free Monad</h4>
+<p>A data type describing an effectful computation such as <code>It i a</code> and <code>IT i o a</code> follows a common pattern: It is a recursive data type, with the <code>Pure</code> variant for the absence of any requests, and variants for requests (which usually contain the continuation that receives the reply, except for exceptions that do not expect any reply).</p>
+<p>This pattern of pure and effectful parts and covariant recursive occurrences can be captured as the Free monad, where <code>f</code> is a functor (that is, in <code>f a</code>, the type <code>a</code> occurs covariantly).</p>
+<pre><code>data Free f a = Pure a
+              | Impure (f (Free f a))
+</code></pre><p>Rather than having to keep writing new instances for each new effect and each combination of effects (like for <code>It i</code> and <code>IT i o</code>), the <code>Free f</code> data type lets us capture the common pattern:</p>
+<pre><code>instance Functor f =&gt; Monad (Free f) where
+    return         = Pure
+    Pure a   &gt;&gt;= k = k a
+    Impure f &gt;&gt;= k = Impure (fmap (&gt;&gt;= k) f)
+</code></pre><p>For a functor <code>f</code>, <code>Free f</code> is the free monad; new effects will have new effect signatures <code>f</code>, but the single instance of <code>Monad (Free f)</code> will work for all of them, with no further rewriting.</p>
+<p>As an example, the earlier <code>IT i o</code> computation may now be specified as:</p>
+<pre><code>data ReaderWriter i o x = Get (i -&gt; x) | Put o (() -&gt; x)
+
+instance Functor (ReaderWriter i o) where
+    ...
+
+type IT i o a = Free (ReaderWriter i o) a
+</code></pre><p>In general monads do not compose: if <code>M1 a</code> and <code>M2 a</code> are monads, <code>M1 (M2 a)</code> is generally not. Free monads however are a particular form of monads, defined via a functor. Functors do compose.</p>
+<h4 id="42-free-er-monads">4.2 Free-er Monads</h4>
+<p>Let&rsquo;s look more carefully at the Monad instance for <code>Free f</code>.</p>
+<pre><code>instance Functor f =&gt; Monad (Free f) where
+    return         = Pure
+    Pure a   &gt;&gt;= k = k a
+    Impure f &gt;&gt;= k = Impure (fmap (&gt;&gt;= k) f)
+</code></pre><p>The purpose of <code>fmap</code> here is to extend the continuation, embedded somewhere within <code>f (Free f a)</code>, by <code>(&gt;&gt;&gt;)</code>-composing it with the new <code>k</code>. This hence composes all of the effectful continuations found nested within the free monad. The operation <code>fmap</code> lets us generically modify the embedded continuation, for any request signature.</p>
+<p>Since the continuation argument is being handled so uniformly, it makes sense to take it out of the request signature (e.g. <code>Get (i -&gt; x)</code> and <code>Put o (() -&gt; x)</code>) and place it into the fixed request data structure (i.e. as the second argument of the <code>Impure</code> constructor of <code>FFree f a</code>):</p>
+<pre><code>data FFree f a where
+    Pure   :: a -&gt; FFree f a
+    Impure :: f x -&gt; (x -&gt; FFree f a) -&gt; FFree f a
+</code></pre><p>The first argument of the request signature, <code>f x</code>, tells us the type <code>x</code> of the reply, to be fed into the continuation. Different requests have their own reply types, hence <code>x</code> is existentially quantified.</p>
+<p>Our Reader-Writer effect then gets the following signature:</p>
+<pre><code>data FReaderWriter i o x where
+    Get :: FReaderWriter i o i
+    Put :: FReaderWriter i o ()
+</code></pre><p>It is a GADT: the type variable <code>x</code> in <code>FReaderWriter i o x</code> is instantiated depending on the type of the request.</p>
+<div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/papers/" title="Papers"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Papers</a>
+<a class="nav nav-next" href="https://probabilistic-effects.github.io/research/" title="Research">Next - Research <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<nav class="open-menu">
+<ul>
+<li class=""><a href="https://probabilistic-effects.github.io/">Home</a></li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/approaches/">Approaches</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/approaches/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
+</ul>
+  
+</li>
+
+<li class="parent"><a href="https://probabilistic-effects.github.io/papers/">Papers</a>
+  
+<ul class="sub-menu">
+<li class="active"><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/research/">Research</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/research/research-journal/">Research Journal</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/">Potential Approaches to Improving Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/literature-review/">Literature Review</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/parsley-case-study/">Case Study: Optimising Parsley</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/">Monad Bayes</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/inference-transformers/">Inference Transformers</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/pmmh-hmm/">Implementing HMM Simulation and Inference (using PMMH)</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/conditioning-scoring/">How Conditioning and Scoring Works</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/">Tooling</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/cabal/">Cabal</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/">Benchmarking</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmark-log/">Benchmark Log</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmarking-profiling/">How to Benchmark and Profile</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/monad-bayes-components/">Relevant Components of Monad Bayes for Profiling</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/background/">Background</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/background/staging/">Staging</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/smc-pmmh/">SMC and PMMH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/performance-w-monads/">Performance With Monads</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mtl/">MTL</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mcmc-mh/">MCMC and MH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/markov-chain/">Markov Chains</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/hidden-markov-model/">Hidden Markov Model</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/delimited-continuations/">Delimited Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/haskell-core/">Haskell Core</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
+</ul>
+  
+</li>
+</ul>
+</nav>
+
+
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>

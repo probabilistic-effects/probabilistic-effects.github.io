@@ -30,6 +30,16 @@
     </item>
     
     <item>
+      <title>Freer Monads, More Extensible Effects</title>
+      <link>https://probabilistic-effects.github.io/papers/freer-monads/</link>
+      <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/papers/freer-monads/</guid>
+      <description>1. Derivation of Free-er Monad 1.1 Reader Effect Reader computations depend on a value supplied by the environment/context. A side-effect can be understood as an interaction of an expression with its context. The possible requests of a Reader can be specified as a data type.
+data It i a = Pure a | Get (i -&amp;gt; It i a) The expression Pure e marks the computation e that makes no requests, silently working towards a value of the type a.</description>
+    </item>
+    
+    <item>
       <title>Inlining Monad Bayes</title>
       <link>https://probabilistic-effects.github.io/approaches/inlining-monad-bayes/</link>
       <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
@@ -247,7 +257,7 @@ data Expr b = Var Id | Lit Literal | App (Expr b) (Arg b) | Lam b (Expr b) | Let
       <pubDate>Fri, 13 Nov 2020 13:49:05 +0000</pubDate>
       
       <guid>https://probabilistic-effects.github.io/background/inlining/</guid>
-      <description>The most critical optimisation for an automatic optimiser is inlining. Inlining is the enabling optimisation which replaces a function name by the definition of that function. After a function definition has been inlined, new optimisation opportunities are now evident to the optimiser such as the previously discussed β-reduction and know-case elimination optimisations.
+      <description>The most critical optimisation for an automatic optimiser is inlining. Inlining is the enabling optimisation which replaces a function name by the definition of that function. After a function definition has been inlined, new optimisation opportunities are now evident to the optimiser such as the β-reduction and know-case elimination optimisations.
 The difficulty with inlining is that on its own it is not a beneficial code transformation. Inlining a function which does not unlock any further optimisation possibilities is wasted work which increases code size.</description>
     </item>
     
@@ -257,7 +267,8 @@ The difficulty with inlining is that on its own it is not a beneficial code tran
       <pubDate>Fri, 13 Nov 2020 13:49:05 +0000</pubDate>
       
       <guid>https://probabilistic-effects.github.io/background/specialisation/</guid>
-      <description>Type class constraints in Haskell are implemented via dictionary passing. A function accepting a type class constraint is passed a record which provides evidence for the constraint. Therefore despite the fact that all instances have been statically resolved before runtime, the dictionaries are still passed to functions which can incur significant overhead.</description>
+      <description>Type class constraints in Haskell are implemented via dictionary passing. A function accepting a type class constraint is passed a record which provides evidence for the constraint. Therefore despite the fact that all instances have been statically resolved before runtime, the dictionaries are still passed to functions which can incur significant overhead.
+Since type classes are ubiquitous, getting rid of this overhead is critical for any high-performance Haskell programs. Therefore one of the most important optimisations in the compiler is specialisation which rewrites functions to remove the overhead of passing a statically known dictionary.</description>
     </item>
     
     <item>

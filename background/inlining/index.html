@@ -17,7 +17,7 @@
 :root {}
 </style>
 <meta property="og:title" content="Inlining" />
-<meta property="og:description" content="The most critical optimisation for an automatic optimiser is inlining. Inlining is the enabling optimisation which replaces a function name by the definition of that function. After a function definition has been inlined, new optimisation opportunities are now evident to the optimiser such as the previously discussed β-reduction and know-case elimination optimisations.
+<meta property="og:description" content="The most critical optimisation for an automatic optimiser is inlining. Inlining is the enabling optimisation which replaces a function name by the definition of that function. After a function definition has been inlined, new optimisation opportunities are now evident to the optimiser such as the β-reduction and know-case elimination optimisations.
 The difficulty with inlining is that on its own it is not a beneficial code transformation. Inlining a function which does not unlock any further optimisation possibilities is wasted work which increases code size." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://probabilistic-effects.github.io/background/inlining/" />
@@ -25,14 +25,14 @@ The difficulty with inlining is that on its own it is not a beneficial code tran
 <meta property="article:modified_time" content="2020-11-13T13:49:05+00:00" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Inlining"/>
-<meta name="twitter:description" content="The most critical optimisation for an automatic optimiser is inlining. Inlining is the enabling optimisation which replaces a function name by the definition of that function. After a function definition has been inlined, new optimisation opportunities are now evident to the optimiser such as the previously discussed β-reduction and know-case elimination optimisations.
+<meta name="twitter:description" content="The most critical optimisation for an automatic optimiser is inlining. Inlining is the enabling optimisation which replaces a function name by the definition of that function. After a function definition has been inlined, new optimisation opportunities are now evident to the optimiser such as the β-reduction and know-case elimination optimisations.
 The difficulty with inlining is that on its own it is not a beneficial code transformation. Inlining a function which does not unlock any further optimisation possibilities is wasted work which increases code size."/>
 <meta itemprop="name" content="Inlining">
-<meta itemprop="description" content="The most critical optimisation for an automatic optimiser is inlining. Inlining is the enabling optimisation which replaces a function name by the definition of that function. After a function definition has been inlined, new optimisation opportunities are now evident to the optimiser such as the previously discussed β-reduction and know-case elimination optimisations.
+<meta itemprop="description" content="The most critical optimisation for an automatic optimiser is inlining. Inlining is the enabling optimisation which replaces a function name by the definition of that function. After a function definition has been inlined, new optimisation opportunities are now evident to the optimiser such as the β-reduction and know-case elimination optimisations.
 The difficulty with inlining is that on its own it is not a beneficial code transformation. Inlining a function which does not unlock any further optimisation possibilities is wasted work which increases code size.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="1509">
+<meta itemprop="wordCount" content="2745">
 
 
 
@@ -44,12 +44,129 @@ The difficulty with inlining is that on its own it is not a beneficial code tran
 
 <div class="content-container">
 <main><h1>Inlining</h1>
-<p>The most critical optimisation for an automatic optimiser is inlining. Inlining is the enabling optimisation which replaces a function name by the definition of that function. After a function definition has been inlined, new optimisation opportunities are now evident to the optimiser such as the previously discussed β-reduction and know-case elimination optimisations.</p>
-<p>The difficulty with inlining is that on its own it is not a beneficial code transformation. Inlining a function which does not unlock any further optimisation possibilities is wasted work which increases code size. Therefore any automatic partial evaluator must decide at what thresholds functions must be inlined and what factors about the call-site must
-be taken into account when making an inlining decision. Unfortunately designing a library which relies on these thresholds and decisions is inadvisable. Small changes to the source program can have big changes on which thresholds are breached and understanding how your changes will affect the thresholds is very difficult.</p>
+<p>The most critical optimisation for an automatic optimiser is inlining. Inlining is the enabling optimisation which replaces a function name by the definition of that function. After a function definition has been inlined, new optimisation opportunities are now evident to the optimiser such as the β-reduction and know-case elimination optimisations.</p>
+<p>The difficulty with inlining is that on its own it is not a beneficial code transformation. Inlining a function which does not unlock any further optimisation possibilities is wasted work which increases code size. Therefore any automatic partial evaluator must decide at what thresholds functions must be inlined and what factors about the call-site must be taken into account when making an inlining decision. Unfortunately designing a library which relies on these thresholds and decisions is inadvisable. Small changes to the source program can have big changes on which thresholds are breached and understanding how your changes will affect the thresholds is very difficult.</p>
+<h3 id="1-preliminaries">1. Preliminaries</h3>
+<h4 id="11-what-is-inlining">1.1 What is inlining?</h4>
+<p>Given a definition <code>x = E</code>, one can inline <code>x</code> at a particular occurrence by replacing the occurrence by <code>E</code>. For example:</p>
+<pre><code>let { f = \x -&gt; x * 3 } in f (a + b) - c
+⇝
+(a + b) * 3 - c
+</code></pre><p>We can identify <em>three</em> distinct transformations that collectively implement what we describe as inlining:</p>
+<ol>
+<li>
+<p><strong>Inlining itself</strong> replaces an occurrence of a <code>let</code>-bound variable by a copy of its right-hand side of its definition.</p>
+<pre><code>let { f = \x -&gt; x * 3} in f (a + b) - c
+⇝ [inline f]
+let { f = \x -&gt; x * 3} in (\x -&gt; x * 3) (a + b) - c
+</code></pre><p>Notice that not all occurrences of <code>f</code> need be inlined, hence the original definition of <code>f</code> must be retained.</p>
+</li>
+</ol>
+<!-- raw HTML omitted -->
+<ol start="2">
+<li>
+<p><strong>Dead code generation</strong> discards bindings that are no longer used; this usually occurs when all occurrences of a variable have been inlined.</p>
+<pre><code>let { f = \x -&gt; x * 3 } in (\x -&gt; x * 3) (a + b) - c
+⇝ [dead f]
+(\x -&gt; x * 3) (a + b) - c
+</code></pre></li>
+</ol>
+<!-- raw HTML omitted -->
+<ol start="3">
+<li>
+<p><strong>β-reduction</strong> rewrites a lambda application <code>(\x -&gt; E) A</code> to <code>let {x = A} in E</code>.</p>
+<pre><code>(\x -&gt; x * 3) (a + b) -c
+⇝ [beta]
+(let { x = a + b } in x * 3) - c
+</code></pre></li>
+</ol>
+<h4 id="12-factors-affecting-inlining">1.2 Factors affecting inlining</h4>
+<p>Although inlining may be <em>valid</em>, this does not mean that it is <em>desirable</em>. Inlining may increase code size, or duplicate work. There are three distinct factors to consider:</p>
+<ol>
+<li>
+<p><strong>Does any code get duplicated?</strong> And if so, how much? For example, consider the following code where &ldquo;<code>...big...</code>&rdquo; is a large expression:</p>
+<pre><code>let f = \v -&gt; ...big... in (f 3, f 4)
+</code></pre><p>Then inlining <code>f</code> would not duplicate any <em>work</em> (<code>f</code> will still be called twice), but it would duplicate the <em>code</em> for <code>f</code>&rsquo;s body.</p>
+<p>Bloated programs are bad as they cause increased compilation time and lower cache hit rates. Inlining can often <em>reduce</em> code size by exposing new opportunities for transformations. GHC uses a number of heuristics to determine whether an expression is small enough to duplicate.</p>
+</li>
+</ol>
+<!-- raw HTML omitted -->
+<ol start="2">
+<li>
+<p><strong>Does any work get duplicated?</strong> And if so, how much? For example, consider the following code where <code>foo</code> is expensive to compute:</p>
+<pre><code>let x = foo 1000 in x + x
+</code></pre><p>Inlining <code>x</code> would result in two calls to <code>foo</code> instead of one.</p>
+<p>Work can be duplicated even if <code>x</code> only appears once:</p>
+<pre><code>let x = foo 1000
+    f = \y -&gt; x * y
+in ... (f 3) .. (f 4) ...
+</code></pre><p>If we inline <code>x</code> at its (single) occurrence site, <code>foo</code> will be called every time <code>f</code> is. The general rule is that we must be careful when inlining inside a lambda.</p>
+<p>It&rsquo;s not hard to come up with examples where a single inlining that duplicates work gives rise to an arbitrarily large increase in run time. GHC is therefore very conservative about work duplication. In general, GHC never duplicates work unless it is sure that the  duplication is a small, bounded amount.</p>
+</li>
+</ol>
+<!-- raw HTML omitted -->
+<ol start="3">
+<li>
+<p><strong>Are any transformations exposed by inlining?</strong> For example, consider the bindings:</p>
+<pre><code>f = \x  -&gt; E
+g = \ys -&gt; map f ys
+</code></pre><p>Suppose we were to inline <code>f</code> inside <code>g</code>:</p>
+<pre><code>g = \ys -&gt; map (\x -&gt; E) ys
+</code></pre><p>No <em>code</em> is duplicated by doing so, but a small bounded amount of <em>work</em> is duplicated because the closure for <code>(\x -&gt; E)</code> would have to be allocated each time <code>g</code> was called. It is often worth putting up with this work duplication, because inlining <code>f</code> exposes new transformation opportunities at the inlining site. But in this case, nothing at all would be gained by inlining <code>f</code>, because <code>f</code> is not applied to anything.</p>
+</li>
+</ol>
+<p>Inlining is not an optimisation by itself. The <em>direct</em> effects of careful inlining are small: it may duplicate code or a constant amount of work, and usually saves a call or jump (albeit not invariably). It is the indirect effects that we are really after: the main reason for inlining is that it often exposes new transformations, by bringing together two code fragments that were previously separate. Therefore, in general, inlining decisions must be influenced by context.</p>
+<h4 id="13-work-duplication">1.3 Work duplication</h4>
+<p>If <code>x</code> is inlined in more than one place, or inlined inside a lambda, we have to worry about work duplication.</p>
+<p>Work duplication will be bounded in at least the cases when <code>x</code>&rsquo;s right-hand side is:</p>
+<ul>
+<li>A variable</li>
+<li>A constructor application</li>
+<li>A lambda abstraction</li>
+</ul>
+<p>Constructor applications require careful treatment. Consider the following code:</p>
+<pre><code>x = (f y, g y)
+h = \z -&gt; case x of
+            (a, b) -&gt; ...
+</code></pre><p>It would be disasterous to inline <code>x</code> inside the body of <code>h</code>, since that would duplicate the calls to <code>f</code> and <code>g</code>.</p>
+<h3 id="2-ensuring-termination---loop-breakers">2. Ensuring termination - Loop breakers</h3>
+<h4 id="21-sources-of-non-termination">2.1 Sources of non-termination</h4>
+<p>GHC&rsquo;s intermediate language introduces extensions to System F which themselves introduce non-termination in two distinct ways:</p>
+<ol>
+<li><strong>Recursive Bindings</strong>: If a recursively-bound variable is inlined at one of its occurrences, that will introduce a new occurrence of the same variable. Unless this is restricted somehow, inlining could go on infinitely.</li>
+</ol>
+<!-- raw HTML omitted -->
+<ol start="2">
+<li>
+<p><strong>Recursive Data Types</strong>: Consider the following code defining <code>loop</code>.</p>
+<p>This is a recursive data type <code>T</code> with constructor <code>C</code> which takes a function <code>T -&gt; Int</code>.</p>
+<pre><code>data T = C (T -&gt; Int)
+</code></pre><p>The function <code>g</code> is small and non-recursive, hence when processing <code>loop = g (C g)</code>, <code>g</code> will be inlined. However the inlined call will very soon rewrite to <code>g (C g)</code> which is just the expression we started with.</p>
+<pre><code>g = \y -&gt; case y of
+            C h -&gt; h y
+
+loop = g (C g)
+</code></pre><p>The problem here is that the data type <code>T</code> is recursive, and <em>it appears contravariantly in its own definition</em>.</p>
+</li>
+</ol>
+<p>The former is an immediate and pressing problem as almost any interesting Haskell program involves recursion. In contrast, the latter is rather rare.</p>
+<h4 id="22-recursive-bindings---the-problem--solution">2.2 Recursive Bindings - The problem &amp; solution</h4>
+<p>We call a group of bindings wrapped in <code>rec</code> a <em>recursive group</em>. Unrestricted inlining of non-recursive bindings is safe, but unrestricted inlining of recursive bindings may lead to non-termination.</p>
+<p>The real problem with recursive bindings is that they can make the inliner fall into an infinite loop. The key insight to the solution is that: <em>the inliner cannot loop if every cycle in the dependency graph is broken by a variable that is never inlined</em>. This variable is called a <em>loop breaker</em>.</p>
+<p><strong>What is a loop breaker?</strong></p>
+<p><em>Explanation 1</em>: If we were to inline recursive definitions without care, we could easily cause the simplifier to diverge. However, we still want to inline as many functions as possible which appear in mutually recursive blocks. GHC statically analyses each recursive group of bindings and chooses one of the bindings in each group as the loop-breaker. Any function which is marked as a loop-breaker will never be inlined. Other functions in the recursive group are free to be inlined as eventually a loop-breaker will be reached and the inliner will stop. GHC will never inline a loop breaker regardless of what pragma we attach to it.</p>
+<p><em>Explanation 2</em>: To prevent recursive functions from being inlined, some care is needed to deal with mutually recursive groups. For each mutually recursive group of functions, dependency analysis is performed and then a single loop-breaker is chosen which breaks any cyclic dependencies. The loop-breaker is never inlined, but other functions in the group can be.</p>
+<p><strong>How does GHC choose a loop-breaker?</strong></p>
+<p>The loop-breaker for GHC is decided based on the following criteria: <em>try to not select a variable that would be very beneficial to inline</em>.</p>
+<p>The choice of loop-breaker affects how a program is optimised but the programmer has little control about which member of a recursive group is chosen. This explains why self-recursive functions are never inlined as they are always chosen as the loop-breaker for their recursive group of size one.</p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<hr>
 <h3 id="inlining-thresholds">Inlining Thresholds</h3>
 <p>When each function is defined, the body of the function is analysed and metrics are calculated about under what conditions the compiler considers it worthwhile to inline the function.</p>
-<p><strong>• Code Size</strong></p>
+<h5 id="-what-is-an-unfolding">• What is an unfolding?</h5>
+<p>The unfolding of a function <code>f</code> is what <code>f</code> is replaced by when it is inlined. This is usually the definition of <code>f</code>.</p>
+<h5 id="-code-size">• Code Size</h5>
 <p>The size of an unfolding is also a heuristic measure with the understanding the inlining a lot of &ldquo;big&rdquo; definitions will lead to a very &ldquo;big&rdquo; problem, which will take a long time to optimise. The flags controlling inlining are given below:</p>
 <ul>
 <li><code>-funfolding-creation-threshold</code> &ndash; Functions under this size will be given unfoldings and can therefore be inlined.</li>
@@ -57,16 +174,14 @@ be taken into account when making an inlining decision. Unfortunately designing 
 <li><code>-funfolding-fun-discount</code> &ndash; The argument discount if the argument is a function.</li>
 <li><code>-funfolding-use-threshold</code> &ndash; The threshold for deciding whether to inline a function at the call-site. The size is after the argument discounts have been applied.</li>
 </ul>
-<p><strong>• When is a function not inlined?</strong></p>
+<h5 id="-when-is-a-function-not-inlined">• When is a function not inlined?</h5>
 <p>The first two restrictions are conservative, aimed at reducing the chance of the inliner looping or creating very large intermediate programs. In GHC the inliner never inlines a recursive definition which is conservative and predictable. Bottoming functions are not inlined as they are lifted to the top-level and inlining them would undo this work.</p>
 <ul>
 <li>Self-recursive functions are never inlined</li>
 <li>Functions which are &ldquo;too big&rdquo; are not inlined. The threshold is controlled by the <code>-funfolding-use-threshold</code> flag.</li>
 <li>Functions which are known to bottom (undefined - a computation which never completes successfully) are not inlined.</li>
 </ul>
-<p><strong>• Loop-Breakers</strong></p>
-<p>To prevent recursive functions from being inlined, some care is needed to deal with mutually recursive groups. For each mutually recursive group of functions, dependency analysis is performed and then a single loop-breaker is chosen which breaks any cyclic dependencies. The loop-breaker is never inlined, but other functions in the group can be. The loop-breaker is decided based on a heuristic which attempts to select the member of the group which would benefit least from being inlined. The choice of loop-breaker affects how a program is optimised but the programmer has little control about which member of a recursive group is chosen. This explains why self-recursive functions are never inlined as they are always chosen as the loop-breaker for their recursive group of size one.</p>
-<p><strong>• When is a function inlined?</strong></p>
+<h5 id="-when-is-a-function-inlined">• When is a function inlined?</h5>
 <p>For each function definition the body of the function is analysed and the &ldquo;unfolding guidance&rdquo; is calculated. There are two varieties of unfolding guidance: <code>UnfWhen</code> and <code>UnflfGoodArgs</code>.</p>
 <p>For normal identifiers, <code>UnfIfGoodArgs</code> stipulates under what conditions the compiler thinks inlining would be beneficial, and it calculates this using three factors:</p>
 <ol>
@@ -75,7 +190,7 @@ be taken into account when making an inlining decision. Unfortunately designing 
 <li>A discount if the function appears in a scrutinee position. If an argument appears in a scrutinee position in the body of a function, then inlining that function will cause the <code>case</code> to be reduced. Also, if the function itself returns a constructor, then inlining the function into a scrutinee position will enable the <code>case</code> to be eliminated.</li>
 </ol>
 <p>These facts are all calculated by looking at the definition of a function. The size and discounts are unitless, created solely for the purpose of informing the inlining heuristic.</p>
-<p><strong>• Call Site Heuritstics</strong></p>
+<h5 id="-call-site-heuritstics">• Call Site Heuritstics</h5>
 <p>At the call site (a call site of a function is the location (line of code) where the function is called), the unfolding guidance is used to decide whether to inline the function call.</p>
 <ol>
 <li>The expression is &ldquo;work-free&rdquo;, i.e. we are not going to duplicate a lot of work by inlining it.</li>
@@ -123,6 +238,14 @@ Published on 13 Nov 2020
   
 <ul class="sub-menu">
 <li class=""><a href="https://probabilistic-effects.github.io/approaches/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/papers/">Papers</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
 </ul>
   
 </li>

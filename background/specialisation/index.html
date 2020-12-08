@@ -17,19 +17,22 @@
 :root {}
 </style>
 <meta property="og:title" content="Specialisation" />
-<meta property="og:description" content="Type class constraints in Haskell are implemented via dictionary passing. A function accepting a type class constraint is passed a record which provides evidence for the constraint. Therefore despite the fact that all instances have been statically resolved before runtime, the dictionaries are still passed to functions which can incur significant overhead." />
+<meta property="og:description" content="Type class constraints in Haskell are implemented via dictionary passing. A function accepting a type class constraint is passed a record which provides evidence for the constraint. Therefore despite the fact that all instances have been statically resolved before runtime, the dictionaries are still passed to functions which can incur significant overhead.
+Since type classes are ubiquitous, getting rid of this overhead is critical for any high-performance Haskell programs. Therefore one of the most important optimisations in the compiler is specialisation which rewrites functions to remove the overhead of passing a statically known dictionary." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://probabilistic-effects.github.io/background/specialisation/" />
 <meta property="article:published_time" content="2020-11-13T13:49:05+00:00" />
 <meta property="article:modified_time" content="2020-11-13T13:49:05+00:00" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Specialisation"/>
-<meta name="twitter:description" content="Type class constraints in Haskell are implemented via dictionary passing. A function accepting a type class constraint is passed a record which provides evidence for the constraint. Therefore despite the fact that all instances have been statically resolved before runtime, the dictionaries are still passed to functions which can incur significant overhead."/>
+<meta name="twitter:description" content="Type class constraints in Haskell are implemented via dictionary passing. A function accepting a type class constraint is passed a record which provides evidence for the constraint. Therefore despite the fact that all instances have been statically resolved before runtime, the dictionaries are still passed to functions which can incur significant overhead.
+Since type classes are ubiquitous, getting rid of this overhead is critical for any high-performance Haskell programs. Therefore one of the most important optimisations in the compiler is specialisation which rewrites functions to remove the overhead of passing a statically known dictionary."/>
 <meta itemprop="name" content="Specialisation">
-<meta itemprop="description" content="Type class constraints in Haskell are implemented via dictionary passing. A function accepting a type class constraint is passed a record which provides evidence for the constraint. Therefore despite the fact that all instances have been statically resolved before runtime, the dictionaries are still passed to functions which can incur significant overhead.">
+<meta itemprop="description" content="Type class constraints in Haskell are implemented via dictionary passing. A function accepting a type class constraint is passed a record which provides evidence for the constraint. Therefore despite the fact that all instances have been statically resolved before runtime, the dictionaries are still passed to functions which can incur significant overhead.
+Since type classes are ubiquitous, getting rid of this overhead is critical for any high-performance Haskell programs. Therefore one of the most important optimisations in the compiler is specialisation which rewrites functions to remove the overhead of passing a statically known dictionary.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="52">
+<meta itemprop="wordCount" content="1022">
 
 
 
@@ -42,6 +45,83 @@
 <div class="content-container">
 <main><h1>Specialisation</h1>
 <p>Type class constraints in Haskell are implemented via dictionary passing. A function accepting a type class constraint is passed a record which provides evidence for the constraint. Therefore despite the fact that all instances have been statically resolved before runtime, the dictionaries are still passed to functions which can incur significant overhead.</p>
+<p>Since type classes are ubiquitous, getting rid of this overhead is critical for any high-performance Haskell programs. Therefore one of the most important optimisations in the compiler is specialisation which rewrites functions to remove the overhead of passing a statically known dictionary. Specialisation is the process of removing typeclass dictionary arguments by creating a new type-specialised definition for an overloaded function. Once specialised, dictionary methods can be easily inlined which usually creates more efficient code.</p>
+<p>For example, if we define the overloaded function <code>foo</code>:</p>
+<pre><code>foo :: Show a =&gt; a -&gt; a -&gt; Bool
+foo x y = show x == show y
+</code></pre><p>Then the following core definition will be produced:</p>
+<pre><code>foo = \ @a $dShow x y -&gt;
+    eqString (show $dShow x) (show $dShow y)
+</code></pre><p>There are now 4 parameters to <code>foo</code>:</p>
+<ul>
+<li>The first argument is a type (denoted by <code>@</code>)</li>
+<li>The second argument is the dictionary for <code>Show</code> (denoted by the $d prefix)</li>
+<li>The last two are the arguments <code>x</code> and <code>y</code> of the original definition</li>
+</ul>
+<p>The class constraint is translated into a dictionary. Each time a class method is used, we must dynamically lookup which definition to use in the supplied class dictionary.</p>
+<p>If we know which type <code>a</code> is instantiated with, we can specialise the definition of <code>foo</code> and produce much better code.</p>
+<pre><code>qux :: Bool -&gt; Bool -&gt; Bool
+qux = foo @Bool
+</code></pre><p>Using <code>foo</code> at a specific type produces a new definition <code>foo_$sfoo</code> which is defined as:</p>
+<pre><code>foo_$sfoo :: Bool -&gt; Bool -&gt; Bool
+foo_$sfoo = foo @Bool $fShowBool
+</code></pre><h5 id="the-process-of-specialisation">The Process of Specialisation</h5>
+<p>First, the body of the <em>program</em> is traversed in order to find functions applied to a statically known dictionary argument.</p>
+<pre><code>$dDictShowInt :: Show Int
+
+f :: Show a -&gt; ...
+
+g = ... f @Int $dDictShowInt ...
+</code></pre><p>For each occurrence, a new top-level function is created whose arity is one less than the original function. The definition of this top-level function is the original function applied to just the static dictionary argument.</p>
+<pre><code>f_spec = f @Int $dDictShowInt
+</code></pre><p>Finally a rewrite rule is emitted which rewrites the original function application to the new specialised version.</p>
+<pre><code>{-# RULE f @Int $dDictShowInt = f_spec }
+</code></pre><h5 id="relationship-with-inlining">Relationship with Inlining</h5>
+<p>Specialisation is very closely related to inlining. Another way to implement specialisation would be directly inline the overloaded function at each
+call site where there was a statically known dictionary.</p>
+<p>The advantages of specialisation are:</p>
+<ol>
+<li>
+<p>It usually improves the program because the specialised function is applied to a statically known argument. In general inlining is a heuristic which may not succeed in removing any static information. The argument discount is a generalised version of the specialisation check.</p>
+</li>
+<li>
+<p>Secondly, code bloat is avoided by processing a whole module at once. Specialisations are shared throughout a whole program so each function is only specialised for each type once. This contrasts with inlining where the decision is made locally to a call-site and work is not shared between decisions.</p>
+</li>
+<li>
+<p>Finally, recursive functions are specialised but not inlined. Therefore the only way to eliminate an argument from a recursive function is if the argument is a type class dictionary. Specialisation is mainly of use for recursive functions as for non-recursive functions inlining can play a similar role. However, for recursive functions, if they are not specialised then the overhead of passing the static argument will be paid on each iteration.</p>
+</li>
+</ol>
+<h3 id="the-specialisation-trick--making-ghc-inline-recursive-definitions-with-static-arguments">The Specialisation Trick : Making GHC inline recursive definitions with static arguments</h3>
+<p>Recall that we stated how GHC will never inline a recursive function. There is a technique where we can use specialisation to force GHC to unroll a finite amount of recursion.</p>
+<p>Consider the problem of applying a function <code>f</code> <code>k</code> times to an argument &ndash; if <code>k</code> is known statically, then the loop can be unrolled to <code>k</code> applications of <code>f</code>.</p>
+<pre><code>nTimes 0 (+1) 0 ≡ 0
+nTimes 4 (+1) 0 ≡ (+1) ((+1) ((+1) ((+1) 0)))
+</code></pre><p>Writing the function naively is straightforward, but this will not be specialised for a statically known <code>k</code>, because it will not be inlined due to being self-recursive.</p>
+<pre><code>nTimes :: Int -&gt; (a -&gt; a) -&gt; a -&gt; a
+nTimes 0 f x = x
+nTimes k f x = f (nTimes (k - 1) f x)
+</code></pre><p>We can use specialisation to define a version of <code>nTimes</code> which is unrolled. For specialisation to happen, the argument to <code>nTimes</code> must be a type class dictionary - this means defining <code>nTimes</code> using a typeclass (<code>Unroll</code>) which is parameterised by a type representing natural numbers. An instance is defined for the case case and inductive case which corresponds to the two cases of <code>nTimes</code> given above.</p>
+<pre><code>data Proxy (t :: k) = Proxy
+
+data N = Z | S N
+
+class Unroll (n :: N) where
+  nTimes :: Proxy n → (a → a) → a → a
+
+instance Unroll Z where
+  nTimes f x = x
+
+instance Unroll n ⇒ Unroll (S n) where
+  nTimes p f x =
+    let Proxy :: Proxy (S n) = p
+    in f (nTimes (Proxy :: Proxy n) f x)
+</code></pre><p>Now the argument to <code>nTimes</code> is essentially a type of kind <code>N</code> passed using the <code>Proxy</code> constructor.</p>
+<pre><code>oneTime :: (a → a) → a → a
+oneTime = nTimes (Proxy :: Proxy (S Z))
+
+fiveTimes :: (a → a) → a → a
+fiveTimes = nTimes (Proxy :: Proxy (S (S (S (S (S Z))))))
+</code></pre><p>Now specialisation can work on <code>nTimes</code> because the argument is a dictionary. In <code>oneTime</code>, first a specialisation of <code>oneTime</code> to the <code>S</code> <code>Z</code> dictionary is created before a specialisation to the <code>Z</code> dictionary. The eventual result is an unrolled pipeline of functions. GHC is happy to do this repeated specialisation because the constraint language ensures that the type class evidence is finite and we can not enter situations where specialisation would happen forever.</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
@@ -63,6 +143,14 @@ Published on 13 Nov 2020
   
 <ul class="sub-menu">
 <li class=""><a href="https://probabilistic-effects.github.io/approaches/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/papers/">Papers</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
 </ul>
   
 </li>

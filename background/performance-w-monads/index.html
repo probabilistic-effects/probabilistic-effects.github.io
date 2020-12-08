@@ -38,7 +38,7 @@ For example, consider the following MTL monad stack.
 -- RWS monad: A monad containing an environment of type r, output of type w, and updatable state of type s. type RWS r w s = RWST r w s Identity deriving (MonadState s, MonadWriter w, Monad) newtype DRM a = DRM { unDRM :: ErrorT Finish (RWS () DNA RNA) a } deriving (MonadState DNA, MonadWriter RNA, MonadError Finish, Monad) -- | Inductive case: This tells us that as we know there is a MonadState and MonadWriter instance -- somewhere in the stack (i.">
 <meta itemprop="datePublished" content="2020-11-13T13:58:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:58:41+00:00" />
-<meta itemprop="wordCount" content="1438">
+<meta itemprop="wordCount" content="1512">
 
 
 
@@ -101,7 +101,11 @@ For example, consider the following MTL monad stack.
                                        (x&#39;&#39;, s&#39;&#39;, w&#39;) <span style="color:#f92672">=</span> (runDRMonad m&#39;) s&#39;
 <span style="color:#75715e">-- &gt; Append the new message onto the writer&#39;s log</span>
                                    <span style="color:#66d9ef">in</span>  (x&#39;&#39;, s&#39;&#39;, w `mappend` w&#39;)
-</code></pre></div><h3 id="unrolling-ordinary-monad-transformer-stacks">Unrolling Ordinary Monad Transformer Stacks</h3>
+</code></pre></div><p><strong>Q</strong>: Do you have to concretely know all the monads in a monad transformer stack, in order to handroll your own? For example, if we don&rsquo;t know the monad <code>m</code> in this stack?</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Weighted</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">StateT</span> (<span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>) m a)
+  <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadIO</span>, <span style="color:#66d9ef">MonadTrans</span>, <span style="color:#66d9ef">MonadSample</span>)
+</code></pre></div><p><strong>A</strong>: Nope, you can hand roll partially. Just pop a MonadTrans constraint on the m or something if it&rsquo;s midway through the stack</p>
+<h3 id="unrolling-ordinary-monad-transformer-stacks">Unrolling Ordinary Monad Transformer Stacks</h3>
 <p>To wrap a monad transformer m<!-- raw HTML omitted -->2<!-- raw HTML omitted -->T around a monad m<!-- raw HTML omitted -->1<!-- raw HTML omitted --> means that we expect there to exist a function runM<!-- raw HTML omitted -->2<!-- raw HTML omitted -->T which takes m<!-- raw HTML omitted -->2<!-- raw HTML omitted -->T (m<!-- raw HTML omitted -->1<!-- raw HTML omitted --> &hellip;) and returns the monad (m<!-- raw HTML omitted -->1<!-- raw HTML omitted --> &hellip;) containing the effectful context of monad m<!-- raw HTML omitted -->2<!-- raw HTML omitted -->.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">
 <span style="color:#66d9ef">data</span>    <span style="color:#66d9ef">Maybe</span>  a      <span style="color:#f92672">=</span> <span style="color:#66d9ef">Just</span> a <span style="color:#f92672">|</span> <span style="color:#66d9ef">Nothing</span>
@@ -215,6 +219,14 @@ Published on 13 Nov 2020
   
 <ul class="sub-menu">
 <li class=""><a href="https://probabilistic-effects.github.io/approaches/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/papers/">Papers</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
 </ul>
   
 </li>
