@@ -3,10 +3,10 @@
 <head><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Papers - Probabilistic Effects.  λθ</title>
+<title>Fusion for Free - Probabilistic Effects.  λθ</title>
 <meta name="generator" content="Hugo 0.78.2" />
 <link href="https://probabilistic-effects.github.io//index.xml" rel="alternate" type="application/rss+xml">
-<link rel="canonical" href="https://probabilistic-effects.github.io/papers/">
+<link rel="canonical" href="https://probabilistic-effects.github.io/papers/fusion-for-free/">
 <link rel="stylesheet" href="https://probabilistic-effects.github.io/css/theme.min.css">
 <script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
 <link rel="stylesheet" href="https://probabilistic-effects.github.io/css/chroma.min.css">
@@ -16,31 +16,74 @@
 <script src="https://probabilistic-effects.github.io/js/bundle.js"></script><style>
 :root {}
 </style>
-<meta property="og:title" content="Papers" />
-<meta property="og:description" content="" />
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://probabilistic-effects.github.io/papers/" />
-<meta property="og:updated_time" content="2020-11-13T13:52:51+00:00" />
+<meta property="og:title" content="Fusion for Free" />
+<meta property="og:description" content="Free monads are at the heart of algebraic effect handlers, a functional approach for modelling side effects which allows the separation of the syntax and semantics of effectful operations, whilst enabling us to provide multiple different semantics for the same syntax.
+The syntax of primitive side-effect operations is captured in a signature functor. The free monad over this functor assembles the syntax for the individual operations into an abstract syntax tree for an effectful program." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://probabilistic-effects.github.io/papers/fusion-for-free/" />
+<meta property="article:published_time" content="2020-11-13T14:05:41+00:00" />
+<meta property="article:modified_time" content="2020-11-13T14:05:41+00:00" />
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="Papers"/>
-<meta name="twitter:description" content=""/>
-<meta itemprop="name" content="Papers">
-<meta itemprop="description" content="">
+<meta name="twitter:title" content="Fusion for Free"/>
+<meta name="twitter:description" content="Free monads are at the heart of algebraic effect handlers, a functional approach for modelling side effects which allows the separation of the syntax and semantics of effectful operations, whilst enabling us to provide multiple different semantics for the same syntax.
+The syntax of primitive side-effect operations is captured in a signature functor. The free monad over this functor assembles the syntax for the individual operations into an abstract syntax tree for an effectful program."/>
+<meta itemprop="name" content="Fusion for Free">
+<meta itemprop="description" content="Free monads are at the heart of algebraic effect handlers, a functional approach for modelling side effects which allows the separation of the syntax and semantics of effectful operations, whilst enabling us to provide multiple different semantics for the same syntax.
+The syntax of primitive side-effect operations is captured in a signature functor. The free monad over this functor assembles the syntax for the individual operations into an abstract syntax tree for an effectful program.">
+<meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
+<meta itemprop="wordCount" content="439">
+
+
+
+<meta itemprop="keywords" content="" />
 </head>
 <body><div class="container"><header>
 <h1>Probabilistic Effects.  λθ</h1>
 </header>
 
 <div class="content-container">
-<main><h1>Papers</h1><p><a href="./freer-monads">Freer Monads, More Extensible Effects</a></p>
+<main><h1>Fusion for Free</h1>
+<p>Free monads are at the heart of algebraic effect handlers, a functional approach for modelling side effects which allows the separation of the syntax and semantics of effectful operations, whilst enabling us to provide multiple different semantics for the same syntax.</p>
+<p>The syntax of primitive side-effect operations is captured in a signature functor. The free monad over this functor assembles the syntax for the individual operations into an abstract syntax tree for an effectful program.</p>
+<p>The semantics of the individual operations is captured in an algebra, and an effect handler folds the algebra over the syntax tree of the program to interpret it into a semantic domain.</p>
+<h3 id="2-algebraic-effect-handlers">2. Algebraic Effect Handlers</h3>
+<p>The idea of the algebraic effect handlers approach is to consider the free monad over a particular functor as an AST for an effectful computation. This functor is used to generate the nodes of a free structure whose leaves correspond to variables.</p>
+<pre><code>data Free f a where
+    Var :: a -&gt; Free f a
+    Con :: f (Free f a) -&gt; Free f a
+</code></pre><p>Since a value of type <code>Free f a</code> is an inductive structure, we can define a <code>fold</code> for it by providing:</p>
+<ul>
+<li>A function <code>gen</code> that deals with generation of values from <code>Var x</code>.</li>
+<li>An algebra <code>alg</code> that is used to recursively collapse an operation <code>Con op</code>.</li>
+</ul>
+<pre><code>fold :: Functor f =&gt; (f b -&gt; b) -&gt; (a -&gt; b) -&gt; (Free f a -&gt; b)
+fold alg gen (Var x)  = gen x
+fold alg gen (Con op) = alg (fmap (fold alg gen) op)
+</code></pre><p>Algebraic effect handlers give a semantics to the syntax tree: one way of doing this is by using a fold. The behaviour of folds when composed with other functions is described by fusion laws.</p>
+<ul>
+<li>The first law describes how certain functions that are precomposed with a fold can be incorporated into a new fold:
+<pre><code>fold alg gen · fmap h = fold alg (gen · h)
+</code></pre></li>
+<li>The second law shows how certain functions that are postcomposed with a fold can be incorporated into a new fold:
+<pre><code>k · fold alg gen = fold alg' (k · gen)
+</code></pre><p>This law is subject to the condition that:</p>
+<pre><code>k · alg = alg' · fmap k
+</code></pre></li>
+</ul>
+<p>The monadic instance of the free monad given below.</p>
+<pre><code>instance Functor =&gt; Monad (Free f) where
+    return x = Var x
+    m &gt;&gt;= f  = fold Con f m
+</code></pre><p>Variables are the way of providing a return for the monad. Extending a syntax tree by a means of a function <em>f</em> corresponds to applying that function to the variables found at the leaves of the tree.</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
 
 <br>
 Published on 13 Nov 2020
-<br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/approaches/inlining-monad-bayes/" title="Inlining Monad Bayes"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Inlining Monad Bayes</a>
-<a class="nav nav-next" href="https://probabilistic-effects.github.io/papers/freer-monads/" title="Freer Monads, More Extensible Effects">Next - Freer Monads, More Extensible Effects <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+<br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/papers/freer-monads/" title="Freer Monads, More Extensible Effects"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Freer Monads, More Extensible Effects</a>
+<a class="nav nav-next" href="https://probabilistic-effects.github.io/research/" title="Research">Next - Research <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
 </nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
 </footer>
 </main>
@@ -58,11 +101,11 @@ Published on 13 Nov 2020
   
 </li>
 
-<li class="parent active"><a href="https://probabilistic-effects.github.io/papers/">Papers</a>
+<li class="parent"><a href="https://probabilistic-effects.github.io/papers/">Papers</a>
   
 <ul class="sub-menu">
 <li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>
+<li class="active"><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>
 </ul>
   
 </li>

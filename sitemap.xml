@@ -23,6 +23,11 @@
   </url>
   
   <url>
+    <loc>https://probabilistic-effects.github.io/papers/fusion-for-free/</loc>
+    <lastmod>2020-11-13T14:05:41+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://probabilistic-effects.github.io/approaches/inlining-monad-bayes/</loc>
     <lastmod>2020-11-13T14:05:41+00:00</lastmod>
   </url>
@@ -83,7 +88,7 @@
   </url>
   
   <url>
-    <loc>https://probabilistic-effects.github.io/background/performance-w-monads/</loc>
+    <loc>https://probabilistic-effects.github.io/background/handrolling/</loc>
     <lastmod>2020-11-13T13:58:41+00:00</lastmod>
   </url>
   

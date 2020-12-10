@@ -40,6 +40,16 @@ data It i a = Pure a | Get (i -&amp;gt; It i a) The expression Pure e marks the 
     </item>
     
     <item>
+      <title>Fusion for Free</title>
+      <link>https://probabilistic-effects.github.io/papers/fusion-for-free/</link>
+      <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/papers/fusion-for-free/</guid>
+      <description>Free monads are at the heart of algebraic effect handlers, a functional approach for modelling side effects which allows the separation of the syntax and semantics of effectful operations, whilst enabling us to provide multiple different semantics for the same syntax.
+The syntax of primitive side-effect operations is captured in a signature functor. The free monad over this functor assembles the syntax for the individual operations into an abstract syntax tree for an effectful program.</description>
+    </item>
+    
+    <item>
       <title>Inlining Monad Bayes</title>
       <link>https://probabilistic-effects.github.io/approaches/inlining-monad-bayes/</link>
       <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
@@ -165,11 +175,11 @@ The observable variables (observation process) are related to the hidden variabl
     </item>
     
     <item>
-      <title>Performance With Monads</title>
-      <link>https://probabilistic-effects.github.io/background/performance-w-monads/</link>
+      <title>Handrolling Monad Transformer Stacks</title>
+      <link>https://probabilistic-effects.github.io/background/handrolling/</link>
       <pubDate>Fri, 13 Nov 2020 13:58:41 +0000</pubDate>
       
-      <guid>https://probabilistic-effects.github.io/background/performance-w-monads/</guid>
+      <guid>https://probabilistic-effects.github.io/background/handrolling/</guid>
       <description>Unrolling MTL stacks Stacked monad transformers do not inline well and the MTL library often requires an optimisation pass.
 Unrolling means to flatten a stack of transformers into a single hand-unrolled monad.
 For example, consider the following MTL monad stack.

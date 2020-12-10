@@ -17,5 +17,15 @@
 data It i a = Pure a | Get (i -&amp;gt; It i a) The expression Pure e marks the computation e that makes no requests, silently working towards a value of the type a.</description>
     </item>
     
+    <item>
+      <title>Fusion for Free</title>
+      <link>https://probabilistic-effects.github.io/papers/fusion-for-free/</link>
+      <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/papers/fusion-for-free/</guid>
+      <description>Free monads are at the heart of algebraic effect handlers, a functional approach for modelling side effects which allows the separation of the syntax and semantics of effectful operations, whilst enabling us to provide multiple different semantics for the same syntax.
+The syntax of primitive side-effect operations is captured in a signature functor. The free monad over this functor assembles the syntax for the individual operations into an abstract syntax tree for an effectful program.</description>
+    </item>
+    
   </channel>
 </rss>
