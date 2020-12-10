@@ -32,7 +32,7 @@ data It i a = Pure a | Get (i -&gt; It i a) The expression Pure e marks the comp
 data It i a = Pure a | Get (i -&gt; It i a) The expression Pure e marks the computation e that makes no requests, silently working towards a value of the type a.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="2413">
+<meta itemprop="wordCount" content="3871">
 
 
 
@@ -47,105 +47,105 @@ data It i a = Pure a | Get (i -&gt; It i a) The expression Pure e marks the comp
 <h3 id="1-derivation-of-free-er-monad">1. Derivation of Free-er Monad</h3>
 <h4 id="11-reader-effect">1.1 Reader Effect</h4>
 <p><code>Reader</code> computations depend on a value supplied by the environment/context. A side-effect can be understood as an interaction of an expression with its context. The possible requests of a <code>Reader</code> can be specified as a data type.</p>
-<pre><code>data It i a = Pure a
-            | Get (i -&gt; It i a)
-</code></pre><p>The expression <code>Pure e</code> marks the computation <code>e</code> that makes no requests, silently working towards a value of the type <code>a</code>. The request <code>Get k</code> asks the context for the (current dynamically-bound) value of type <code>i</code>. Having received the value <code>i</code>, the computation <code>k i :: It i a</code> continues (just the same as monadic binding works), perhaps asking for more values from the context. The argument <code>k</code> in <code>Get k</code> can hence be called a continuation.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">It</span> i a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Pure</span> a
+            <span style="color:#f92672">|</span> <span style="color:#66d9ef">Get</span> (i <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">It</span> i a)
+</code></pre></div><p>The expression <code>Pure e</code> marks the computation <code>e</code> that makes no requests, silently working towards a value of the type <code>a</code>. The request <code>Get k</code> asks the context for the (current dynamically-bound) value of type <code>i</code>. Having received the value <code>i</code>, the computation <code>k i :: It i a</code> continues (just the same as monadic binding works), perhaps asking for more values from the context. The argument <code>k</code> in <code>Get k</code> can hence be called a continuation.</p>
 <p>The simplest asking computation is <code>ask</code>, which immediately returns the received value from the context`:</p>
-<pre><code>ask :: It i i
-ask = Get Pure
-</code></pre><p>Larger computations are built with the help of <code>&gt;&gt;=</code>.</p>
-<pre><code>instance Monad (It i) where
-    return :: a -&gt; It i a
-    return = Pure
-    (&gt;&gt;=) :: It i a -&gt; (a -&gt; It i b) -&gt; It i b
-    Pure x &gt;&gt;=   = k x
-    Get k' &gt;&gt;= k = Get (k' &gt;&gt;&gt; k)
-</code></pre><p>The last clause in the definition of bind says that: &ldquo;a computation that waits for an input and then continues as <code>k</code>&rdquo;, and after that, continues as <code>k</code>&quot; is the same as &ldquo;a computation that continues after waiting as the composition of <code>k'</code> and <code>k</code>&rdquo;. The Kleisli composition operation <code>(&gt;&gt;&gt;)</code> is the composition of effectful functions.</p>
-<pre><code>(&gt;&gt;&gt;) :: Monad m =&gt; (a -&gt; m b) -&gt; (b -&gt; m c) -&gt; (a -&gt; m c)
-</code></pre><p>Here are two examples of bigger Reader computations.</p>
-<pre><code>addGet :: Int -&gt; It Int Int
-addGet = ask &gt;&gt;= \i -&gt; return (i + x)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">ask</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">It</span> i i
+<span style="color:#a6e22e">ask</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">Get</span> <span style="color:#66d9ef">Pure</span>
+</code></pre></div><p>Larger computations are built with the help of <code>&gt;&gt;=</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">It</span> i) <span style="color:#66d9ef">where</span>
+    return <span style="color:#f92672">::</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">It</span> i a
+    return <span style="color:#f92672">=</span> <span style="color:#66d9ef">Pure</span>
+    (<span style="color:#f92672">&gt;&gt;=</span>) <span style="color:#f92672">::</span> <span style="color:#66d9ef">It</span> i a <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">It</span> i b) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">It</span> i b
+    <span style="color:#66d9ef">Pure</span> x <span style="color:#f92672">&gt;&gt;=</span>   <span style="color:#f92672">=</span> k x
+    <span style="color:#66d9ef">Get</span> k&#39; <span style="color:#f92672">&gt;&gt;=</span> k <span style="color:#f92672">=</span> <span style="color:#66d9ef">Get</span> (k&#39; <span style="color:#f92672">&gt;&gt;&gt;</span> k)
+</code></pre></div><p>The last clause in the definition of bind says that: &ldquo;a computation that waits for an input and then continues as <code>k</code>&rdquo;, and after that, continues as <code>k</code>&quot; is the same as &ldquo;a computation that continues after waiting as the composition of <code>k'</code> and <code>k</code>&rdquo;. The Kleisli composition operation <code>(&gt;&gt;&gt;)</code> is the composition of effectful functions.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">(<span style="color:#f92672">&gt;&gt;&gt;</span>) <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> (a <span style="color:#f92672">-&gt;</span> m b) <span style="color:#f92672">-&gt;</span> (b <span style="color:#f92672">-&gt;</span> m c) <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> m c)
+</code></pre></div><p>Here are two examples of bigger Reader computations.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">addGet</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">It</span> <span style="color:#66d9ef">Int</span> <span style="color:#66d9ef">Int</span>
+<span style="color:#a6e22e">addGet</span> <span style="color:#f92672">=</span> ask <span style="color:#f92672">&gt;&gt;=</span> <span style="color:#a6e22e">\</span>i <span style="color:#f92672">-&gt;</span> return (i <span style="color:#f92672">+</span> x)
 
-addN :: Int → It Int Int
-addN n = foldl (&gt;&gt;&gt;) return (replicate n addGet) 0
-</code></pre><p>The computations <code>addGet</code> and <code>addN</code> make requests to the context. We need to define how to reply to a request, that is, how to &ldquo;run&rdquo; these computations.</p>
+<span style="color:#a6e22e">addN</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span> <span style="color:#960050;background-color:#1e0010">→</span> <span style="color:#66d9ef">It</span> <span style="color:#66d9ef">Int</span> <span style="color:#66d9ef">Int</span>
+<span style="color:#a6e22e">addN</span> n <span style="color:#f92672">=</span> foldl (<span style="color:#f92672">&gt;&gt;&gt;</span>) return (replicate n addGet) <span style="color:#ae81ff">0</span>
+</code></pre></div><p>The computations <code>addGet</code> and <code>addN</code> make requests to the context. We need to define how to reply to a request, that is, how to &ldquo;run&rdquo; these computations.</p>
 <p>The following interpreter <code>runReader</code> gives the same value <code>i</code> on each request; the type <code>It i</code> is hence interpreted as the <code>Reader</code> monad.</p>
-<pre><code>runReader :: i -&gt; It i a -&gt; a
-runReader _ (Pure v) = v
-runReader x (Get k) = runReader x (k x)
-</code></pre><p>Unlike how the MTL Reader works, <code>It i a</code> can choose to be interpreted in a different way. For example, if we wanted each request to get a new value as if read from an input stream:</p>
-<pre><code>feedAll :: [i] -&gt; It i a -&gt; a
-feedAll _  (Pure v)      = v
-feedAll [] _             = error &quot;end of stream&quot;
-feedAll (x : xs) (Get k) = feedAll xs (k x)
-</code></pre><h4 id="22-readerwriter-effect">2.2 Reader/Writer Effect</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">runReader</span> <span style="color:#f92672">::</span> i <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">It</span> i a <span style="color:#f92672">-&gt;</span> a
+<span style="color:#a6e22e">runReader</span> <span style="color:#66d9ef">_</span> (<span style="color:#66d9ef">Pure</span> v) <span style="color:#f92672">=</span> v
+<span style="color:#a6e22e">runReader</span> x (<span style="color:#66d9ef">Get</span> k) <span style="color:#f92672">=</span> runReader x (k x)
+</code></pre></div><p>Unlike how the MTL Reader works, <code>It i a</code> can choose to be interpreted in a different way. For example, if we wanted each request to get a new value as if read from an input stream:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">feedAll</span> <span style="color:#f92672">::</span> [i] <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">It</span> i a <span style="color:#f92672">-&gt;</span> a
+<span style="color:#a6e22e">feedAll</span> <span style="color:#66d9ef">_</span>  (<span style="color:#66d9ef">Pure</span> v)      <span style="color:#f92672">=</span> v
+<span style="color:#a6e22e">feedAll</span> <span style="color:#66d9ef">[]</span> <span style="color:#66d9ef">_</span>             <span style="color:#f92672">=</span> <span style="color:#a6e22e">error</span> <span style="color:#e6db74">&#34;end of stream&#34;</span>
+<span style="color:#a6e22e">feedAll</span> (x <span style="color:#66d9ef">:</span> xs) (<span style="color:#66d9ef">Get</span> k) <span style="color:#f92672">=</span> feedAll xs (k x)
+</code></pre></div><h4 id="22-readerwriter-effect">2.2 Reader/Writer Effect</h4>
 <p>We now add another effect - rather than asking a context for a value, we tell the context. This is a Writer.</p>
-<pre><code>data IT i o a = Pure a
-              | Get (i -&gt; IT i o a)
-              | Put o (() -&gt; IT i o a)
-</code></pre><p>The <code>Put o k</code> requests tells the value <code>o</code> to the context. The context then acknowledges this with <code>()</code>, and afterwards, the computation continues as <code>k ()</code> (i.e. a continuation <code>k</code> which is passed <code>()</code> as an argument).</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">IT</span> i o a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Pure</span> a
+              <span style="color:#f92672">|</span> <span style="color:#66d9ef">Get</span> (i <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IT</span> i o a)
+              <span style="color:#f92672">|</span> <span style="color:#66d9ef">Put</span> o (() <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IT</span> i o a)
+</code></pre></div><p>The <code>Put o k</code> requests tells the value <code>o</code> to the context. The context then acknowledges this with <code>()</code>, and afterwards, the computation continues as <code>k ()</code> (i.e. a continuation <code>k</code> which is passed <code>()</code> as an argument).</p>
 <p><code>IT i o</code> is also a monad:</p>
-<pre><code>instance Monad (IT i o) where
-    return = Pure
-    Pure x &gt;&gt;= k   = k x
-    Get k' &gt;&gt;= k   = Get (k' &gt;&gt;&gt; k)
-    Put x k' &gt;&gt;= k = Put x (k' &gt;&gt;&gt; k)
-</code></pre><p>Again, the last clause in the definition of bind says that: &ldquo;a computation that tells the context and continues as <code>k</code>, and then as <code>k</code>&rdquo; is the same as &ldquo;a computation that tells the context and continues as the composition of <code>k'</code> and <code>k</code>&rdquo;.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">IT</span> i o) <span style="color:#66d9ef">where</span>
+    return <span style="color:#f92672">=</span> <span style="color:#66d9ef">Pure</span>
+    <span style="color:#66d9ef">Pure</span> x <span style="color:#f92672">&gt;&gt;=</span> k   <span style="color:#f92672">=</span> k x
+    <span style="color:#66d9ef">Get</span> k&#39; <span style="color:#f92672">&gt;&gt;=</span> k   <span style="color:#f92672">=</span> <span style="color:#66d9ef">Get</span> (k&#39; <span style="color:#f92672">&gt;&gt;&gt;</span> k)
+    <span style="color:#66d9ef">Put</span> x k&#39; <span style="color:#f92672">&gt;&gt;=</span> k <span style="color:#f92672">=</span> <span style="color:#66d9ef">Put</span> x (k&#39; <span style="color:#f92672">&gt;&gt;&gt;</span> k)
+</code></pre></div><p>Again, the last clause in the definition of bind says that: &ldquo;a computation that tells the context and continues as <code>k</code>, and then as <code>k</code>&rdquo; is the same as &ldquo;a computation that tells the context and continues as the composition of <code>k'</code> and <code>k</code>&rdquo;.</p>
 <p>In the <code>MTL</code> version of the <code>Writer</code> monad, the told value must have a <code>Monoid</code> type. In contrast, <code>IT i o</code> has no such constraints. If we wanted to write an interpreter for <code>IT</code> which interpreted it as a <code>Writer</code> which accumulates the told values in a monoid, we could do so by adding the monoid constraint to the interpreter.</p>
-<pre><code>runRdWriter :: Monoid o =&gt; i -&gt; IT i o a -&gt; (a, o)
-runRdWriter i m = loop mempty m
-    where
-    loop acc (Pure x)  = (x, acc)
-    loop acc (Get k)   = loop acc (k i )
-    loop acc (Put o k) = loop (acc `mappend` o) (k ())
-</code></pre><p>The <code>IT i o</code> computation is an extension of <code>It i</code>. Data types are themselves not extensible, therefore, we have to change the data type name and modify the signatures of <code>addGet</code> and <code>addN</code>, even if their code does not care about the new writer effect and remains essentially the same.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">runRdWriter</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monoid</span> o <span style="color:#f92672">=&gt;</span> i <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IT</span> i o a <span style="color:#f92672">-&gt;</span> (a, o)
+<span style="color:#a6e22e">runRdWriter</span> i m <span style="color:#f92672">=</span> loop mempty m
+    <span style="color:#66d9ef">where</span>
+    loop acc (<span style="color:#66d9ef">Pure</span> x)  <span style="color:#f92672">=</span> (x, acc)
+    loop acc (<span style="color:#66d9ef">Get</span> k)   <span style="color:#f92672">=</span> loop acc (k i )
+    loop acc (<span style="color:#66d9ef">Put</span> o k) <span style="color:#f92672">=</span> loop (acc `mappend` o) (k ())
+</code></pre></div><p>The <code>IT i o</code> computation is an extension of <code>It i</code>. Data types are themselves not extensible, therefore, we have to change the data type name and modify the signatures of <code>addGet</code> and <code>addN</code>, even if their code does not care about the new writer effect and remains essentially the same.</p>
 <h4 id="23-free-monad">2.3 Free Monad</h4>
 <p>A data type describing an effectful computation such as <code>It i a</code> and <code>IT i o a</code> follows a common pattern: It is a recursive data type, with the <code>Pure</code> variant for the absence of any requests, and variants for requests (which usually contain the continuation that receives the reply, except for exceptions that do not expect any reply).</p>
 <p>This pattern of pure and effectful parts and covariant recursive occurrences can be captured as the Free monad, where <code>f</code> is a functor (that is, in <code>f a</code>, the type <code>a</code> occurs covariantly).</p>
-<pre><code>data Free f a = Pure a
-              | Impure (f (Free f a))
-</code></pre><p>Rather than having to keep writing new instances for each new effect and each combination of effects (like for <code>It i</code> and <code>IT i o</code>), the <code>Free f</code> data type lets us capture the common pattern:</p>
-<pre><code>instance Functor f =&gt; Monad (Free f) where
-    return         = Pure
-    Pure a   &gt;&gt;= k = k a
-    Impure f &gt;&gt;= k = Impure (fmap (&gt;&gt;= k) f)
-</code></pre><p>For a functor <code>f</code>, <code>Free f</code> is the free monad; new effects will have new effect signatures <code>f</code>, but the single instance of <code>Monad (Free f)</code> will work for all of them, with no further rewriting.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Free</span> f a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Pure</span> a
+              <span style="color:#f92672">|</span> <span style="color:#66d9ef">Impure</span> (f (<span style="color:#66d9ef">Free</span> f a))
+</code></pre></div><p>Rather than having to keep writing new instances for each new effect and each combination of effects (like for <code>It i</code> and <code>IT i o</code>), the <code>Free f</code> data type lets us capture the common pattern:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Functor</span> f <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">Free</span> f) <span style="color:#66d9ef">where</span>
+    return         <span style="color:#f92672">=</span> <span style="color:#66d9ef">Pure</span>
+    <span style="color:#66d9ef">Pure</span> a   <span style="color:#f92672">&gt;&gt;=</span> k <span style="color:#f92672">=</span> k a
+    <span style="color:#66d9ef">Impure</span> f <span style="color:#f92672">&gt;&gt;=</span> k <span style="color:#f92672">=</span> <span style="color:#66d9ef">Impure</span> (fmap (<span style="color:#f92672">&gt;&gt;=</span> k) f)
+</code></pre></div><p>For a functor <code>f</code>, <code>Free f</code> is the free monad; new effects will have new effect signatures <code>f</code>, but the single instance of <code>Monad (Free f)</code> will work for all of them, with no further rewriting.</p>
 <p>As an example, the earlier <code>IT i o</code> computation may now be specified as:</p>
-<pre><code>data ReaderWriter i o x = Get (i -&gt; x) | Put o (() -&gt; x)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">ReaderWriter</span> i o x <span style="color:#f92672">=</span> <span style="color:#66d9ef">Get</span> (i <span style="color:#f92672">-&gt;</span> x) <span style="color:#f92672">|</span> <span style="color:#66d9ef">Put</span> o (() <span style="color:#f92672">-&gt;</span> x)
 
-instance Functor (ReaderWriter i o) where
-    ...
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Functor</span> (<span style="color:#66d9ef">ReaderWriter</span> i o) <span style="color:#66d9ef">where</span>
+    <span style="color:#f92672">...</span>
 
-type IT i o a = Free (ReaderWriter i o) a
-</code></pre><p>In general monads do not compose: if <code>M1 a</code> and <code>M2 a</code> are monads, <code>M1 (M2 a)</code> is generally not. Free monads however are a particular form of monads, defined via a functor. Functors do compose.</p>
+<span style="color:#66d9ef">type</span> <span style="color:#66d9ef">IT</span> i o a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Free</span> (<span style="color:#66d9ef">ReaderWriter</span> i o) a
+</code></pre></div><p>In general monads do not compose: if <code>M1 a</code> and <code>M2 a</code> are monads, <code>M1 (M2 a)</code> is generally not. Free monads however are a particular form of monads, defined via a functor. Functors do compose.</p>
 <h4 id="24-free-er-monads">2.4 Free-er Monads</h4>
 <p>Let&rsquo;s look more carefully at the Monad instance for <code>Free f</code>.</p>
-<pre><code>instance Functor f =&gt; Monad (Free f) where
-    return         = Pure
-    Pure a   &gt;&gt;= k = k a
-    Impure f &gt;&gt;= k = Impure (fmap (&gt;&gt;= k) f)
-</code></pre><p>The purpose of <code>fmap</code> here is to extend the continuation, embedded somewhere within <code>f (Free f a)</code>, by <code>(&gt;&gt;&gt;)</code>-composing it with the new <code>k</code>. This hence composes all of the effectful continuations found nested within the free monad. The operation <code>fmap</code> lets us generically modify the embedded continuation, for any request signature.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Functor</span> f <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">Free</span> f) <span style="color:#66d9ef">where</span>
+    return         <span style="color:#f92672">=</span> <span style="color:#66d9ef">Pure</span>
+    <span style="color:#66d9ef">Pure</span> a   <span style="color:#f92672">&gt;&gt;=</span> k <span style="color:#f92672">=</span> k a
+    <span style="color:#66d9ef">Impure</span> f <span style="color:#f92672">&gt;&gt;=</span> k <span style="color:#f92672">=</span> <span style="color:#66d9ef">Impure</span> (fmap (<span style="color:#f92672">&gt;&gt;=</span> k) f)
+</code></pre></div><p>The purpose of <code>fmap</code> here is to extend the continuation, embedded somewhere within <code>f (Free f a)</code>, by <code>(&gt;&gt;&gt;)</code>-composing it with the new <code>k</code>. This hence composes all of the effectful continuations found nested within the free monad. The operation <code>fmap</code> lets us generically modify the embedded continuation, for any request signature.</p>
 <p>Since the continuation argument is being handled so uniformly, it makes sense to take it out of the request signature (e.g. <code>Get (i -&gt; x)</code> and <code>Put o (() -&gt; x)</code>) and place it into the fixed request data structure (i.e. as the second argument of the <code>Impure</code> constructor of <code>FFree f a</code>):</p>
-<pre><code>data FFree f a where
-    Pure   :: a -&gt; FFree f a
-    Impure :: f x -&gt; (x -&gt; FFree f a) -&gt; FFree f a
-</code></pre><p>The first argument of the request signature, <code>f x</code>, tells us the type <code>x</code> of the reply, to be fed into the continuation. Different requests have their own reply types, hence <code>x</code> is existentially quantified.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">FFree</span> f a <span style="color:#66d9ef">where</span>
+    <span style="color:#66d9ef">Pure</span>   <span style="color:#f92672">::</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">FFree</span> f a
+    <span style="color:#66d9ef">Impure</span> <span style="color:#f92672">::</span> f x <span style="color:#f92672">-&gt;</span> (x <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">FFree</span> f a) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">FFree</span> f a
+</code></pre></div><p>The first argument of the request signature, <code>f x</code>, tells us the type <code>x</code> of the reply, to be fed into the continuation. Different requests have their own reply types, hence <code>x</code> is existentially quantified.</p>
 <p>The monad instance for <code>FFree f</code> no longer needs the <code>Functor</code> constraint on <code>f</code>.</p>
 <ul>
 <li>Previously with <code>Free f</code> and its associated constructor <code>Impure (f (Free f a))</code>, in order to extend the continuation, we had to <code>fmap</code> the bind of the continuation <code>&gt;&gt;= k</code> into the <code>f (Free f a))</code> embedded in the <code>Impure</code> constructor &ndash; this is because the continuation we&rsquo;re extending is found inside <code>f (Free f a))</code>.</li>
 <li>Now with <code>FFree f</code> and its associated constructor <code>Impure :: f x -&gt; (x -&gt; FFree f a) -&gt; FFree f a</code>, because we already have access to the current continuation (as the second argument of <code>Impure</code>), we no longer need to <code>fmap</code> over anything &ndash; we can directly take the continuation <code>k' :: (x -&gt; FFree f a)</code> and compose it with the new continuation <code>k :: (a -&gt; FFree f b)</code>.</li>
 </ul>
-<pre><code>instance Monad (FFree f) where
-    Impure fx k' &gt;&gt;= k = Impure fx (k' &gt;&gt;&gt; k)
-</code></pre><p><code>FFree f</code> is more satisfying than <code>Free f</code>, because it abstracts more of the common pattern of accumulating continuation. It is more general, not imposing any constraints on <code>f</code> &ndash; it is &ldquo;<em>freer</em>&rdquo;.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">FFree</span> f) <span style="color:#66d9ef">where</span>
+    <span style="color:#66d9ef">Impure</span> fx k&#39; <span style="color:#f92672">&gt;&gt;=</span> k <span style="color:#f92672">=</span> <span style="color:#66d9ef">Impure</span> fx (k&#39; <span style="color:#f92672">&gt;&gt;&gt;</span> k)
+</code></pre></div><p><code>FFree f</code> is more satisfying than <code>Free f</code>, because it abstracts more of the common pattern of accumulating continuation. It is more general, not imposing any constraints on <code>f</code> &ndash; it is &ldquo;<em>freer</em>&rdquo;.</p>
 <p>Our Reader-Writer effect then gets the following signature:</p>
-<pre><code>data FReaderWriter i o x where
-    Get :: FReaderWriter i o i
-    Put :: FReaderWriter i o ()
-</code></pre><p>It is a GADT: the type variable <code>x</code> in <code>FReaderWriter i o x</code> is instantiated depending on the type of the request.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">FReaderWriter</span> i o x <span style="color:#66d9ef">where</span>
+    <span style="color:#66d9ef">Get</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">FReaderWriter</span> i o i
+    <span style="color:#66d9ef">Put</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">FReaderWriter</span> i o ()
+</code></pre></div><p>It is a GADT: the type variable <code>x</code> in <code>FReaderWriter i o x</code> is instantiated depending on the type of the request.</p>
 <p>The type <code>IT i o a</code> can now be represented using the new <code>FFree</code> monad.</p>
-<pre><code>type IT i o a = FFree (FReaderWriter i o) a
-</code></pre><p>Continuing this example of <code>State s</code> (i.e. ReaderWriter), we can now forget not only <code>return</code> and <code>bind</code>, but also the <code>fmap</code> operation, and still recover the state monad through the <code>FFree (State s)</code> construction (where types <code>i</code> and <code>o</code> have been unified as <code>s</code>). This means we no longer have to bother defining the basic monad and fu nctor operations in the first place. We now get not only the <code>Monad</code> instance for free, but also the <code>Functor</code> and <code>Applicative</code> instances.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">type</span> <span style="color:#66d9ef">IT</span> i o a <span style="color:#f92672">=</span> <span style="color:#66d9ef">FFree</span> (<span style="color:#66d9ef">FReaderWriter</span> i o) a
+</code></pre></div><p>Continuing this example of <code>State s</code> (i.e. ReaderWriter), we can now forget not only <code>return</code> and <code>bind</code>, but also the <code>fmap</code> operation, and still recover the state monad through the <code>FFree (State s)</code> construction (where types <code>i</code> and <code>o</code> have been unified as <code>s</code>). This means we no longer have to bother defining the basic monad and fu nctor operations in the first place. We now get not only the <code>Monad</code> instance for free, but also the <code>Functor</code> and <code>Applicative</code> instances.</p>
 <p><strong>Advantages</strong>:</p>
 <ul>
 <li>Because the continuation can now be accessed directly (rather than via <code>fmap</code> which has to rebuild the mapped data structure), the Freer monad is more economical in terms of memory and run-time.</li>
@@ -153,48 +153,157 @@ type IT i o a = Free (ReaderWriter i o) a
 </ul>
 <h4 id="25-free-er-functors">2.5 Free-er Functors</h4>
 <p>We can show another derivation of <code>FFree</code>. Recall that if <code>f :: * -&gt; *</code> is a functor, we can convert <code>f x</code> to <code>f a</code> whenever we can map <code>x</code> values to <code>a</code> values. If <code>g :: ∗ -&gt; ∗</code> is not a functor, such a conversion is not possible. We can &ldquo;cheat&rdquo; however: although we cannot truly fmap <code>h :: x -&gt; a</code> over <code>g x</code>, we can keep its two operands <code>h</code> &amp; <code>g x</code> as a pair, and assume the mapping as if it were performed:</p>
-<pre><code>data Lan (g :: ∗ -&gt; ∗) a where
-    FMap :: (x -&gt; a) -&gt; g x -&gt; Lan g a
-</code></pre><p>Any further mapping over <code>Lan g a</code> would update the original mapping <code>(x -&gt; a)</code>, leaving <code>g x</code> intact. That is, <code>Lan g</code> is now a formal functor:</p>
-<pre><code>instance Functor (Lan g) where
-    fmap h (FMap h' gx) = FMap (h ◦ h') gx
-</code></pre><p>One may think of this as a free Haskell Functor. We can show that if we substitute <code>Lan g</code> as <code>f</code> in <code>Impure (f (Free f a))</code> of <code>Free f</code>, we get:</p>
-<pre><code>Impure :: (x -&gt; (Free (Lan g) a)) -&gt; g x -&gt; Free (Lan g) a
-</code></pre><p>This is the type of <code>FFree.Impure</code>! Hence, we have:</p>
-<pre><code>type FFRee g = Free (Lan g)
-</code></pre><h4 id="26-from-freeer-monads-to-extensible-effects">2.6 From Free(er) Monads to Extensible Effects</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Lan</span> (g <span style="color:#f92672">::</span> <span style="color:#960050;background-color:#1e0010">∗</span> <span style="color:#f92672">-&gt;</span> <span style="color:#960050;background-color:#1e0010">∗</span>) a <span style="color:#66d9ef">where</span>
+    <span style="color:#66d9ef">FMap</span> <span style="color:#f92672">::</span> (x <span style="color:#f92672">-&gt;</span> a) <span style="color:#f92672">-&gt;</span> g x <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Lan</span> g a
+</code></pre></div><p>Any further mapping over <code>Lan g a</code> would update the original mapping <code>(x -&gt; a)</code>, leaving <code>g x</code> intact. That is, <code>Lan g</code> is now a formal functor:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Functor</span> (<span style="color:#66d9ef">Lan</span> g) <span style="color:#66d9ef">where</span>
+    fmap h (<span style="color:#66d9ef">FMap</span> h&#39; gx) <span style="color:#f92672">=</span> <span style="color:#66d9ef">FMap</span> (h <span style="color:#960050;background-color:#1e0010">◦</span> h&#39;) gx
+</code></pre></div><p>One may think of this as a free Haskell Functor. We can show that if we substitute <code>Lan g</code> as <code>f</code> in <code>Impure (f (Free f a))</code> of <code>Free f</code>, we get:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">Impure</span> <span style="color:#f92672">::</span> (x <span style="color:#f92672">-&gt;</span> (<span style="color:#66d9ef">Free</span> (<span style="color:#66d9ef">Lan</span> g) a)) <span style="color:#f92672">-&gt;</span> g x <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Free</span> (<span style="color:#66d9ef">Lan</span> g) a
+</code></pre></div><p>This is the type of <code>FFree.Impure</code>! Hence, we have:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">type</span> <span style="color:#66d9ef">FFRee</span> g <span style="color:#f92672">=</span> <span style="color:#66d9ef">Free</span> (<span style="color:#66d9ef">Lan</span> g)
+</code></pre></div><h4 id="26-from-freeer-monads-to-extensible-effects">2.6 From Free(er) Monads to Extensible Effects</h4>
 <p>The form of free monads, built from functors, lends itself to composability since functors compose. This section demonstrates this composability on freer monads.</p>
 <p>There are two sides to composability: <strong>extensible monad types</strong> and <strong>modular interpreters</strong>.</p>
 <p>A monad type is extensible if we can add a new effect without having to touch or even recompile the old code. The <code>Free f</code> or <code>FFree f</code> lets us do that by the monad type being indexed by the request signature <code>f</code>. In contrast, specifying this signature as an ordinary data type, such as <code>ReaderWriter</code> or the GADT <code>FReaderWriter</code> is not extensible because an ordinary variant data type is a closed union, having a fixed number of variants.</p>
 <p>To represent open unions, we will use the abstract type:</p>
-<pre><code>Union (r :: [∗ -&gt; ∗]) x
-</code></pre><ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">Union</span> (r <span style="color:#f92672">::</span> [<span style="color:#960050;background-color:#1e0010">∗</span> <span style="color:#f92672">-&gt;</span> <span style="color:#960050;background-color:#1e0010">∗</span>]) x
+</code></pre></div><ul>
 <li>The first argument <code>r</code> is a type-level list of effect labels. It lists all effects that are possible in a computation.</li>
 <li>The second argument <code>x</code> is the response type, which depends on a particular request.</li>
 </ul>
 <p>A concrete <code>Union r x</code> value contains one request out of those listed in <code>r</code>.</p>
 <p>In order to achieve extensibility, we must be able to talk about one effect without needing to list all the others, i.e. we need effect polymorphism. To do this, our implementation provides a type class:</p>
-<pre><code>class Member t r where
-    inj :: t v -&gt; Union r v
-    prj :: Union r v -&gt; Maybe (t v)
-</code></pre><p>This asserts that an effect label <code>t</code> occurs in the list <code>r</code>. If an effect is part of the union, its request can be injected and projected.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">class</span> <span style="color:#66d9ef">Member</span> t r <span style="color:#66d9ef">where</span>
+    inj <span style="color:#f92672">::</span> t v <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Union</span> r v
+    prj <span style="color:#f92672">::</span> <span style="color:#66d9ef">Union</span> r v <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Maybe</span> (t v)
+</code></pre></div><p>This asserts that an effect label <code>t</code> occurs in the list <code>r</code>. If an effect is part of the union, its request can be injected and projected.</p>
 <p>Another function, <code>decomp</code>, is provided to orthogonally project from the union, allowing us to decompose the union into either a request labelled <code>t</code>, or a smaller union without <code>t</code>.</p>
 <p>The extensible freer monad, the monad of extensible effects, is hence <code>FFree</code> with <code>f x</code> replaced by the open union <code>Union r x</code>, containing all possible effects:</p>
-<pre><code>data FEFree r a where
-    Pure    :: a -&gt; FEFree r a
-    Impure  :: Union r x -&gt; (x -&gt; FEFree r a) -&gt; FEFree r a
-</code></pre><p>A request label defines a particular effect and its requests. For example, the Reader and Writer effects have the following labels:</p>
-<pre><code>data Reader i x where
-    Get :: Reader i i
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">FEFree</span> r a <span style="color:#66d9ef">where</span>
+    <span style="color:#66d9ef">Pure</span>    <span style="color:#f92672">::</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">FEFree</span> r a
+    <span style="color:#66d9ef">Impure</span>  <span style="color:#f92672">::</span> <span style="color:#66d9ef">Union</span> r x <span style="color:#f92672">-&gt;</span> (x <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">FEFree</span> r a) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">FEFree</span> r a
+</code></pre></div><p>A request label defines a particular effect and its requests. For example, the Reader and Writer effects have the following labels:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Reader</span> i x <span style="color:#66d9ef">where</span>
+    <span style="color:#66d9ef">Get</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Reader</span> i i
 
-data Writer o x where
-    Put :: o -&gt; Writer o ()
-</code></pre><p>We have split the <code>FReaderWriter</code> request signature into its components, to be combined in the open union.</p>
+<span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Writer</span> o x <span style="color:#66d9ef">where</span>
+    <span style="color:#66d9ef">Put</span> <span style="color:#f92672">::</span> o <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Writer</span> o ()
+</code></pre></div><p>We have split the <code>FReaderWriter</code> request signature into its components, to be combined in the open union.</p>
 <p>The simplest <code>Reader</code> computation, <code>ask</code>, can now be written as:</p>
-<pre><code>ask :: Member (Reader i) r =&gt; Eff r i
-ask = Impure (inj Get) return
-</code></pre><p>The signature tells us that <code>ask</code> is an <code>Eff r i</code> computation which includes the <code>Reader i</code> effect, without telling us what other effects may be present. Unlike the previous version of <code>ask</code>, the new one can be used extensibly in programs with other effects.</p>
-<div class="edit-meta">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">ask</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Member</span> (<span style="color:#66d9ef">Reader</span> i) r <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Eff</span> r i
+<span style="color:#a6e22e">ask</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">Impure</span> (inj <span style="color:#66d9ef">Get</span>) return
+</code></pre></div><p>The signature tells us that <code>ask</code> is an <code>Eff r i</code> computation which includes the <code>Reader i</code> effect, without telling us what other effects may be present. Unlike the previous version of <code>ask</code>, the new one can be used extensibly in programs with other effects.</p>
+<h4 id="27-performance-problem-of-freeer-monads">2.7 Performance Problem of Free(er) Monads</h4>
+<p>Free and freer monads are poorly performing. Let&rsquo;s re-examine the <code>FFree f</code> monad instance.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">FEFree</span> r a <span style="color:#66d9ef">where</span>
+    <span style="color:#66d9ef">Pure</span>    <span style="color:#f92672">::</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">FEFree</span> r a
+    <span style="color:#66d9ef">Impure</span>  <span style="color:#f92672">::</span> <span style="color:#66d9ef">Union</span> r x <span style="color:#f92672">-&gt;</span> (x <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">FEFree</span> r a) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">FEFree</span> r a
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">FFree</span> f) <span style="color:#66d9ef">where</span>
+    <span style="color:#66d9ef">Impure</span> fx k&#39; <span style="color:#f92672">&gt;&gt;=</span> k <span style="color:#f92672">=</span> <span style="color:#66d9ef">Impure</span> fx (k&#39; <span style="color:#f92672">&gt;&gt;&gt;</span> k)
+</code></pre></div><p>The bind operation traverses its <em>left</em> argument, but merely passes around the <em>right</em> argument. Therefore, the performance of left-associated binds will be algorithmically poor &ndash; just like the performance of left-associated list appends is poor.</p>
+<p>Consider the definition of <code>(++)</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">(<span style="color:#f92672">++</span>) <span style="color:#f92672">::</span> [a] <span style="color:#f92672">-&gt;</span> [a] <span style="color:#f92672">-&gt;</span> [a]
+(<span style="color:#f92672">++</span>) <span style="color:#66d9ef">[]</span> ys <span style="color:#f92672">=</span> ys
+(<span style="color:#f92672">++</span>) (x<span style="color:#66d9ef">:</span>xs) ys <span style="color:#f92672">=</span> x <span style="color:#66d9ef">:</span> (<span style="color:#f92672">++</span>) xs ys
+</code></pre></div><p>From the definition of <code>(++)</code>, the performance is linear in the length of the <em>left-hand-side</em> list <code>xs</code>. Note how we never need to process the right-hand-side list <code>ys</code>.</p>
+<p>Now let&rsquo;s examine how <code>[1, 2, 3] ++ [4, 5, 6] ++ [7, 8, 9]</code> is evaluated.</p>
+<p>If <code>(++)</code> were right associative (which it is), then we would have to evaluate <code>[1, 2, 3] ++ ([4, 5, 6] ++ [7, 8, 9])</code>.</p>
+<ul>
+<li>We first evaluate the second append, <code>([4, 5, 6] ++ [7, 8, 9])</code>. This involves processing <code>4</code>, <code>5</code>, and <code>6</code>.</li>
+<li>We then evaluate the first append <code>[1, 2, 3] ++ [4, 5, 6, 7, 8, 9]</code>. This involves processing <code>1</code>, <code>2</code>, and <code>3</code>.</li>
+</ul>
+<p>If <code>(++)</code> were left associative, then we would evaluate <code>([1, 2, 3] ++ [4, 5, 6]) ++ [7, 8, 9]</code>:</p>
+<ul>
+<li>To evaluate the first append, <code>([1, 2, 3] ++ [4, 5, 6])</code>, we would need to process <code>1, 2, 3</code>.</li>
+<li>To then evaluate the second append, <code>[1, 2, 3, 4, 5, 6] ++ [7, 8, 9]</code>, we would need to process <code>1, 2, 3, 4, 5, 6</code> &ndash; this performance is quadratic because we&rsquo;re reprocessing the same elements again.</li>
+</ul>
+<h3 id="3-final-result-freer-and-better-extensible-eff-monad">3. Final Result: Freer and Better Extensible Eff Monad</h3>
+<p>This describes the current, improved and efficient library of extensible effects.</p>
+<h4 id="31-composed-continuation-as-a-data-structure">3.1 Composed Continuation as a Data Structure</h4>
+<p>The new library is based on the <code>FEFree monad</code> we previously derived.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">FFree</span> f a <span style="color:#66d9ef">where</span>
+    <span style="color:#66d9ef">Pure</span>   <span style="color:#f92672">::</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">FFree</span> f a
+    <span style="color:#66d9ef">Impure</span> <span style="color:#f92672">::</span> f x <span style="color:#f92672">-&gt;</span> (x <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">FFree</span> f a) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">FFree</span> f a
+</code></pre></div><p>However, it differs in one final respect: Now that the request continuation, <code>(x -&gt; FFree f a)</code>, is exposed, it can be represented in other ways than just a function. The motivation for a new representation comes from looking at the monad instance for <code>FEFree f</code>, which extends the request continuation <code>k'</code> with the new segment <code>k</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">FFree</span> f) <span style="color:#66d9ef">where</span>
+    <span style="color:#66d9ef">Impure</span> fx k&#39; <span style="color:#f92672">&gt;&gt;=</span> k <span style="color:#f92672">=</span> <span style="color:#66d9ef">Impure</span> fx (k&#39; <span style="color:#f92672">&gt;&gt;&gt;</span> k)
+</code></pre></div><p>The aim is to represent this <em>conceptual</em> sequence of extending the continuation with more and more segments, as a <em>concrete</em> sequence. It would contain all the segments that should be functionally composed &ndash; without actually composing them.</p>
+<p>We call the improved <code>FEFree r</code> monad <code>Eff r</code>, where <code>r</code> is the list of effect labels. The request continuation, which receives the reply <code>x</code> and works towards the final answer <code>a</code>, then has the type <code>x -&gt; Eff r a</code>. We define the convenient type abbreviation for such effectful functions, that is, functions mapping <code>a</code> to <code>b</code> that also do effects denoted by <code>r</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">type</span> <span style="color:#66d9ef">Arr</span> r a b <span style="color:#f92672">=</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Eff</span> r b
+</code></pre></div><p>The job of the monad bind is to accumulate the request continuation, by <code>(&gt;&gt;&gt;)</code>-composing it with further and further <code>Arr r a b</code> segments. Rather than really doing the <code>(&gt;&gt;&gt;)</code>-composition, we assume it as performed, and merely accumulate the pieces being composed in a data structure. The data structure has to be heterogenous and type-aligned: the <code>Arr r a b</code> being composed must have different <code>a</code> and <code>b</code> types, and the result type of one function must match the argument type of the next.</p>
+<p>We choose the sequence <code>FTCQueue</code> of the following interface.</p>
+<p>The type <code>FTCQueue m a b</code> represents the composition of one or more functions of the general shape <code>a -&gt; m b</code>. It is a non-empty tree.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">FTCQueue</span> (m <span style="color:#f92672">::</span> <span style="color:#960050;background-color:#1e0010">∗</span> <span style="color:#f92672">-&gt;</span> <span style="color:#960050;background-color:#1e0010">∗</span>) a b <span style="color:#66d9ef">where</span>
+    <span style="color:#66d9ef">Leaf</span> <span style="color:#f92672">::</span> (a <span style="color:#f92672">-&gt;</span> m b) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">FTCQueue</span> m a b
+    <span style="color:#66d9ef">Node</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">FTCQueue</span> m a x <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">FTCQueue</span> m x b <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">FTCQueue</span> m a b
+</code></pre></div><p>The operation <code>tsingleton</code> constructs a one-element sequence.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">tsingleton</span> <span style="color:#f92672">::</span> (a <span style="color:#f92672">-&gt;</span> m b) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">FTCQueue</span> m a b
+<span style="color:#a6e22e">tsingleton</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">Leaf</span>
+</code></pre></div><p>The operation <code>(▶)</code> adds a new element at the right, i.e. it extends the sequence with a new request continuation. It is much like <code>snoc</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">(<span style="color:#960050;background-color:#1e0010">▶</span>) <span style="color:#f92672">::</span> <span style="color:#66d9ef">FTCQueue</span> m a x <span style="color:#f92672">-&gt;</span> (x <span style="color:#f92672">-&gt;</span> m b) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">FTCQueue</span> m a b
+<span style="color:#a6e22e">t</span> <span style="color:#960050;background-color:#1e0010">▶</span> r <span style="color:#f92672">=</span> <span style="color:#66d9ef">Node</span> t (<span style="color:#66d9ef">Leaf</span> r)
+</code></pre></div><p>The operation <code>(▶◀)</code> concatenates two sequences.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">(<span style="color:#960050;background-color:#1e0010">▶◀</span>) <span style="color:#f92672">::</span> <span style="color:#66d9ef">FTCQueue</span> m a x <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">FTCQueue</span> m x b <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">FTCQueue</span> m a b
+<span style="color:#a6e22e">t1</span> <span style="color:#960050;background-color:#1e0010">▶◀</span> t2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">Node</span> t1 t2
+</code></pre></div><p>The type <code>ViewL m a b</code> allows us to perform left-edge deconstruction on an <code>FTCQueue</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">ViewL</span> m a b <span style="color:#66d9ef">where</span>
+    <span style="color:#66d9ef">TOne</span>   <span style="color:#f92672">::</span> (a <span style="color:#f92672">-&gt;</span> m b) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">ViewL</span> m a b
+    (<span style="color:#66d9ef">:|</span>)   <span style="color:#f92672">::</span> (a <span style="color:#f92672">-&gt;</span> m x) <span style="color:#f92672">-&gt;</span> (<span style="color:#66d9ef">FTCQueue</span> m x b) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">ViewL</span> m a b
+
+</code></pre></div><p>The function <code>tviewl</code> removes the element from the left edge of a sequence.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">tviewl</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">FTCQueue</span> m a b <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">ViewL</span> m a b
+<span style="color:#a6e22e">tviewl</span> (<span style="color:#66d9ef">Leaf</span> r) <span style="color:#f92672">=</span> <span style="color:#66d9ef">TOne</span> r
+<span style="color:#a6e22e">tviewl</span> (<span style="color:#66d9ef">Node</span> t1 t2) <span style="color:#f92672">=</span> go t1 t2
+  <span style="color:#66d9ef">where</span>
+    go <span style="color:#f92672">::</span> <span style="color:#66d9ef">FTCQueue</span> m a x <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">FTCQueue</span> m x b <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">ViewL</span> m a b
+    go (<span style="color:#66d9ef">Leaf</span> r) tr <span style="color:#f92672">=</span> r <span style="color:#66d9ef">:|</span> tr
+    go (<span style="color:#66d9ef">Node</span> tl1 tl2) tr <span style="color:#f92672">=</span> go tl1 (<span style="color:#66d9ef">Node</span> tl2 tr)
+</code></pre></div><p>All operations have constant or average constant running time. Our <code>FTCQueue</code> may be regarded as the minimalistic version of a more general fast type-aligned queue.</p>
+<p>The composition of functions (continuation segments), <code>a -&gt; Eff r t1</code>, <code>t1 -&gt; Eff r t2</code>, <code>tn -&gt; Eff r b</code>, is represented as:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">type</span> <span style="color:#66d9ef">Arrs</span> r a b <span style="color:#f92672">=</span> <span style="color:#66d9ef">FTCQueue</span> (<span style="color:#66d9ef">Eff</span> r) a b
+</code></pre></div><p>It is a sequence of continuation segments between <code>Eff r</code> monads.</p>
+<p>The <code>Eff r</code> monad has the following form:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Eff</span> r a <span style="color:#66d9ef">where</span>
+    <span style="color:#66d9ef">Pure</span>   <span style="color:#f92672">::</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Eff</span> r a
+    <span style="color:#66d9ef">Impure</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Union</span> r x <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Arrs</span> r x a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Eff</span> r a
+</code></pre></div><p>The type <code>Arrs r a b = FTCQueue (Eff r) a b</code> is isomorphic to the single type <code>Arr r a b = a -&gt; Eff r b</code>, just like a composition of functions is a function itself.</p>
+<ul>
+<li>
+<p>In one direction, the <code>singleK</code> conversion takes one element and builds a sequence of effectful continuations.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">--      :: (a -&gt; Eff r b) -&gt; FTCQueue (Eff r) a b</span>
+<span style="color:#a6e22e">singleK</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Arr</span> r a b      <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Arrs</span> r a b
+<span style="color:#a6e22e">singleK</span> <span style="color:#f92672">=</span> tsingleton
+<span style="color:#75715e">--        tsingleton :: (a -&gt; m b) -&gt; FTCQueue m a b</span>
+</code></pre></div></li>
+<li>
+<p>In the other direction, the <code>qApp</code> operation applies the argument <code>x</code> to a composition of functions denoted by the sequence <code>Arrs r a b</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- type Arrs r a z = FTCQueue (Eff r) a z</span>
+<span style="color:#a6e22e">qApp</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Arrs</span> r a z <span style="color:#f92672">-&gt;</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Eff</span> r z
+<span style="color:#75715e">-- tviewl :: FTCQueue (Eff r) a z -&gt; ViewL (Eff r) a z</span>
+<span style="color:#75715e">-- q      :: FTCQueue (Eff r) a z</span>
+<span style="color:#a6e22e">qApp</span> q x <span style="color:#f92672">=</span> <span style="color:#66d9ef">case</span> tviewl q <span style="color:#66d9ef">of</span>
+    <span style="color:#75715e">-- k :: a -&gt; Eff r z</span>
+    <span style="color:#66d9ef">TOne</span> k <span style="color:#f92672">-&gt;</span> k x
+    <span style="color:#75715e">-- k :: a -&gt; Eff r b</span>
+    <span style="color:#75715e">-- t :: (FTCQueue (Eff r) b z)</span>
+    k <span style="color:#66d9ef">:|</span> t <span style="color:#f92672">-&gt;</span> bind&#39; (k x) t
+  <span style="color:#66d9ef">where</span>
+    bind&#39; <span style="color:#f92672">::</span> <span style="color:#66d9ef">Eff</span> r b <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Arrs</span> r b z <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Eff</span> r z
+    bind&#39; (<span style="color:#66d9ef">Pure</span> y) k     <span style="color:#f92672">=</span> qApp k y
+    bind&#39; (<span style="color:#66d9ef">Impure</span> u q) k <span style="color:#f92672">=</span> <span style="color:#66d9ef">Impure</span> u (q <span style="color:#960050;background-color:#1e0010">▶</span> k)
+</code></pre></div><p>More precisely, it applies <code>x</code> to the head <code>k</code> of the sequence of effectful continuations <code>q</code> to create an effect &ndash; if there exists a tail <code>t</code> of this sequence, it takes this effect and tacks on the tail to produce a new effect.</p>
+<p>That is the performance advantage of the new representation for continuation. The <code>bind'</code> operation is like the monad bind <code>(&gt;&gt;=)</code> but with the continuation represented as the sequence <code>Arrs r a b</code> rather than the <code>a -&gt; Eff r b</code> function.</p>
+<p>If the application <code>k x</code> runs in constant time, the whole <code>qApp q x</code> takes on average constant time.</p>
+</li>
+</ul>
+<p>Finally, in the monad instance of <code>Eff r</code>, the bind operation grows the sequence of continuations <code>Arrs r x a</code> by appending another continuation <code>k</code> with <code>(▶)</code> (rather than composing with <code>(&gt;&gt;&gt;)</code>), which takes constant time.</p>
+<pre><code>instance Monad (Eff r) where
+    return = Pure
+    Pure x     &gt;&gt;= k = k x
+    Impure u q &gt;&gt;= k = Impure u (q ▶ k)
+</code></pre><div class="edit-meta">
 Last updated on 13 Nov 2020
 
 
