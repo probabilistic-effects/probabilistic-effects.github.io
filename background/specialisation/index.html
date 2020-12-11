@@ -32,7 +32,7 @@ Since type classes are ubiquitous, getting rid of this overhead is critical for 
 Since type classes are ubiquitous, getting rid of this overhead is critical for any high-performance Haskell programs. Therefore one of the most important optimisations in the compiler is specialisation which rewrites functions to remove the overhead of passing a statically known dictionary.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="1022">
+<meta itemprop="wordCount" content="1018">
 
 
 
@@ -91,7 +91,7 @@ call site where there was a statically known dictionary.</p>
 <p>Finally, recursive functions are specialised but not inlined. Therefore the only way to eliminate an argument from a recursive function is if the argument is a type class dictionary. Specialisation is mainly of use for recursive functions as for non-recursive functions inlining can play a similar role. However, for recursive functions, if they are not specialised then the overhead of passing the static argument will be paid on each iteration.</p>
 </li>
 </ol>
-<h3 id="the-specialisation-trick--making-ghc-inline-recursive-definitions-with-static-arguments">The Specialisation Trick : Making GHC inline recursive definitions with static arguments</h3>
+<h4 id="trick--inlining-recursive-definitions-with-static-arguments">Trick : Inlining recursive definitions with static arguments</h4>
 <p>Recall that we stated how GHC will never inline a recursive function. There is a technique where we can use specialisation to force GHC to unroll a finite amount of recursion.</p>
 <p>Consider the problem of applying a function <code>f</code> <code>k</code> times to an argument &ndash; if <code>k</code> is known statically, then the loop can be unrolled to <code>k</code> applications of <code>f</code>.</p>
 <pre><code>nTimes 0 (+1) 0 ≡ 0

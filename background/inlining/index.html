@@ -32,7 +32,7 @@ The difficulty with inlining is that on its own it is not a beneficial code tran
 The difficulty with inlining is that on its own it is not a beneficial code transformation. Inlining a function which does not unlock any further optimisation possibilities is wasted work which increases code size.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="2745">
+<meta itemprop="wordCount" content="2787">
 
 
 
@@ -190,7 +190,7 @@ loop = g (C g)
 <li>A discount if the function appears in a scrutinee position. If an argument appears in a scrutinee position in the body of a function, then inlining that function will cause the <code>case</code> to be reduced. Also, if the function itself returns a constructor, then inlining the function into a scrutinee position will enable the <code>case</code> to be eliminated.</li>
 </ol>
 <p>These facts are all calculated by looking at the definition of a function. The size and discounts are unitless, created solely for the purpose of informing the inlining heuristic.</p>
-<h5 id="-call-site-heuritstics">• Call Site Heuritstics</h5>
+<h5 id="-call-site-heuristics">• Call Site Heuristics</h5>
 <p>At the call site (a call site of a function is the location (line of code) where the function is called), the unfolding guidance is used to decide whether to inline the function call.</p>
 <ol>
 <li>The expression is &ldquo;work-free&rdquo;, i.e. we are not going to duplicate a lot of work by inlining it.</li>
@@ -217,6 +217,8 @@ be specialised across modules.</p>
 <li><code>NOINLINE[~k]</code> &ndash; Inline normally until phase k but then do not inline it</li>
 </ul>
 <p>The greatest issue with the <code>INLINE</code> pragma story is that a decision is made at the definition site about how each function should behave at the call site. As a first approximation, it is desirable to inline a function if it is applied to a statically or partially statically known argument (which is the purpose of the argument discounts) &ndash; whether this will happen is not known at the definition site. Therefore a certain amount of confidence is required by a library author if they predict (without reservation) that adding an <code>INLINE</code> to a definition will be beneficial to users.</p>
+<h4 id="trick-inlining-with-typeclasses">Trick: Inlining with Typeclasses</h4>
+<p>GHC is rather reluctant to inline in general recursive code. There is only one exception: GHC is keen to create type-specialised copies of (constraint) polymorphic recursive definitions and to inline the definitions of typeclass methods in the process.</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
