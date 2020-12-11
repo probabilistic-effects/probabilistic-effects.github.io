@@ -32,7 +32,7 @@ The syntax of primitive side-effect operations is captured in a signature functo
 The syntax of primitive side-effect operations is captured in a signature functor. The free monad over this functor assembles the syntax for the individual operations into an abstract syntax tree for an effectful program.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="439">
+<meta itemprop="wordCount" content="1114">
 
 
 
@@ -45,7 +45,7 @@ The syntax of primitive side-effect operations is captured in a signature functo
 <div class="content-container">
 <main><h1>Fusion for Free</h1>
 <p>Free monads are at the heart of algebraic effect handlers, a functional approach for modelling side effects which allows the separation of the syntax and semantics of effectful operations, whilst enabling us to provide multiple different semantics for the same syntax.</p>
-<p>The syntax of primitive side-effect operations is captured in a signature functor. The free monad over this functor assembles the syntax for the individual operations into an abstract syntax tree for an effectful program.</p>
+<p>The syntax of primitive side-effect operations is captured in a <em>signature functor</em>. The free monad over this functor assembles the syntax for the individual operations into an abstract syntax tree for an effectful program.</p>
 <p>The semantics of the individual operations is captured in an algebra, and an effect handler folds the algebra over the syntax tree of the program to interpret it into a semantic domain.</p>
 <h3 id="2-algebraic-effect-handlers">2. Algebraic Effect Handlers</h3>
 <p>The idea of the algebraic effect handlers approach is to consider the free monad over a particular functor as an AST for an effectful computation. This functor is used to generate the nodes of a free structure whose leaves correspond to variables.</p>
@@ -72,11 +72,69 @@ fold alg gen (Con op) = alg (fmap (fold alg gen) op)
 </code></pre></li>
 </ul>
 <p>The monadic instance of the free monad given below.</p>
-<pre><code>instance Functor =&gt; Monad (Free f) where
-    return x = Var x
-    m &gt;&gt;= f  = fold Con f m
-</code></pre><p>Variables are the way of providing a return for the monad. Extending a syntax tree by a means of a function <em>f</em> corresponds to applying that function to the variables found at the leaves of the tree.</p>
-<div class="edit-meta">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Functor</span> <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">Free</span> f) <span style="color:#66d9ef">where</span>
+    return x <span style="color:#f92672">=</span> <span style="color:#66d9ef">Var</span> x
+    m <span style="color:#f92672">&gt;&gt;=</span> f  <span style="color:#f92672">=</span> fold <span style="color:#66d9ef">Con</span> f m
+</code></pre></div><p>Variables are the way of providing a return for the monad. Extending a syntax tree by a means of a function <em>f</em> corresponds to applying that function to the variables found at the leaves of the tree.</p>
+<h4 id="21-nondeterminism">2.1 Nondeterminism</h4>
+<p>A functor supplies the abstract syntax for the primitive effectful operations in the free monad: to demonsrate, the <code>Nondet</code> functor provides the <code>Or k k</code> syntax for a binary nondeterministic choice primitive. The parameter of type <code>k</code> marks the recursive site of syntax, which indicates where the continuation is after this syntactic fragment has been evaluated.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Nondet</span> k <span style="color:#66d9ef">where</span>
+    <span style="color:#66d9ef">Or</span> <span style="color:#f92672">::</span> k <span style="color:#f92672">-&gt;</span> k <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Nondet</span> k
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Functor</span> <span style="color:#66d9ef">Nondet</span> <span style="color:#66d9ef">where</span>
+    fmap f (<span style="color:#66d9ef">Or</span> x y) <span style="color:#f92672">=</span> <span style="color:#66d9ef">Or</span> (f x) (f y)
+</code></pre></div><p>This lets us express the syntax tree of a computation that nondeterministically returns <code>True</code> or <code>False</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">coin</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Free</span> <span style="color:#66d9ef">Nondet</span> <span style="color:#66d9ef">Bool</span>
+<span style="color:#a6e22e">coin</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">Con</span> (<span style="color:#66d9ef">Or</span> (<span style="color:#66d9ef">Var</span> <span style="color:#66d9ef">True</span>) (<span style="color:#66d9ef">Var</span> <span style="color:#66d9ef">False</span>))
+</code></pre></div><p>The syntax is complemented by semantics in the form of effect handlers &ndash; functions which replace the syntax by values from a semantic domain. Using a fold for the free monad is a natural way of expressing such functions.</p>
+<p>Here is an effect handler that interprets <code>Nondet</code> in terms of lists of possible outcomes:</p>
+<pre><code>handle_Nondet :: Free Nondet a -&gt; [a]
+handle_Nondet = fold alg_Nondet gen_Nondet
+</code></pre><p>where <code>alg_Nondet</code> is the <code>Nondet</code>-algebra that interprets terms constructed by <code>Or</code> operations:</p>
+<pre><code>alg_Nondet :: Nondet [a] -&gt; [a]
+alg_Nondet (Or l1 l2) = l1 ++ l2
+</code></pre><p>and <code>gen_Nondet</code> interprets variables:</p>
+<pre><code>gen_Nondet :: a -&gt; [a]
+gen_Nondet x = [x]
+</code></pre><p>Generalising away from the details, handlers are usually presented in the following form, where <code>F</code> and <code>H</code> are arbitrary functors determined by the handler:</p>
+<pre><code>hdl :: ∀ a . Free F a -&gt; H a
+</code></pre><h4 id="22-handler-composition">2.2 Handler Composition</h4>
+<p>We consider two classes of scenarios where effect handler composition is involved.</p>
+<p><strong>Effect Composition</strong> The first class of scenarios is where multiple effects are combined in the same program; to this end, we compose signatures and handlers.</p>
+<p>The coproduct functor <code>f + g</code> makes it easy to compose functors.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> (<span style="color:#f92672">+</span>) f g a <span style="color:#66d9ef">where</span>
+    <span style="color:#66d9ef">Inl</span> <span style="color:#f92672">::</span> f a <span style="color:#f92672">-&gt;</span> (f <span style="color:#f92672">+</span> g) a
+    <span style="color:#66d9ef">Inr</span> <span style="color:#f92672">::</span> g a <span style="color:#f92672">-&gt;</span> (f <span style="color:#f92672">+</span> g) a
+
+<span style="color:#66d9ef">instance</span> (<span style="color:#66d9ef">Functor</span> f, <span style="color:#66d9ef">Functor</span> g) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Functor</span> (f <span style="color:#f92672">+</span> g) <span style="color:#66d9ef">where</span>
+    fmap f (<span style="color:#66d9ef">Inl</span> s) <span style="color:#f92672">=</span> <span style="color:#66d9ef">Inl</span> (fmap f s)
+    fmap f (<span style="color:#66d9ef">Inr</span> s) <span style="color:#f92672">=</span> <span style="color:#66d9ef">Inr</span> (fmap f s)
+</code></pre></div><p>The free monad of a coproduct functor is then a tree where each node can be built from syntax from either <code>f</code> or <code>g</code>.</p>
+<p>Composing handlers is easy too: if the handlers are written in a compositional
+style, then function composition does the trick.</p>
+<p>Given that a normal effect handler for the functor <code>F</code> has the general form:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">hdl</span> <span style="color:#f92672">::</span> <span style="color:#960050;background-color:#1e0010">∀</span> a <span style="color:#f92672">.</span> <span style="color:#66d9ef">Free</span> <span style="color:#66d9ef">F</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">H</span> a
+</code></pre></div><p>A compositional handler for the functor <code>F</code> then has a signature of the form:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">hdl</span> <span style="color:#f92672">::</span> <span style="color:#960050;background-color:#1e0010">∀</span> g a <span style="color:#f92672">.</span> <span style="color:#66d9ef">Free</span> (<span style="color:#66d9ef">F</span> <span style="color:#f92672">+</span> g) a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">H1</span> (<span style="color:#66d9ef">Free</span> g (<span style="color:#66d9ef">G1</span> a))
+</code></pre></div><p>This processes only the <code>F</code>-nodes in the AST and leaves the <code>g</code>-nodes as they
+are. Hence the result of the compositional handler is a new, typically smaller, AST with only <code>g</code>-nodes.</p>
+<ul>
+<li>The variables of type <code>G1 a</code> in the resulting AST are derived from the variables of type <code>a</code> in the original AST as well as from the processed operations (the context <code>G1</code> is due to the <code>gen</code> function which interprets variables).</li>
+<li>Moreover, the new AST may be embedded in a context <code>H1</code>.</li>
+</ul>
+<p>For example, the compositional nondeterminism handler is defined as follows:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">handle_Nondet</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Functor</span> g <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Free</span> (<span style="color:#66d9ef">Nondet</span> <span style="color:#f92672">+</span> g) a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Free</span> g [a]
+<span style="color:#a6e22e">handle_Nondet</span> <span style="color:#f92672">=</span> fold (alg_Nondet <span style="color:#960050;background-color:#1e0010">▽</span> <span style="color:#66d9ef">Con</span>) gen_Nondet
+</code></pre></div><p>where <code>F</code> is <code>Nondet</code>, <code>G1</code> is <code>[]</code>, and implicitly <code>H1</code> is <code>Id</code>.</p>
+<p>In here, the variables are handled with the monadified version of the previous <code>gen_Nondet</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">gen_Nondet</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Functor</span> g <span style="color:#f92672">=&gt;</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Free</span> g [a]
+<span style="color:#a6e22e">gen_Nondet</span> x <span style="color:#f92672">=</span> <span style="color:#66d9ef">Var</span> [x]
+</code></pre></div><p>The <code>g</code> nodes are handled by a <code>Con</code> algebra, which essentially leaves them untouched. The <code>Nondet</code> nodes are handled by the <code>alg_Nondet</code> algebra, which is a monadified version of the previous <code>alg_Nondet</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">alg_Nondet</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Functor</span> g <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Nondet</span> (<span style="color:#66d9ef">Free</span> g [a]) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Free</span> g [a]
+<span style="color:#a6e22e">alg_Nondet</span> (<span style="color:#66d9ef">Or</span> ml1 ml2) <span style="color:#f92672">=</span>
+    <span style="color:#66d9ef">do</span> l1 <span style="color:#f92672">&lt;-</span> ml1
+       l2 <span style="color:#f92672">&lt;-</span> ml2
+       <span style="color:#66d9ef">Var</span> (l1 <span style="color:#f92672">++</span> l2)
+</code></pre></div><div class="edit-meta">
 Last updated on 13 Nov 2020
 
 
