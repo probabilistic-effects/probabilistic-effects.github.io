@@ -17,28 +17,28 @@
 :root {}
 </style>
 <meta property="og:title" content="Research Journal" />
-<meta property="og:description" content="• Scrum Meeting 1 (MW &#43; SF &#43; MN) 03/11/2020
-  Can the inference monad transformer stack of a program be inferred/fixed at compile time?
-  Identifying smaller goals and intermediate research ideas and what is valuable to do:
- What&rsquo;s the line between papers and a very good blog post? (new things are papers) How can research/observations across monad-bayes be generalised? It is possible to do an empirical evaluation and target software dev audiences Programming languages field lacks proper evaluations; it is possible to question existing &ldquo;folklore&rdquo; with new observed results&quot; It is important to know what the benchmarking tool can and can&rsquo;t do - when experimenting we must always ask what can the tool do for me." />
+<meta property="og:description" content="Meeting (MN &#43; RP &#43; MW) 15/12/2020
+ Todo: look at handwriting some monad-bayes, and get more involved with Haskell core  Activity (MN) 11/12/2020 - 14/12/2020
+ Reading, implementing, and writing up of Fusion for Free (fusion-for-free).  Meeting (MN &#43; NW) 11/12/2020
+ Inlining with Typeclasses - GHC is rather reluctant to inline in general recursive code. There is only one exception: GHC is keen to create type-specialised copies of (constraint) polymorphic recursive definitions and to inline the definitions of typeclass methods in the process." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://probabilistic-effects.github.io/research/research-journal/" />
 <meta property="article:published_time" content="2020-11-13T14:05:57+00:00" />
 <meta property="article:modified_time" content="2020-11-13T14:05:57+00:00" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Research Journal"/>
-<meta name="twitter:description" content="• Scrum Meeting 1 (MW &#43; SF &#43; MN) 03/11/2020
-  Can the inference monad transformer stack of a program be inferred/fixed at compile time?
-  Identifying smaller goals and intermediate research ideas and what is valuable to do:
- What&rsquo;s the line between papers and a very good blog post? (new things are papers) How can research/observations across monad-bayes be generalised? It is possible to do an empirical evaluation and target software dev audiences Programming languages field lacks proper evaluations; it is possible to question existing &ldquo;folklore&rdquo; with new observed results&quot; It is important to know what the benchmarking tool can and can&rsquo;t do - when experimenting we must always ask what can the tool do for me."/>
+<meta name="twitter:description" content="Meeting (MN &#43; RP &#43; MW) 15/12/2020
+ Todo: look at handwriting some monad-bayes, and get more involved with Haskell core  Activity (MN) 11/12/2020 - 14/12/2020
+ Reading, implementing, and writing up of Fusion for Free (fusion-for-free).  Meeting (MN &#43; NW) 11/12/2020
+ Inlining with Typeclasses - GHC is rather reluctant to inline in general recursive code. There is only one exception: GHC is keen to create type-specialised copies of (constraint) polymorphic recursive definitions and to inline the definitions of typeclass methods in the process."/>
 <meta itemprop="name" content="Research Journal">
-<meta itemprop="description" content="• Scrum Meeting 1 (MW &#43; SF &#43; MN) 03/11/2020
-  Can the inference monad transformer stack of a program be inferred/fixed at compile time?
-  Identifying smaller goals and intermediate research ideas and what is valuable to do:
- What&rsquo;s the line between papers and a very good blog post? (new things are papers) How can research/observations across monad-bayes be generalised? It is possible to do an empirical evaluation and target software dev audiences Programming languages field lacks proper evaluations; it is possible to question existing &ldquo;folklore&rdquo; with new observed results&quot; It is important to know what the benchmarking tool can and can&rsquo;t do - when experimenting we must always ask what can the tool do for me.">
+<meta itemprop="description" content="Meeting (MN &#43; RP &#43; MW) 15/12/2020
+ Todo: look at handwriting some monad-bayes, and get more involved with Haskell core  Activity (MN) 11/12/2020 - 14/12/2020
+ Reading, implementing, and writing up of Fusion for Free (fusion-for-free).  Meeting (MN &#43; NW) 11/12/2020
+ Inlining with Typeclasses - GHC is rather reluctant to inline in general recursive code. There is only one exception: GHC is keen to create type-specialised copies of (constraint) polymorphic recursive definitions and to inline the definitions of typeclass methods in the process.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:57+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:57+00:00" />
-<meta itemprop="wordCount" content="6805">
+<meta itemprop="wordCount" content="6842">
 
 
 
@@ -50,428 +50,13 @@
 
 <div class="content-container">
 <main><h1>Research Journal</h1>
-<p><strong>• Scrum Meeting 1 (MW + SF + MN)</strong>     <em>03/11/2020</em></p>
+<p><strong>Meeting (MN + RP + MW)</strong>     <em>15/12/2020</em></p>
 <ul>
-<li>
-<p>Can the inference monad transformer stack of a program be inferred/fixed at compile time?</p>
-</li>
-<li>
-<p>Identifying smaller goals and intermediate research ideas and what is valuable to do:</p>
-<ul>
-<li>What&rsquo;s the line between papers and a very good blog post? (new things are papers)</li>
-<li>How can research/observations across monad-bayes be generalised?</li>
-<li>It is possible to do an empirical evaluation and target software dev audiences</li>
-<li>Programming languages field lacks proper evaluations; it is possible to question existing &ldquo;folklore&rdquo; with new observed results&quot;</li>
-<li>It is important to know what the benchmarking tool can and can&rsquo;t do - when experimenting we must always ask what can the tool do for me. Goal is guided by what you can measure.</li>
+<li>Todo: look at handwriting some monad-bayes, and get more involved with Haskell core</li>
 </ul>
-</li>
-</ul>
-<p><strong>• Scrum Meeting 2 (MW + SF + MN)</strong>     <em>10/11/2020</em></p>
+<p><strong>Activity (MN)</strong>     <em>11/12/2020</em> - <em>14/12/2020</em></p>
 <ul>
-<li>
-<p>Meeting with AZ</p>
-</li>
-<li>
-<p>Visualiser set up for the profiling info</p>
-</li>
-<li>
-<p>Reading up on three different effect system optimisation approaches inc:</p>
-<ul>
-<li>Alexis King - delimited continuations and the Cont monad.</li>
-<li>Codensity transformations (Csongor used this in his generic deriving paper)</li>
-<li>Staging (perhaps see JW&rsquo;s staged parser combinator paper)</li>
-<li>Tagless final style
-<ul>
-<li>SF has read this paper. Here are their notes:
-Typed tagless final style if a good approach from embedding a DSL Pros: Types are preserved; Efficient; Doesn&rsquo;t get stuck; Can express pattern matching and non-compositional things; Extensible; The heart of this style is adding a type param polymorphism and parameterisation.
-NW: “it is a precursor to algebraic effects”. Tagless final style and algebraic effects are just implementations within a broader field, it would be better to understand the general specification of how to embed properly. Following NW&rsquo;s advice I will now read a few papers that give me a broader insight into the field of algebraic effects, to get the more general view, instead of focusing on a specific implementation.
-Suggested papers: &ldquo;Handlers of Algebraic Effects&rdquo;, &ldquo;Programming and Reasoning with Algebraic Effects and Effect Handlers&rdquo;, &ldquo;From Theory to Practice of Algebraic Effects and Handlers&rdquo; (SF started reading the first, but found it a bit hard due to lack of knowledge in that area).</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<p>Plan = Current direction is to implement using three different effect system approaches and then evaluate; hopefully something interesting will come out of this.</p>
-</li>
-<li>
-<p>Suggestion (MW): Just use a minimal calculus for experiments, and then have Monad Bayes as the big example.</p>
-</li>
-<li>
-<p>Suggestion (MW): Evaluate whether the embedding of Monad Bayes' DSL is shallow/deep and how this affects performance; shallow embeddings are naturally less efficient than deep embeddings.</p>
-</li>
-<li>
-<p>Weekly meetings set up between MN &amp; AZ to keep discussions and progress churning. Currently reading with purpose and writing up notes, while also doing some coding/profiling and discussing each week. progressing well.</p>
-</li>
-</ul>
-<p><strong>• Slack (MN + JW)</strong>     <em>11/11/2020</em></p>
-<ul>
-<li>
-<p>Does there exist a good paper/resource on how staging can be used to optimise effect systems in general?</p>
-</li>
-<li>
-<p>Nope, it hasn&rsquo;t been done in general yet - there are people (NW) working on this. Additionally, the staged SOP and the Parsley paper both provide meaningful nuggets about how to use staging for optimisation.</p>
-</li>
-</ul>
-<p><strong>• Slack (MN + NW)</strong>     <em>11/11/2020</em></p>
-<ul>
-<li>Touched base with NW on project status:
-<ul>
-<li>Current idea is take the monad-bayes (which is a slow probabilistic programming library in Haskell) and implement a similar idea using different effect systems to understand what happens and why to the performance - hopefully something interesting will come out of it
-&amp; asked about staging on optimising effect systems (as a potential direction for improving monad-bayes).</li>
-<li>Sounds promising</li>
-</ul>
-</li>
-<li>Asked about existing papers/resources about using staging to optimise effect systems in general (with the intention to apply as a possible direction towards improving monad-bayes)
-<ul>
-<li>NW is working on such a paper; it is most likely a natural combination of the work on staging with MP and the Fusion for Free work.</li>
-</ul>
-</li>
-<li>Need to set up meeting with NW when a valuable discussion is to be had about the current state of the project. We are still currently invested in reading.</li>
-<li>Suggested related paper: <a href="https://dl.acm.org/doi/pdf/10.1145/3408975">https://dl.acm.org/doi/pdf/10.1145/3408975</a></li>
-</ul>
-<p><strong>• Discussion following conversation with NW (MH + AZ)</strong>     <em>11/11/2020</em></p>
-<ul>
-<li>
-<p>That <a href="https://dl.acm.org/doi/pdf/10.1145/3408975">link</a> looks more like actually writing an effect system, not using an existing one. There is a slight reticence to get involved in actually creating effect systems. However that direction may potentially be a good place to go in the future; a natural path after using all of these effect systems (of interest) would probably be developing an effect system. AZ not particularly interested in this at the moment, but could be for MN.</p>
-</li>
-<li>
-<p>Fusion for free with staging seems like a pretty obviously successful idea. AZ has a vague intuition for how that might work, but not confident enough to see the path forward there (w.r.t what NW is working on - not related to probabilistic-effects)</p>
-</li>
-<li>
-<p>Intuition is that fusion for free is relevant to probabilistic-effects, but Alexis King&rsquo;s Eff library is the best bet.</p>
-</li>
-<li>
-<p>With respect to MW&rsquo;s suggestion on a restricted calculus, this needs some thought, but is likely a good/possible direction.</p>
-</li>
-<li>
-<p>The <code>Eff</code> library exists as a fork of GHC - we can just use that fork with the patch and the library. <code>Eff</code> is quite early stage but it looks stable enough for us to use. This is a probably the best starting point. We also have the <code>monad-bayes</code> the library so it shouldn&rsquo;t be a huge step re-implementing, and if it works, it would obviously be the best suggestion. Why rewrite everything in a complex way when you can just move to the same system but better?</p>
-</li>
-<li>
-<p>One of the next best (computationally-related) goals would be to work out how to get Alexis King&rsquo;s patch and library working. This looks like the patch branch: <a href="https://github.com/lexi-lambda/ghc-proposals/tree/delimited-continuation-primops">https://github.com/lexi-lambda/ghc-proposals/tree/delimited-continuation-primops</a></p>
-</li>
-<li>
-<p>How do we turn this into research, rather than simply an application of a different effect system to an existing library?</p>
-</li>
-<li>
-<p>The research aspect would be comparing the different methods in my opinion. If we&rsquo;re looking for new <em>things</em>, then maybe the stuff NW is working on? It is possible that <em>just</em> staging it or <em>just</em> using codensity/fusion stuff would count as novel research, given that JW has a paper on staging parsley. Additionally, we believe that case studies/methodology papers like &ldquo;how to optimise something built on an effect system&rdquo; are important research, however sometimes academia can be a bit snooty.</p>
-</li>
-<li>
-<p>If we think a case study methodology is too risky (out of a fear of some kind of lack of appreciation) maybe just staging or doing fusion would be best as that would be novel. Staging is just more involved and would require more novel insight / the path is less charted, whereas <code>eff</code> would likely be easier to reimplement <code>monad-bayes</code> with essentially. If we feel more inclined to take a case study approach initially, going to <code>eff</code> would be the best first move. Either option is plausible, but we&rsquo;ll end up doing <code>eff</code> either way as it&rsquo;s the best bet to actually make it faster.
-Additionally, we&rsquo;ll be able to reach a milestone faster and feel a bit better about taking other approaches.</p>
-</li>
-<li>
-<p>Optimistically, we could get the <code>eff</code> content done by the end of the year or early January.</p>
-</li>
-</ul>
-<p><strong>Meeting (MN + AZ)</strong>     <em>12/11/2020</em></p>
-<p>Analysing profile report on PMMH inference for a HMM:</p>
-<p><img src="https://i.ibb.co/6mv24Cp/pmmh-prof.png" alt=""></p>
-<p>The key points of interest are:</p>
-<ul>
-<li>
-<p>The <code>(&gt;&gt;=)</code> operation which occurs in <code>Population.hs</code>, accounting for 35% of the total runtime. The source line responsible for this is found in the typeclass derivations of the <code>Population</code> newtype, namely the deriving of the <code>Monad</code> class.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | A collection of weighted samples, or particles.</span>
-<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Population</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Population</span> (<span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">ListT</span> m) a)
-  <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadIO</span>, <span style="color:#66d9ef">MonadSample</span>, <span style="color:#66d9ef">MonadCond</span>, <span style="color:#66d9ef">MonadInfer</span>)
-</code></pre></div></li>
-<li>
-<p>The <code>liftA2</code> operation and the <code>pure</code> operation which both occur in <code>Weighted.hs</code>, accounting for 11.9% and 7.9% of the total runtime respectively. The source line responsible for this is found in the typeclass derivations of the <code>Weighted</code> newtype, namely the deriving of the <code>Applicative</code> class.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Execute the program using the prior distribution, while accumulating likelihood.</span>
-<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Weighted</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">StateT</span> (<span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>) m a)
-  <span style="color:#75715e">-- StateT is more efficient than WriterT</span>
-  <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadIO</span>, <span style="color:#66d9ef">MonadTrans</span>, <span style="color:#66d9ef">MonadSample</span>)
-</code></pre></div></li>
-</ul>
-<p>These overheads are associated with the inference representations/transformer stack which <code>monad-bayes</code> uses, as opposed to time spent on numerical computation such as with the <code>bernoulli</code> function.</p>
-<p>This prompts the questions:</p>
-<ul>
-<li>What definitions of <code>(&gt;&gt;=)</code>, <code>liftA2</code>, and <code>pure</code> are generated as a result of using <code>deriving</code>, and why are these inefficient for our case?</li>
-</ul>
-<p><strong>Meeting (MN + AZ + JW)</strong>     <em>13/11/2020</em></p>
-<p>Following the previous meeting, this was an extremely helpful discussion (with JW) about how to proceed given the profiler report. Content from this meeting is fully elaborated on <a href="./../../benchmarking/haskell-core">here</a>.
-Briefly summarised, we were introduced to:</p>
-<ul>
-<li>The ghc-option/dependency <code>dump-core</code> as a means of finding out what core Haskell code is generated from surface-level Haskell code</li>
-<li>How to understand various core-level syntax</li>
-<li>The general workflow needed when investigating/identifying inefficiencies in programs</li>
-<li>Common problematic fragments of code to look out for in the core program.</li>
-</ul>
-<p>Thoughts:</p>
-<ul>
-<li>There is definitely a place for a good tutorial paper on how to do all of this (understanding Haskell core, the relationship between surface-level code and core, and identifying possible optimisations). If we pay strong attention to what we do in the next few weeks and write up our process, this would be a good contribution towards the general question of how to optimise a Haskell program. What we&rsquo;re about to do is what a lot of people do without any resources. A quick outline of such a paper would be to: 1) emphasize the process of profiling your code dumping the core of the highly used functions, and 2) distill what it is one should looking out for in the core. This could be a good Haskell symposium paper.</li>
-</ul>
-<p>From this, our next targets are:</p>
-<ul>
-<li>Compile <code>monad-bayes</code> with the <code>dump-core</code> plugin on, and invest time in figuring out where performance issues lie in the core code.</li>
-<li>Writing the hand-rolled versions of instances for all the inference transformers of <code>monad-bayes</code> (there&rsquo;s an incomplete page <a href="./../../background/performance-w-monads">here</a> on unrolling monad transformers), and compare the core for both the hand-rolled version and the <code>monad-bayes</code> library itself, and identify what is slow.</li>
-<li>Look for some resources (e.g. tutorials or talks) on understanding core.</li>
-<li>To record/write up our workflow and stream of consciousness as we progress on understanding how to optimise <code>monad-bayes</code> by using core.</li>
-<li>Have a work session during weekend on 21/11/2020</li>
-</ul>
-<p><strong>Debugging - Getting dump-core to work (AZ + MN)</strong>     <em>16/11/2020</em></p>
-<ul>
-<li>
-<p>Adding the ghc-option and dependencies for <code>dump-core</code> in <code>package.yaml</code> gives us the following error:</p>
-<p><img src="https://i.ibb.co/dks5SZ8/dump-core-1.png" alt=""></p>
-</li>
-<li>
-<p>From this, adding the extra dependency <code>dump-core-0.1.3.2</code> in <code>stack.yaml</code> gives us the below error. This is a resolver error i.e. stack can not resolve the constraints of the packages. Stack works by collecting bunches of packages that work together and calls them an lts (long-time-support). The constraint is generated by <code>dump-core</code>, which says that the version of <code>base</code> that our stack project uses does not match the version of <code>base</code> that <code>dump-core</code> uses, i.e. we need a version of <code>base</code> from <code>&gt;=4.9 &amp; &lt; 4.13</code>, and the most recent version satisfying this constraint is <code>4.12.0</code>.</p>
-<p><img src="https://i.ibb.co/S70dkJs/dump-core-3.png" alt=""></p>
-</li>
-<li>
-<p>Looking at the various <code>lts</code> versions, the resolver version <code>lts-14.1</code> supports <code>base</code> version <code>4.12.0</code>, which uses <code>GHC</code> version <code>8.6.5</code>.</p>
-<p><img src="https://i.ibb.co/5Y2L4sV/dump-core-5.png" alt=""></p>
-</li>
-<li>
-<p>Setting <code>resolver</code> to <code>lts-14.1</code> then gives the following extra dependency error:</p>
-<p><img src="https://i.ibb.co/tpdc1x6/dump-core-6.png" alt=""></p>
-</li>
-<li>
-<p>Introducing these extra dependencies then finally solves the problem:</p>
-<p><img src="https://i.ibb.co/54696LK/dump-core-4.png" alt=""></p>
-</li>
-<li>
-<p>Running <code>stack build</code> now generates a folder called <code>dump-core</code>, containing <code>html</code> files for visualisations of the core Haskell code generated from our program.</p>
-<p><img src="https://i.ibb.co/9sqQwzG/dump-core-7.png" alt=""></p>
-</li>
-</ul>
-<p><strong>Debugging - Getting dump-core to generate the desired files (MN)</strong>     <em>18/11/2020</em></p>
-<ul>
-<li>
-<p>Given the below configuration of <code>package.yaml</code>, cabal does not generate any executables for the <code>library</code> fields, so running <code>stack build</code> with <code>dump-core</code> will unhelpfully generate a <code>Paths_&lt;package_name&gt;.html</code> file, part of which represents our code found in the <code>src</code> directory.</p>
-<p><img src="https://i.ibb.co/DGFsDPT/dump-core-1-0.png" alt=""></p>
-</li>
-<li>
-<p>In order to generate core for desired files in directory <code>src</code>, we need to either:</p>
-<ol>
-<li>Move <code>Main.hs</code> to <code>src</code> and change the <code>source-dirs</code> field under <code>executables</code> from <code>app</code> to <code>src</code></li>
-<li>Add <code>src</code> to the <code>source-dirs</code> field under <code>executables</code>, and add the <code>dependencies</code> under <code>library</code> to the <code>dependencies</code> under <code>executables</code>.
-The second option is shown below:</li>
-</ol>
-<p><img src="https://i.ibb.co/D16HmRt/dump-core-1-1.png" alt=""></p>
-</li>
-</ul>
-<p><strong>Meeting (MN + AZ)</strong>     <em>19/11/2020</em></p>
-<p>To do in preparation for work session on Sunday (22/11/2020):</p>
-<ul>
-<li>Clone <code>monad-bayes</code> and link it as a local library by placing it in the same stack project/folder as <code>probalistic-programming</code>. Then dump the core code for it.</li>
-<li>Read and write up <a href="https://wiki.haskell.org/Performance/GHC#Looking_at_the_Core">tutorials</a> on core + get a gist of existing resources around optimising Haskell and what remains unexplored/unwritten about.</li>
-<li>Familiarise ourselves with hand-rolling monad transformers.</li>
-</ul>
-<p><strong>Meeting (MN + MW + RP)</strong>     <em>19/11/2020</em></p>
-<ul>
-<li>It&rsquo;s useful to know if performance improves linearly/asymptotically or remains linear/asymptotic, following the first attempt at optimising <code>monad-bayes</code> e.g. by hand-rolling the inference transformers.</li>
-<li>In response to the question on using <code>Eff</code>, &ldquo;how do we turn this into research, rather than simply an application of a different effect system to an existing library?&rdquo;, we can ask ourselves whether this application is straightforward. If it isn&rsquo;t straightforward, then there&rsquo;s probably a research element in it. It is definitely right to try to use what existing libraries/tools are already there. The suspicion is that, along the way, we will find something within these existing approaches that is worth researching, as there will be some problems to be addressed and changes to be made. Until we have exhausted existing options, it would be wrong to start our own. This would be a requirement from reviewers that we are not reinventing the wheel.</li>
-<li><code>Eff</code> is not a mature library at all - if we were to make progress understanding and using it to reimplement the <code>monad-bayes</code> system in that setting, that would already be building towards some sort of contribution which a lot of interesting stuff is likely to come out of.
-Eventually, it could maybe feed into the evolution of the <code>Eff</code> library, or similarly with <code>monad-bayes</code>. There are two or three different directions we could imagine making progress in: one is a better version of <code>monad-bayes</code> or probabilistic programming in Haskell, another is a better version of <code>Eff</code>.</li>
-<li>The current direction is already definitely research/publishable somewhere, the only question is if it is ICFP etc. We&rsquo;re in a good position in the sense that we have quite an ambitious goal in mind and we have a plan with multiple paths of achieving that, but we haven&rsquo;t arrived yet because we don&rsquo;t know what we&rsquo;ll end up with. It&rsquo;s extremely likely that opportunities (for getting side-tracked onto more concrete research) will appear during this process.</li>
-<li>We have atleast two concrete targets at the moment: 1) Using <code>Eff</code> to reimplement <code>monad-bayes</code> (sounds like a good thing to pursue) 2) Hand-rolling <code>monad-bayes</code> and seeing if there is some kind of asymptotic change in performance, and if there is, then we&rsquo;ve atleast identified the problem there.</li>
-<li>Research almost always starts with a concrete example - once we understand it, then we can see how much we can generalise it.</li>
-<li>It&rsquo;s a good sign that we are taking ideas from multiple sources, and indicates that the work is not straightforward. (Taking an idea from one paper and applying it, is quite worrying, whereas being able to show that we have taken ideas from multiple papers is promising.)</li>
-<li>Good idea to collect a literature review around <code>probabilistic-effects</code> in order to have a more concrete mind-map of research directions, and organize them around how they might contribute to our research going forward.</li>
-</ul>
-<p><strong>Activity (MN)</strong>     <em>20/11/2020</em></p>
-<ul>
-<li>Added <a href="./literature-review">literature review</a>.</li>
-<li>Cloned <code>monad-bayes</code> as a local package to <a href="https://github.com/probabilistic-effects/probabilistic-programming"><code>probabilistic-programming</code></a> repo and re-organized project.</li>
-<li>Dumped the core of <code>monad-bayes</code>.</li>
-</ul>
-<p><strong>Meeting (MN + AZ)</strong>     <em>22/11/2020</em></p>
-<ul>
-<li>Looked at core of files <code>Population.hs</code> and <code>Weighted.hs</code> from <code>monad-bayes</code>.</li>
-<li>The two components of interest from the profiling report were:
-<ul>
-<li>
-<p><code>(&gt;&gt;=)</code> from <code>Population.hs</code>, which is essentially how <code>(&gt;&gt;=)</code> works for <code>StateT (Log Double) (ListT m) a)</code> if we ignore the <code>newtype</code> wrappers.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Population</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Population</span> (<span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">ListT</span> m) a)
-  <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadIO</span>, <span style="color:#66d9ef">MonadSample</span>, <span style="color:#66d9ef">MonadCond</span>, <span style="color:#66d9ef">MonadInfer</span>)
-</code></pre></div><p>The version of <code>StateT</code> that <code>monad-bayes</code> uses is from the <code>mtl-2.2.2</code> library.</p>
-<p><img src="https://i.ibb.co/1LJQjTw/dump-core-2-6.png" alt=""></p>
-</li>
-<li>
-<p><code>liftA2</code> and <code>pure</code> from <code>Weighted.hs</code>, which is essentially how <code>liftA2</code> and <code>pure</code> work for <code>StateT (Log Double) m a</code> if we ignore the <code>newtype</code> wrapper.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Weighted</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">StateT</span> (<span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>) m a)
-  <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadIO</span>, <span style="color:#66d9ef">MonadTrans</span>, <span style="color:#66d9ef">MonadSample</span>)
-</code></pre></div><p>The version of <code>ListT</code> that <code>monad-bayes</code> uses if from the <code>transformers-0.5.2.0</code> library (this is deprecated in all later versions).</p>
-<p><img src="https://i.ibb.co/4t4nkY8/dump-core-2-4.png" alt="">
-<img src="https://i.ibb.co/4Y0Hdyp/dump-core-2-5.png" alt=""></p>
-<p>We were unable to expand out the generated core of these, as <code>StateT</code> and <code>ListT</code> belong to libraries external to the stack project. Hence, the next steps were to clone the necessary libraries locally and dump their core.</p>
-</li>
-</ul>
-</li>
-<li>Cloned <code>mtl-2.2.2</code> locally into <a href="https://github.com/probabilistic-effects/probabilistic-programming"><code>probabilistic-programming</code></a> repo. (The local copy of <code>monad-bayes</code> does not yet use the local version of <code>mtl-2.2.2</code>.)
-<img src="https://i.ibb.co/bz1YT6Y/dump-core-2-0.png" alt=""></li>
-<li>Dumped the core of <code>mtl-2.2.2</code>.</li>
-<li>Tried to clone <code>transformers-0.5.2.0</code> locally into <a href="https://github.com/probabilistic-effects/probabilistic-programming"><code>probabilistic-programming</code></a> repo, but ran into &ldquo;duplicate instance declarations&rdquo; error due to the definitions in the local <code>transformers-0.5.2.0</code> package clashing with <code>GHC.Base</code>. Currently unsure how to solve this.
-<img src="https://i.ibb.co/PQbmvjd/dump-core-2-2.png" alt="">
-<img src="https://i.ibb.co/xz0nvJm/dump-core-2-1.png" alt=""></li>
-<li>Discussed/learned about process of handrolling monad transformers in <code>mtl</code>.</li>
-</ul>
-<p><strong>Activity (MN)</strong>     <em>23/11/2020</em></p>
-<ul>
-<li>
-<p>Explained issue to JW about being unable to expand definitions for <code>&gt;&gt;=</code> and <code>liftA2</code> in core for <code>monad-bayes</code>, and having trouble cloning and dumping the core of the <code>mtl</code> and <code>transformers</code> libraries locally.</p>
-<p>JW : Being unable to expand out definitions for <code>&gt;&gt;=</code> and <code>liftA2</code> is problematic to begin with - if the dumped core has referenced these functions, then the inliner isn&rsquo;t doing its job. In <a href="https://github.com/J-mie6/ParsleyHaskell"><code>parsley</code></a> which is a cabal project, he has compiled with <code>-O2</code> by placing <code>optimization:2</code> in the <a href="https://github.com/J-mie6/ParsleyHaskell/blob/master/cabal.project"><code>cabal.project</code></a> file, which allows this inlining to occur.</p>
-</li>
-<li>
-<p>As we&rsquo;re using stack, I&rsquo;m currently unable to find how the optimization flag translates into a <code>package.yaml</code> or <code>stack.yaml</code> file (it&rsquo;s definitely not <code>ghc-options: O2</code>). Next step is to figure out cabal, create a cabal project for <a href="https://github.com/probabilistic-effects/probabilistic-programming"><code>probabilistic-programming</code></a>, add the <code>optimization:2</code> option, and inspect if anything has changed in the dumped core.</p>
-</li>
-</ul>
-<p><strong>Meeting (MN + SF + MW + WZ)</strong>     <em>24/11/2020</em></p>
-<ul>
-<li>A big flaw of <code>monad-bayes</code> is that they are calling references, so inlining will speed this up; for some this is folklore, for others they just aren&rsquo;t aware. This is an topic we should probably try and clarify (pass knowledge on) to people.</li>
-<li>A good idea is to explore how relevant this occurence actually is and see if others have this problem. Software developers can write refutal papers which is uncommon in functional programming. To write these papers the paper to be refuted must either be an important example, or address many less important examples. Hence for such a proposed paper to be written, we should find one important example of this problem, or many small ones.</li>
-</ul>
-<p><strong>Activity (MN)</strong>     <em>24/11/2020</em></p>
-<ul>
-<li>
-<p>Got out of cabal hell</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">sudo apt-get remove --auto-remove cabal-install
-sudo apt-get purge cabal-install
-</code></pre></div></li>
-<li>
-<p>Installed <code>ghcup</code> which allows me to set versions of <code>ghc</code></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">curl https://gitlab.haskell.org/haskell/ghcup/raw/master/bootstrap-haskell -sSf | sh
-source /home/minh/.ghcup/env
-ghcup upgrade
-. <span style="color:#e6db74">&#34;</span>$HOME<span style="color:#e6db74">/.ghcup/env&#34;</span>
-echo <span style="color:#e6db74">&#39;. $HOME/.ghcup/env&#39;</span> &gt;&gt; <span style="color:#e6db74">&#34;</span>$HOME<span style="color:#e6db74">/.bashrc&#34;</span>
-</code></pre></div></li>
-<li>
-<p>Set up new cabal project for <code>probabilistic-programming</code>, using <code>ghc-8.6.5</code>, containing <code>monad-bayes</code> locally and the original code for HMM simulation and PMMH inference which uses <code>monad-bayes</code> as a non-local build dependency.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">mkdir probabilistic-programming
-cd probabilistic-programming
-cabal init -n --is-executable
-ghcup install 8.6.5
-ghcup set 8.6.5
-</code></pre></div></li>
-<li>
-<p>Added <code>cabal.project</code> file with <code>optimization:2</code> flag to project.</p>
-</li>
-<li>
-<p>Performed some <a href="../../approaches/inlining-monad-bayes">analysis and optimisations</a> on the dumped core of <code>monad-bayes</code>, specifically with <code>Population.hs</code> and <code>Weighted.hs</code>.</p>
-</li>
-</ul>
-<p><strong>Activity (MN)</strong>     <em>25/11/2020</em></p>
-<ul>
-<li>
-<p>Learning and writing up of a <a href="./../case-study-parsley">small case study</a> on optimising <a href="https://github.com/J-mie6/ParsleyHaskell"><code>Parsley</code></a> using Haskell core.</p>
-</li>
-<li>
-<p>Organized <a href="https://github.com/probabilistic-effects/probabilistic-programming"><code>probabilistic-programming</code></a> repo, and added benchmarking program and folder.</p>
-</li>
-</ul>
-<p><strong>Meeting (MN + AZ)</strong>      <em>27/11/2020</em></p>
-<ul>
-<li>Research hypothesis currently would be that all of this inlining results in a faster library. Need to go back and benchmark &amp; record timings for each optimisation change on <code>monad-bayes</code> when looking at core to see whether things have actually improved. Benchmark program will be PMMH inference on a HMM.</li>
-<li>Need to create a handrolled version of <code>monad-bayes</code> (w.r.t its inference transformers), and also continue inlining to see how fast we can get the current version of <code>monad-bayes</code>. If the inlined version can reach the speed of the handrolled version, then it is sufficiently fast.</li>
-<li>Why has GHC not inlined certain definitions automatically? Need to write up on how the GHC inliner works, and get a good understanding of inlining.</li>
-<li>There&rsquo;s a discussion to be had about how this style of doing things is bad - if your program is not reaching the desired performance and it&rsquo;s not obvious as to how to optimise your program, it could be indicative that the compiler is doing something wrong. If such problems need to be solved by looking at core and then simply adding an inline pragma to certain functions, this seems like a pretty sub-optimal way to be writing programs.</li>
-</ul>
-<p><strong>Activity (MN)</strong>      <em>30/11/2020</em></p>
-<ul>
-<li>Figured out and <a href="http://localhost:1313/benchmarking/benchmarking-profiling/#benchmarking-with-criterion--cabal">wrote up</a> how to work criterion with cabal</li>
-<li>Recorded <a href="../../benchmarking/benchmark-log">benchmarks</a> for differently inlined versions of <code>monad-bayes</code></li>
-</ul>
-<p><strong>Meeting (MN + SF + MW)</strong>      <em>01/12/2020</em></p>
-<ul>
-<li>Manually adding inline pragmas is needed to improve program performance, but we need to look at the core to know where to put them.</li>
-<li>Need to benchmark again with more iterations to get a better average, and continue looking at opportunities to inline <code>monad-bayes</code>.</li>
-<li>The necessity to inline at the user level is problematic as we can&rsquo;t expect the user of the DSL to know this stuff.</li>
-<li>Need to look at MP&rsquo;s thesis. It has a survey of inlining techniques and all about how GHC behaves.</li>
-<li>What is an effect system? Apparently <code>mtl</code> is not.</li>
-</ul>
-<p><strong>Activity (MN)</strong>      <em>01/12/2020</em></p>
-<ul>
-<li>Performed some more <a href="../../approaches/inlining-monad-bayes">analysis and optimisations</a> on the dumped core of <code>monad-bayes</code>.</li>
-</ul>
-<p><strong>Meeting (MN + RP + MW)</strong>      <em>01/12/2020</em></p>
-<ul>
-<li>What&rsquo;s a reasonable expectation for the percentage run-time of bind?</li>
-<li>Because <code>monad-bayes</code> uses the deprecated version of <code>ListT</code>, it&rsquo;s a possibility that <code>ListT</code> isn&rsquo;t as optimal as possible.</li>
-<li>Newtypes don&rsquo;t incur any unwrapping/rewrapping of data types at run-time, so any <code>newtypes</code> in monad-bayes are not inherently problematic.</li>
-<li>Being able to achieve good performance just by inlining could point to some interesting opportunities, but it&rsquo;s not necessarily a bad thing if we&rsquo;re unable to get very far in optimisations by just inlining; this could tell a story about other approaches (e.g. template Haskell, fusion, eff, algebraic effects), and it could say something about <code>mtl</code> itself.</li>
-<li>Just by looking at the profiling report of our benchmark program, in theory it <em>should</em> be significantly faster than what we have at the moment, as most of the time is still being spent on operations such as <code>bind</code>, <code>liftA2</code> and <code>pure</code>.</li>
-<li>Is it actually folklore that monad transformers are slow? What&rsquo;s the general impression of performance between different effect systems?</li>
-</ul>
-<p><strong>Activity (MN)</strong>     <em>02/12/2020</em></p>
-<ul>
-<li>Reading and writing up relevant parts of MP&rsquo;s thesis (<a href="../../background/haskell-core">Haskell core</a> &amp; <a href="../../background/inlining">inlining</a>).</li>
-</ul>
-<p><strong>Activity (MN)</strong>     <em>03/12/2020</em></p>
-<ul>
-<li>Cloned <code>monad-bayes</code> in <code>probabilistic-programming</code> for creating a handrolling version.</li>
-<li>Learning about handrolling monad transformer stacks.</li>
-<li>Reading and writing up relevant parts of MP&rsquo;s thesis (<a href="../../background/specialisation">specialisation</a>).</li>
-</ul>
-<p><strong>Activity (MN)</strong>     <em>04/12/2020</em></p>
-<ul>
-<li>Reading and writing up of &ldquo;<a href="https://www.microsoft.com/en-us/research/wp-content/uploads/2002/07/inline.pdf">Secrets of the GHC inliner</a>&rdquo; (<a href="../../background/inlining">inlining</a>).</li>
-<li>Thoughts:
-<ul>
-<li>Sudden inspiration to look at recursion schemes and neural networks again using dependent types and Andres Löh&rsquo;s&rsquo;s <a href="../../background/specialisation/#the-specialisation-trick--making-ghc-inline-recursive-definitions-with-static-arguments">specialisation technique</a>.</li>
-<li>The general direction of optimisation can seem like a mundane path/dead-end a lot of the time; being able to generalise research on optimisations to a sufficient degree is difficult, and it seems that a lot of context-specific manual fiddling is involved.</li>
-<li>We want intrinsic, robust optimisations from first principles which shouldn&rsquo;t solely rely on the compiler or are ad-hoc.</li>
-<li>Exploring research on expressibility is attractive.</li>
-<li>Comparing effect systems is still attractive.</li>
-</ul>
-</li>
-</ul>
-<p><strong>Query (MN + NW)</strong>     <em>04/12/2020</em></p>
-<ul>
-<li>
-<p><strong>Q</strong>: I&rsquo;ve heard here and there that mtl isn&rsquo;t considered a real effect system - why is this, and what do you think an effect system comprises of?</p>
-</li>
-<li>
-<p><strong>A</strong>: That&rsquo;s a strange statement. I suppose they are trying to talk about the fact there are no &ldquo;typing rules&rdquo;. An effect system is presented, for instance in the definition of <code>Eff</code>, but I think we can construct one for <code>MTL</code>.</p>
-</li>
-</ul>
-<p><strong>Activity/Meeting (MN + AZ)</strong>     <em>05/12/2020</em></p>
-<ul>
-<li>Reading and writing up of <a href="https://www.microsoft.com/en-us/research/wp-content/uploads/2002/07/inline.pdf">Secrets of the GHC inliner</a> (<a href="../../background/inlining">inlining</a>).</li>
-<li>Todo: Look at Jennifer Hackett &amp; Graham Hutton&rsquo;s work on optimisations.</li>
-<li>How we can make it easier for people to write DSLs and do consistent optimisations on them without having to know about GHC?</li>
-</ul>
-<p><strong>Activity (MN)</strong>     <em>07/12/2020</em></p>
-<ul>
-<li>Learning about the inliner is so unsatisfying.</li>
-<li>Reading and writing up of <a href="http://okmij.org/ftp/Haskell/extensible/more.pdf">Freer Monads, More Extensible Effects</a> (<a href="../../papers/freer-monad">freer</a>).</li>
-</ul>
-<p><strong>Meeting (MN + MW + SF + WZ)</strong>     <em>08/12/2020</em></p>
-<ul>
-<li>MW: Inlining is the first unattractive step to investigate what this can and cant do, this is not necessarily your direction. This doesn&rsquo;t have to be about finding a solution &ndash; it could be finding out what the problem is. Don&rsquo;t worry about small and specific problems, if you collect enough of them, there might be a bigger thing going on.</li>
-<li>MW: Two questions re monad-bayes / similar libs:
-<ol>
-<li>What is the problem (learning about inlining helps to answer this) and can we generalise this problem? What other languages suffer from this? So far we know it is slow, but inlining will help find out <em>why</em> it is slow and what feature is the issue. When we know this, we can see if other languages suffer too.</li>
-<li>What solutions exist for this?</li>
-</ol>
-</li>
-<li>MW: You&rsquo;re making good progress! You are honing in on what the problem is, and all you need to know is enough about the problem in order to write a paper.</li>
-<li>MN: inspiration for folding over neural nets
-<ul>
-<li>Inliner doesn&rsquo;t inline recursive functions because we dont necessarily know how many times it will recurse, but sometimes we do know and dependent types can enforce this unrolling.</li>
-<li>In a neural net you always know how many layers there are.</li>
-<li>Dependent types would also be good to ensuring your neural net is correctly constructed.</li>
-<li>Should I introduce dependent types and staging into the folding neural nets?</li>
-</ul>
-</li>
-<li>MW: It would be a good extension of existing work! The problem anticipated is that the criticism of original paper still stands. This makes it stronger, but you still need to address existing criticism. This extension is better if the first paper is published. Does this addition allow you to dodge the criticism?</li>
-<li>MN: Is it okay to do two things?</li>
-<li>MW: Everyone does multiple things at the same time. Ehat you need to ask is: in the end will I have a thesis? You want to be focused enough to make progress. My suggestion is to press on more with probabilistic programming, changing frequently between research paths is not a good idea. Switching is not the best if you have to drop one.</li>
-<li>MW: For probabilistic programming, think more about the type class dictionary unrolling because that is different from inlining (learnings from MP&rsquo;s thesis background).</li>
-</ul>
-<p><strong>Activity (MN)</strong>     <em>08/12/2020</em></p>
-<ul>
-<li>Reading and writing up of <a href="http://okmij.org/ftp/Haskell/extensible/more.pdf">Freer Monads, More Extensible Effects</a> (<a href="../../papers/freer-monad">freer</a>).</li>
-</ul>
-<p><strong>Activity (MN)</strong>     <em>09/12/2020</em></p>
-<ul>
-<li>Reading and writing up of <a href="http://okmij.org/ftp/Haskell/extensible/more.pdf">Freer Monads, More Extensible Effects</a> (<a href="../../papers/freer-monad">freer</a>).</li>
-</ul>
-<p><strong>Activity (MN)</strong>     <em>10/12/2020</em></p>
-<ul>
-<li>Finished reading and writing up of <a href="http://okmij.org/ftp/Haskell/extensible/more.pdf">Freer Monads, More Extensible Effects</a> (<a href="../../papers/freer-monad">freer</a>).</li>
-<li>Reading and writing up of <a href="https://people.cs.kuleuven.be/~tom.schrijvers/Research/papers/mpc2015.pdf">Fusion for Free</a> (<a href="../../papers/fusion-for-free">fusion-for-free</a>).</li>
+<li>Reading, implementing, and writing up of <a href="https://people.cs.kuleuven.be/~tom.schrijvers/Research/papers/mpc2015.pdf">Fusion for Free</a> (<a href="../../papers/fusion-for-free">fusion-for-free</a>).</li>
 </ul>
 <p><strong>Meeting (MN + NW)</strong>     <em>11/12/2020</em></p>
 <ul>
@@ -529,6 +114,426 @@ ghcup set 8.6.5
 <p><strong>A</strong>: For one direction, the next steps would be to learn how to stage, and how to stage this n-unfolding version of μ. (NW is slightly concerned because they discussed this idea with JW, and doesn&rsquo;t know whether they are pursuing this as research).</p>
 <p>For another direction, with respect to staging something like monad-bayes, one idea that is interesting there which is an area NW hasn&rsquo;t explored, is &ndash; given that we can draw a random value from a uniform distribution, we can use this to create a value drawn from normal distribution quite easily (there are a lot of techniques for doing this), and we can also get beta distributions and all sorts of distributions out of this. An interesting question is, how do we make that happen more quickly, or, how do we fuse together the code that does this? To be more precise, we tend to piggy-back off one distribution to make another, to make another, and so on. The process is that we usually write some function that takes our random value and does something to it, and then we take this value and do something else to it, and so on. What we&rsquo;re hoping here is that there is some fusion that could happen. If we imagine transforming our uniformly distributed value through ten different transformations, we would want those transformations to fuse together into one single thing. Well, how do we make sure this is actually happening? Of course we&rsquo;ve got inline rules and pragmas, but we&rsquo;re not convinced that that&rsquo;s always going to happen, so what&rsquo;s the role of staging in this? It would be nice to find some cute distributions which require iterative steps of values drawn from the previous distribution, and onwards (markov chains do this sort of thing). Inlining these distributions would be cool, and inlining those through staging would be very cool. For example if we had a markov chain of a fixed length n, we could imagine writing the handrolled version which does n layers of iterations at once, but it&rsquo;s huge &ndash; it takes all the input and does this great big sum and multiplication etc, and we&rsquo;re hoping that it rearranges nicely. The end optimal code is probably going to use things like Horner&rsquo;s rule to reduce the number of multiplications, and things like these are what the inliner won&rsquo;t spot. We can imagine there being a great story there for staging, one which hasn&rsquo;t been explored.</p>
 <p>A suggestion for an initial direction could be to look at a markov chain with a small fixed length, and think about how we would unroll that chain, and what code we would write if we were to unroll that manually, and what optimisations we could perform (such as Horner&rsquo;s rule). The next step would be to think about what the code would look like if we increased the number of layers in the chain, and write the code manually, and bench it. Compare the version that only does the unrolling n times versus the one that has been hand-optimised, and see if it makes a difference (it would be surprising if it didn&rsquo;t). Then we could ask ourselves, how do we automate this? NW thinks staging is the answer to that question. This seems like it could be a successful project that takes perhaps 3 or 4 months to get through, and is also a good first step towards understanding the optimiser properly, and understanding staging properly.</p>
+</li>
+</ul>
+<p><strong>Activity (MN)</strong>     <em>10/12/2020</em></p>
+<ul>
+<li>Finished reading and writing up of <a href="http://okmij.org/ftp/Haskell/extensible/more.pdf">Freer Monads, More Extensible Effects</a> (<a href="../../papers/freer-monad">freer</a>).</li>
+<li>Reading and writing up of <a href="https://people.cs.kuleuven.be/~tom.schrijvers/Research/papers/mpc2015.pdf">Fusion for Free</a> (<a href="../../papers/fusion-for-free">fusion-for-free</a>).</li>
+<li>Found <a href="http://xnning.github.io/,">http://xnning.github.io/,</a> latest work is on efficient implementation of effect handlers which out-performs monads.</li>
+</ul>
+<p><strong>Activity (MN)</strong>     <em>08/12/2020</em> - <em>09/12/2020</em></p>
+<ul>
+<li>Reading and writing up of <a href="http://okmij.org/ftp/Haskell/extensible/more.pdf">Freer Monads, More Extensible Effects</a> (<a href="../../papers/freer-monad">freer</a>).</li>
+</ul>
+<p><strong>Meeting (MN + MW + SF + WZ)</strong>     <em>08/12/2020</em></p>
+<ul>
+<li>MW: Inlining is the first unattractive step to investigate what this can and cant do, this is not necessarily your direction. This doesn&rsquo;t have to be about finding a solution &ndash; it could be finding out what the problem is. Don&rsquo;t worry about small and specific problems, if you collect enough of them, there might be a bigger thing going on.</li>
+<li>MW: Two questions re monad-bayes / similar libs:
+<ol>
+<li>What is the problem (learning about inlining helps to answer this) and can we generalise this problem? What other languages suffer from this? So far we know it is slow, but inlining will help find out <em>why</em> it is slow and what feature is the issue. When we know this, we can see if other languages suffer too.</li>
+<li>What solutions exist for this?</li>
+</ol>
+</li>
+<li>MW: You&rsquo;re making good progress! You are honing in on what the problem is, and all you need to know is enough about the problem in order to write a paper.</li>
+<li>MN: inspiration for folding over neural nets
+<ul>
+<li>Inliner doesn&rsquo;t inline recursive functions because we dont necessarily know how many times it will recurse, but sometimes we do know and dependent types can enforce this unrolling.</li>
+<li>In a neural net you always know how many layers there are.</li>
+<li>Dependent types would also be good to ensuring your neural net is correctly constructed.</li>
+<li>Should I introduce dependent types and staging into the folding neural nets?</li>
+</ul>
+</li>
+<li>MW: It would be a good extension of existing work! The problem anticipated is that the criticism of original paper still stands. This makes it stronger, but you still need to address existing criticism. This extension is better if the first paper is published. Does this addition allow you to dodge the criticism?</li>
+<li>MN: Is it okay to do two things?</li>
+<li>MW: Everyone does multiple things at the same time. Ehat you need to ask is: in the end will I have a thesis? You want to be focused enough to make progress. My suggestion is to press on more with probabilistic programming, changing frequently between research paths is not a good idea. Switching is not the best if you have to drop one.</li>
+<li>MW: For probabilistic programming, think more about the type class dictionary unrolling because that is different from inlining (learnings from MP&rsquo;s thesis background).</li>
+</ul>
+<p><strong>Activity (MN)</strong>     <em>07/12/2020</em></p>
+<ul>
+<li>Learning about the inliner is so unsatisfying.</li>
+<li>Reading and writing up of <a href="http://okmij.org/ftp/Haskell/extensible/more.pdf">Freer Monads, More Extensible Effects</a> (<a href="../../papers/freer-monad">freer</a>).</li>
+</ul>
+<p><strong>Activity/Meeting (MN + AZ)</strong>     <em>05/12/2020</em></p>
+<ul>
+<li>Reading and writing up of <a href="https://www.microsoft.com/en-us/research/wp-content/uploads/2002/07/inline.pdf">Secrets of the GHC inliner</a> (<a href="../../background/inlining">inlining</a>).</li>
+<li>Todo: Look at Jennifer Hackett &amp; Graham Hutton&rsquo;s work on optimisations.</li>
+<li>How we can make it easier for people to write DSLs and do consistent optimisations on them without having to know about GHC?</li>
+</ul>
+<p><strong>Query (MN + NW)</strong>     <em>04/12/2020</em></p>
+<ul>
+<li>
+<p><strong>Q</strong>: I&rsquo;ve heard here and there that mtl isn&rsquo;t considered a real effect system - why is this, and what do you think an effect system comprises of?</p>
+</li>
+<li>
+<p><strong>A</strong>: That&rsquo;s a strange statement. I suppose they are trying to talk about the fact there are no &ldquo;typing rules&rdquo;. An effect system is presented, for instance in the definition of <code>Eff</code>, but I think we can construct one for <code>MTL</code>.</p>
+</li>
+</ul>
+<p><strong>Activity (MN)</strong>     <em>04/12/2020</em></p>
+<ul>
+<li>Reading and writing up of &ldquo;<a href="https://www.microsoft.com/en-us/research/wp-content/uploads/2002/07/inline.pdf">Secrets of the GHC inliner</a>&rdquo; (<a href="../../background/inlining">inlining</a>).</li>
+<li>Thoughts:
+<ul>
+<li>Sudden inspiration to look at recursion schemes and neural networks again using dependent types and Andres Löh&rsquo;s&rsquo;s <a href="../../background/specialisation/#the-specialisation-trick--making-ghc-inline-recursive-definitions-with-static-arguments">specialisation technique</a>.</li>
+<li>The general direction of optimisation can seem like a mundane path/dead-end a lot of the time; being able to generalise research on optimisations to a sufficient degree is difficult, and it seems that a lot of context-specific manual fiddling is involved.</li>
+<li>We want intrinsic, robust optimisations from first principles which shouldn&rsquo;t solely rely on the compiler or are ad-hoc.</li>
+<li>Exploring research on expressibility is attractive.</li>
+<li>Comparing effect systems is still attractive.</li>
+</ul>
+</li>
+</ul>
+<p><strong>Activity (MN)</strong>     <em>03/12/2020</em></p>
+<ul>
+<li>Cloned <code>monad-bayes</code> in <code>probabilistic-programming</code> for creating a handrolling version.</li>
+<li>Learning about handrolling monad transformer stacks.</li>
+<li>Reading and writing up relevant parts of MP&rsquo;s thesis (<a href="../../background/specialisation">specialisation</a>).</li>
+</ul>
+<p><strong>Activity (MN)</strong>     <em>02/12/2020</em></p>
+<ul>
+<li>Reading and writing up relevant parts of MP&rsquo;s thesis (<a href="../../background/haskell-core">Haskell core</a> &amp; <a href="../../background/inlining">inlining</a>).</li>
+</ul>
+<p><strong>Meeting (MN + RP + MW)</strong>      <em>01/12/2020</em></p>
+<ul>
+<li>What&rsquo;s a reasonable expectation for the percentage run-time of bind?</li>
+<li>Because <code>monad-bayes</code> uses the deprecated version of <code>ListT</code>, it&rsquo;s a possibility that <code>ListT</code> isn&rsquo;t as optimal as possible.</li>
+<li>Newtypes don&rsquo;t incur any unwrapping/rewrapping of data types at run-time, so any <code>newtypes</code> in monad-bayes are not inherently problematic.</li>
+<li>Being able to achieve good performance just by inlining could point to some interesting opportunities, but it&rsquo;s not necessarily a bad thing if we&rsquo;re unable to get very far in optimisations by just inlining; this could tell a story about other approaches (e.g. template Haskell, fusion, eff, algebraic effects), and it could say something about <code>mtl</code> itself.</li>
+<li>Just by looking at the profiling report of our benchmark program, in theory it <em>should</em> be significantly faster than what we have at the moment, as most of the time is still being spent on operations such as <code>bind</code>, <code>liftA2</code> and <code>pure</code>.</li>
+<li>Is it actually folklore that monad transformers are slow? What&rsquo;s the general impression of performance between different effect systems?</li>
+</ul>
+<p><strong>Activity (MN)</strong>      <em>01/12/2020</em></p>
+<ul>
+<li>Performed some more <a href="../../approaches/inlining-monad-bayes">analysis and optimisations</a> on the dumped core of <code>monad-bayes</code>.</li>
+</ul>
+<p><strong>Meeting (MN + SF + MW)</strong>      <em>01/12/2020</em></p>
+<ul>
+<li>Manually adding inline pragmas is needed to improve program performance, but we need to look at the core to know where to put them.</li>
+<li>Need to benchmark again with more iterations to get a better average, and continue looking at opportunities to inline <code>monad-bayes</code>.</li>
+<li>The necessity to inline at the user level is problematic as we can&rsquo;t expect the user of the DSL to know this stuff.</li>
+<li>Need to look at MP&rsquo;s thesis. It has a survey of inlining techniques and all about how GHC behaves.</li>
+<li>What is an effect system? Apparently <code>mtl</code> is not.</li>
+</ul>
+<p><strong>Activity (MN)</strong>      <em>30/11/2020</em></p>
+<ul>
+<li>Figured out and <a href="http://localhost:1313/benchmarking/benchmarking-profiling/#benchmarking-with-criterion--cabal">wrote up</a> how to work criterion with cabal</li>
+<li>Recorded <a href="../../benchmarking/benchmark-log">benchmarks</a> for differently inlined versions of <code>monad-bayes</code></li>
+</ul>
+<p><strong>Meeting (MN + AZ)</strong>      <em>27/11/2020</em></p>
+<ul>
+<li>Research hypothesis currently would be that all of this inlining results in a faster library. Need to go back and benchmark &amp; record timings for each optimisation change on <code>monad-bayes</code> when looking at core to see whether things have actually improved. Benchmark program will be PMMH inference on a HMM.</li>
+<li>Need to create a handrolled version of <code>monad-bayes</code> (w.r.t its inference transformers), and also continue inlining to see how fast we can get the current version of <code>monad-bayes</code>. If the inlined version can reach the speed of the handrolled version, then it is sufficiently fast.</li>
+<li>Why has GHC not inlined certain definitions automatically? Need to write up on how the GHC inliner works, and get a good understanding of inlining.</li>
+<li>There&rsquo;s a discussion to be had about how this style of doing things is bad - if your program is not reaching the desired performance and it&rsquo;s not obvious as to how to optimise your program, it could be indicative that the compiler is doing something wrong. If such problems need to be solved by looking at core and then simply adding an inline pragma to certain functions, this seems like a pretty sub-optimal way to be writing programs.</li>
+</ul>
+<p><strong>Activity (MN)</strong>     <em>25/11/2020</em></p>
+<ul>
+<li>
+<p>Learning and writing up of a <a href="./../case-study-parsley">small case study</a> on optimising <a href="https://github.com/J-mie6/ParsleyHaskell"><code>Parsley</code></a> using Haskell core.</p>
+</li>
+<li>
+<p>Organized <a href="https://github.com/probabilistic-effects/probabilistic-programming"><code>probabilistic-programming</code></a> repo, and added benchmarking program and folder.</p>
+</li>
+</ul>
+<p><strong>Activity (MN)</strong>     <em>24/11/2020</em></p>
+<ul>
+<li>
+<p>Got out of cabal hell</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">sudo apt-get remove --auto-remove cabal-install
+sudo apt-get purge cabal-install
+</code></pre></div></li>
+<li>
+<p>Installed <code>ghcup</code> which allows me to set versions of <code>ghc</code></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">curl https://gitlab.haskell.org/haskell/ghcup/raw/master/bootstrap-haskell -sSf | sh
+source /home/minh/.ghcup/env
+ghcup upgrade
+. <span style="color:#e6db74">&#34;</span>$HOME<span style="color:#e6db74">/.ghcup/env&#34;</span>
+echo <span style="color:#e6db74">&#39;. $HOME/.ghcup/env&#39;</span> &gt;&gt; <span style="color:#e6db74">&#34;</span>$HOME<span style="color:#e6db74">/.bashrc&#34;</span>
+</code></pre></div></li>
+<li>
+<p>Set up new cabal project for <code>probabilistic-programming</code>, using <code>ghc-8.6.5</code>, containing <code>monad-bayes</code> locally and the original code for HMM simulation and PMMH inference which uses <code>monad-bayes</code> as a non-local build dependency.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">mkdir probabilistic-programming
+cd probabilistic-programming
+cabal init -n --is-executable
+ghcup install 8.6.5
+ghcup set 8.6.5
+</code></pre></div></li>
+<li>
+<p>Added <code>cabal.project</code> file with <code>optimization:2</code> flag to project.</p>
+</li>
+<li>
+<p>Performed some <a href="../../approaches/inlining-monad-bayes">analysis and optimisations</a> on the dumped core of <code>monad-bayes</code>, specifically with <code>Population.hs</code> and <code>Weighted.hs</code>.</p>
+</li>
+</ul>
+<p><strong>Meeting (MN + SF + MW + WZ)</strong>     <em>24/11/2020</em></p>
+<ul>
+<li>A big flaw of <code>monad-bayes</code> is that they are calling references, so inlining will speed this up; for some this is folklore, for others they just aren&rsquo;t aware. This is an topic we should probably try and clarify (pass knowledge on) to people.</li>
+<li>A good idea is to explore how relevant this occurence actually is and see if others have this problem. Software developers can write refutal papers which is uncommon in functional programming. To write these papers the paper to be refuted must either be an important example, or address many less important examples. Hence for such a proposed paper to be written, we should find one important example of this problem, or many small ones.</li>
+</ul>
+<p><strong>Activity (MN)</strong>     <em>23/11/2020</em></p>
+<ul>
+<li>
+<p>Explained issue to JW about being unable to expand definitions for <code>&gt;&gt;=</code> and <code>liftA2</code> in core for <code>monad-bayes</code>, and having trouble cloning and dumping the core of the <code>mtl</code> and <code>transformers</code> libraries locally.</p>
+<p>JW : Being unable to expand out definitions for <code>&gt;&gt;=</code> and <code>liftA2</code> is problematic to begin with - if the dumped core has referenced these functions, then the inliner isn&rsquo;t doing its job. In <a href="https://github.com/J-mie6/ParsleyHaskell"><code>parsley</code></a> which is a cabal project, he has compiled with <code>-O2</code> by placing <code>optimization:2</code> in the <a href="https://github.com/J-mie6/ParsleyHaskell/blob/master/cabal.project"><code>cabal.project</code></a> file, which allows this inlining to occur.</p>
+</li>
+<li>
+<p>As we&rsquo;re using stack, I&rsquo;m currently unable to find how the optimization flag translates into a <code>package.yaml</code> or <code>stack.yaml</code> file (it&rsquo;s definitely not <code>ghc-options: O2</code>). Next step is to figure out cabal, create a cabal project for <a href="https://github.com/probabilistic-effects/probabilistic-programming"><code>probabilistic-programming</code></a>, add the <code>optimization:2</code> option, and inspect if anything has changed in the dumped core.</p>
+</li>
+</ul>
+<p><strong>Meeting (MN + AZ)</strong>     <em>22/11/2020</em></p>
+<ul>
+<li>Looked at core of files <code>Population.hs</code> and <code>Weighted.hs</code> from <code>monad-bayes</code>.</li>
+<li>The two components of interest from the profiling report were:
+<ul>
+<li>
+<p><code>(&gt;&gt;=)</code> from <code>Population.hs</code>, which is essentially how <code>(&gt;&gt;=)</code> works for <code>StateT (Log Double) (ListT m) a)</code> if we ignore the <code>newtype</code> wrappers.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Population</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Population</span> (<span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">ListT</span> m) a)
+  <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadIO</span>, <span style="color:#66d9ef">MonadSample</span>, <span style="color:#66d9ef">MonadCond</span>, <span style="color:#66d9ef">MonadInfer</span>)
+</code></pre></div><p>The version of <code>StateT</code> that <code>monad-bayes</code> uses is from the <code>mtl-2.2.2</code> library.</p>
+<p><img src="https://i.ibb.co/1LJQjTw/dump-core-2-6.png" alt=""></p>
+</li>
+<li>
+<p><code>liftA2</code> and <code>pure</code> from <code>Weighted.hs</code>, which is essentially how <code>liftA2</code> and <code>pure</code> work for <code>StateT (Log Double) m a</code> if we ignore the <code>newtype</code> wrapper.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Weighted</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">StateT</span> (<span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>) m a)
+  <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadIO</span>, <span style="color:#66d9ef">MonadTrans</span>, <span style="color:#66d9ef">MonadSample</span>)
+</code></pre></div><p>The version of <code>ListT</code> that <code>monad-bayes</code> uses if from the <code>transformers-0.5.2.0</code> library (this is deprecated in all later versions).</p>
+<p><img src="https://i.ibb.co/4t4nkY8/dump-core-2-4.png" alt="">
+<img src="https://i.ibb.co/4Y0Hdyp/dump-core-2-5.png" alt=""></p>
+<p>We were unable to expand out the generated core of these, as <code>StateT</code> and <code>ListT</code> belong to libraries external to the stack project. Hence, the next steps were to clone the necessary libraries locally and dump their core.</p>
+</li>
+</ul>
+</li>
+<li>Cloned <code>mtl-2.2.2</code> locally into <a href="https://github.com/probabilistic-effects/probabilistic-programming"><code>probabilistic-programming</code></a> repo. (The local copy of <code>monad-bayes</code> does not yet use the local version of <code>mtl-2.2.2</code>.)
+<img src="https://i.ibb.co/bz1YT6Y/dump-core-2-0.png" alt=""></li>
+<li>Dumped the core of <code>mtl-2.2.2</code>.</li>
+<li>Tried to clone <code>transformers-0.5.2.0</code> locally into <a href="https://github.com/probabilistic-effects/probabilistic-programming"><code>probabilistic-programming</code></a> repo, but ran into &ldquo;duplicate instance declarations&rdquo; error due to the definitions in the local <code>transformers-0.5.2.0</code> package clashing with <code>GHC.Base</code>. Currently unsure how to solve this.
+<img src="https://i.ibb.co/PQbmvjd/dump-core-2-2.png" alt="">
+<img src="https://i.ibb.co/xz0nvJm/dump-core-2-1.png" alt=""></li>
+<li>Discussed/learned about process of handrolling monad transformers in <code>mtl</code>.</li>
+</ul>
+<p><strong>Activity (MN)</strong>     <em>20/11/2020</em></p>
+<ul>
+<li>Added <a href="./literature-review">literature review</a>.</li>
+<li>Cloned <code>monad-bayes</code> as a local package to <a href="https://github.com/probabilistic-effects/probabilistic-programming"><code>probabilistic-programming</code></a> repo and re-organized project.</li>
+<li>Dumped the core of <code>monad-bayes</code>.</li>
+</ul>
+<p><strong>Meeting (MN + MW + RP)</strong>     <em>19/11/2020</em></p>
+<ul>
+<li>It&rsquo;s useful to know if performance improves linearly/asymptotically or remains linear/asymptotic, following the first attempt at optimising <code>monad-bayes</code> e.g. by hand-rolling the inference transformers.</li>
+<li>In response to the question on using <code>Eff</code>, &ldquo;how do we turn this into research, rather than simply an application of a different effect system to an existing library?&rdquo;, we can ask ourselves whether this application is straightforward. If it isn&rsquo;t straightforward, then there&rsquo;s probably a research element in it. It is definitely right to try to use what existing libraries/tools are already there. The suspicion is that, along the way, we will find something within these existing approaches that is worth researching, as there will be some problems to be addressed and changes to be made. Until we have exhausted existing options, it would be wrong to start our own. This would be a requirement from reviewers that we are not reinventing the wheel.</li>
+<li><code>Eff</code> is not a mature library at all - if we were to make progress understanding and using it to reimplement the <code>monad-bayes</code> system in that setting, that would already be building towards some sort of contribution which a lot of interesting stuff is likely to come out of.
+Eventually, it could maybe feed into the evolution of the <code>Eff</code> library, or similarly with <code>monad-bayes</code>. There are two or three different directions we could imagine making progress in: one is a better version of <code>monad-bayes</code> or probabilistic programming in Haskell, another is a better version of <code>Eff</code>.</li>
+<li>The current direction is already definitely research/publishable somewhere, the only question is if it is ICFP etc. We&rsquo;re in a good position in the sense that we have quite an ambitious goal in mind and we have a plan with multiple paths of achieving that, but we haven&rsquo;t arrived yet because we don&rsquo;t know what we&rsquo;ll end up with. It&rsquo;s extremely likely that opportunities (for getting side-tracked onto more concrete research) will appear during this process.</li>
+<li>We have atleast two concrete targets at the moment: 1) Using <code>Eff</code> to reimplement <code>monad-bayes</code> (sounds like a good thing to pursue) 2) Hand-rolling <code>monad-bayes</code> and seeing if there is some kind of asymptotic change in performance, and if there is, then we&rsquo;ve atleast identified the problem there.</li>
+<li>Research almost always starts with a concrete example - once we understand it, then we can see how much we can generalise it.</li>
+<li>It&rsquo;s a good sign that we are taking ideas from multiple sources, and indicates that the work is not straightforward. (Taking an idea from one paper and applying it, is quite worrying, whereas being able to show that we have taken ideas from multiple papers is promising.)</li>
+<li>Good idea to collect a literature review around <code>probabilistic-effects</code> in order to have a more concrete mind-map of research directions, and organize them around how they might contribute to our research going forward.</li>
+</ul>
+<p><strong>Meeting (MN + AZ)</strong>     <em>19/11/2020</em></p>
+<p>To do in preparation for work session on Sunday (22/11/2020):</p>
+<ul>
+<li>Clone <code>monad-bayes</code> and link it as a local library by placing it in the same stack project/folder as <code>probalistic-programming</code>. Then dump the core code for it.</li>
+<li>Read and write up <a href="https://wiki.haskell.org/Performance/GHC#Looking_at_the_Core">tutorials</a> on core + get a gist of existing resources around optimising Haskell and what remains unexplored/unwritten about.</li>
+<li>Familiarise ourselves with hand-rolling monad transformers.</li>
+</ul>
+<p><strong>Debugging - Getting dump-core to work (AZ + MN)</strong>     <em>16/11/2020</em></p>
+<ul>
+<li>
+<p>Adding the ghc-option and dependencies for <code>dump-core</code> in <code>package.yaml</code> gives us the following error:</p>
+<p><img src="https://i.ibb.co/dks5SZ8/dump-core-1.png" alt=""></p>
+</li>
+<li>
+<p>From this, adding the extra dependency <code>dump-core-0.1.3.2</code> in <code>stack.yaml</code> gives us the below error. This is a resolver error i.e. stack can not resolve the constraints of the packages. Stack works by collecting bunches of packages that work together and calls them an lts (long-time-support). The constraint is generated by <code>dump-core</code>, which says that the version of <code>base</code> that our stack project uses does not match the version of <code>base</code> that <code>dump-core</code> uses, i.e. we need a version of <code>base</code> from <code>&gt;=4.9 &amp; &lt; 4.13</code>, and the most recent version satisfying this constraint is <code>4.12.0</code>.</p>
+<p><img src="https://i.ibb.co/S70dkJs/dump-core-3.png" alt=""></p>
+</li>
+<li>
+<p>Looking at the various <code>lts</code> versions, the resolver version <code>lts-14.1</code> supports <code>base</code> version <code>4.12.0</code>, which uses <code>GHC</code> version <code>8.6.5</code>.</p>
+<p><img src="https://i.ibb.co/5Y2L4sV/dump-core-5.png" alt=""></p>
+</li>
+<li>
+<p>Setting <code>resolver</code> to <code>lts-14.1</code> then gives the following extra dependency error:</p>
+<p><img src="https://i.ibb.co/tpdc1x6/dump-core-6.png" alt=""></p>
+</li>
+<li>
+<p>Introducing these extra dependencies then finally solves the problem:</p>
+<p><img src="https://i.ibb.co/54696LK/dump-core-4.png" alt=""></p>
+</li>
+<li>
+<p>Running <code>stack build</code> now generates a folder called <code>dump-core</code>, containing <code>html</code> files for visualisations of the core Haskell code generated from our program.</p>
+<p><img src="https://i.ibb.co/9sqQwzG/dump-core-7.png" alt=""></p>
+</li>
+</ul>
+<p><strong>Debugging - Getting dump-core to generate the desired files (MN)</strong>     <em>18/11/2020</em></p>
+<ul>
+<li>
+<p>Given the below configuration of <code>package.yaml</code>, cabal does not generate any executables for the <code>library</code> fields, so running <code>stack build</code> with <code>dump-core</code> will unhelpfully generate a <code>Paths_&lt;package_name&gt;.html</code> file, part of which represents our code found in the <code>src</code> directory.</p>
+<p><img src="https://i.ibb.co/DGFsDPT/dump-core-1-0.png" alt=""></p>
+</li>
+<li>
+<p>In order to generate core for desired files in directory <code>src</code>, we need to either:</p>
+<ol>
+<li>Move <code>Main.hs</code> to <code>src</code> and change the <code>source-dirs</code> field under <code>executables</code> from <code>app</code> to <code>src</code></li>
+<li>Add <code>src</code> to the <code>source-dirs</code> field under <code>executables</code>, and add the <code>dependencies</code> under <code>library</code> to the <code>dependencies</code> under <code>executables</code>.
+The second option is shown below:</li>
+</ol>
+<p><img src="https://i.ibb.co/D16HmRt/dump-core-1-1.png" alt=""></p>
+</li>
+</ul>
+<p><strong>Meeting (MN + AZ + JW)</strong>     <em>13/11/2020</em></p>
+<p>Following the previous meeting, this was an extremely helpful discussion (with JW) about how to proceed given the profiler report. Content from this meeting is fully elaborated on <a href="./../../benchmarking/haskell-core">here</a>.
+Briefly summarised, we were introduced to:</p>
+<ul>
+<li>The ghc-option/dependency <code>dump-core</code> as a means of finding out what core Haskell code is generated from surface-level Haskell code</li>
+<li>How to understand various core-level syntax</li>
+<li>The general workflow needed when investigating/identifying inefficiencies in programs</li>
+<li>Common problematic fragments of code to look out for in the core program.</li>
+</ul>
+<p>Thoughts:</p>
+<ul>
+<li>There is definitely a place for a good tutorial paper on how to do all of this (understanding Haskell core, the relationship between surface-level code and core, and identifying possible optimisations). If we pay strong attention to what we do in the next few weeks and write up our process, this would be a good contribution towards the general question of how to optimise a Haskell program. What we&rsquo;re about to do is what a lot of people do without any resources. A quick outline of such a paper would be to: 1) emphasize the process of profiling your code dumping the core of the highly used functions, and 2) distill what it is one should looking out for in the core. This could be a good Haskell symposium paper.</li>
+</ul>
+<p>From this, our next targets are:</p>
+<ul>
+<li>Compile <code>monad-bayes</code> with the <code>dump-core</code> plugin on, and invest time in figuring out where performance issues lie in the core code.</li>
+<li>Writing the hand-rolled versions of instances for all the inference transformers of <code>monad-bayes</code> (there&rsquo;s an incomplete page <a href="./../../background/performance-w-monads">here</a> on unrolling monad transformers), and compare the core for both the hand-rolled version and the <code>monad-bayes</code> library itself, and identify what is slow.</li>
+<li>Look for some resources (e.g. tutorials or talks) on understanding core.</li>
+<li>To record/write up our workflow and stream of consciousness as we progress on understanding how to optimise <code>monad-bayes</code> by using core.</li>
+<li>Have a work session during weekend on 21/11/2020</li>
+</ul>
+<p><strong>Meeting (MN + AZ)</strong>     <em>12/11/2020</em></p>
+<p>Analysing profile report on PMMH inference for a HMM:</p>
+<p><img src="https://i.ibb.co/6mv24Cp/pmmh-prof.png" alt=""></p>
+<p>The key points of interest are:</p>
+<ul>
+<li>
+<p>The <code>(&gt;&gt;=)</code> operation which occurs in <code>Population.hs</code>, accounting for 35% of the total runtime. The source line responsible for this is found in the typeclass derivations of the <code>Population</code> newtype, namely the deriving of the <code>Monad</code> class.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | A collection of weighted samples, or particles.</span>
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Population</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Population</span> (<span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">ListT</span> m) a)
+  <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadIO</span>, <span style="color:#66d9ef">MonadSample</span>, <span style="color:#66d9ef">MonadCond</span>, <span style="color:#66d9ef">MonadInfer</span>)
+</code></pre></div></li>
+<li>
+<p>The <code>liftA2</code> operation and the <code>pure</code> operation which both occur in <code>Weighted.hs</code>, accounting for 11.9% and 7.9% of the total runtime respectively. The source line responsible for this is found in the typeclass derivations of the <code>Weighted</code> newtype, namely the deriving of the <code>Applicative</code> class.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Execute the program using the prior distribution, while accumulating likelihood.</span>
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Weighted</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">StateT</span> (<span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>) m a)
+  <span style="color:#75715e">-- StateT is more efficient than WriterT</span>
+  <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadIO</span>, <span style="color:#66d9ef">MonadTrans</span>, <span style="color:#66d9ef">MonadSample</span>)
+</code></pre></div></li>
+</ul>
+<p>These overheads are associated with the inference representations/transformer stack which <code>monad-bayes</code> uses, as opposed to time spent on numerical computation such as with the <code>bernoulli</code> function.</p>
+<p>This prompts the questions:</p>
+<ul>
+<li>What definitions of <code>(&gt;&gt;=)</code>, <code>liftA2</code>, and <code>pure</code> are generated as a result of using <code>deriving</code>, and why are these inefficient for our case?</li>
+</ul>
+<p><strong>• Discussion following conversation with NW (MH + AZ)</strong>     <em>11/11/2020</em></p>
+<ul>
+<li>
+<p>That <a href="https://dl.acm.org/doi/pdf/10.1145/3408975">link</a> looks more like actually writing an effect system, not using an existing one. There is a slight reticence to get involved in actually creating effect systems. However that direction may potentially be a good place to go in the future; a natural path after using all of these effect systems (of interest) would probably be developing an effect system. AZ not particularly interested in this at the moment, but could be for MN.</p>
+</li>
+<li>
+<p>Fusion for free with staging seems like a pretty obviously successful idea. AZ has a vague intuition for how that might work, but not confident enough to see the path forward there (w.r.t what NW is working on - not related to probabilistic-effects)</p>
+</li>
+<li>
+<p>Intuition is that fusion for free is relevant to probabilistic-effects, but Alexis King&rsquo;s Eff library is the best bet.</p>
+</li>
+<li>
+<p>With respect to MW&rsquo;s suggestion on a restricted calculus, this needs some thought, but is likely a good/possible direction.</p>
+</li>
+<li>
+<p>The <code>Eff</code> library exists as a fork of GHC - we can just use that fork with the patch and the library. <code>Eff</code> is quite early stage but it looks stable enough for us to use. This is a probably the best starting point. We also have the <code>monad-bayes</code> the library so it shouldn&rsquo;t be a huge step re-implementing, and if it works, it would obviously be the best suggestion. Why rewrite everything in a complex way when you can just move to the same system but better?</p>
+</li>
+<li>
+<p>One of the next best (computationally-related) goals would be to work out how to get Alexis King&rsquo;s patch and library working. This looks like the patch branch: <a href="https://github.com/lexi-lambda/ghc-proposals/tree/delimited-continuation-primops">https://github.com/lexi-lambda/ghc-proposals/tree/delimited-continuation-primops</a></p>
+</li>
+<li>
+<p>How do we turn this into research, rather than simply an application of a different effect system to an existing library?</p>
+</li>
+<li>
+<p>The research aspect would be comparing the different methods in my opinion. If we&rsquo;re looking for new <em>things</em>, then maybe the stuff NW is working on? It is possible that <em>just</em> staging it or <em>just</em> using codensity/fusion stuff would count as novel research, given that JW has a paper on staging parsley. Additionally, we believe that case studies/methodology papers like &ldquo;how to optimise something built on an effect system&rdquo; are important research, however sometimes academia can be a bit snooty.</p>
+</li>
+<li>
+<p>If we think a case study methodology is too risky (out of a fear of some kind of lack of appreciation) maybe just staging or doing fusion would be best as that would be novel. Staging is just more involved and would require more novel insight / the path is less charted, whereas <code>eff</code> would likely be easier to reimplement <code>monad-bayes</code> with essentially. If we feel more inclined to take a case study approach initially, going to <code>eff</code> would be the best first move. Either option is plausible, but we&rsquo;ll end up doing <code>eff</code> either way as it&rsquo;s the best bet to actually make it faster.
+Additionally, we&rsquo;ll be able to reach a milestone faster and feel a bit better about taking other approaches.</p>
+</li>
+<li>
+<p>Optimistically, we could get the <code>eff</code> content done by the end of the year or early January.</p>
+</li>
+</ul>
+<p><strong>• Slack (MN + NW)</strong>     <em>11/11/2020</em></p>
+<ul>
+<li>Touched base with NW on project status:
+<ul>
+<li>Current idea is take the monad-bayes (which is a slow probabilistic programming library in Haskell) and implement a similar idea using different effect systems to understand what happens and why to the performance - hopefully something interesting will come out of it
+&amp; asked about staging on optimising effect systems (as a potential direction for improving monad-bayes).</li>
+<li>Sounds promising</li>
+</ul>
+</li>
+<li>Asked about existing papers/resources about using staging to optimise effect systems in general (with the intention to apply as a possible direction towards improving monad-bayes)
+<ul>
+<li>NW is working on such a paper; it is most likely a natural combination of the work on staging with MP and the Fusion for Free work.</li>
+</ul>
+</li>
+<li>Need to set up meeting with NW when a valuable discussion is to be had about the current state of the project. We are still currently invested in reading.</li>
+<li>Suggested related paper: <a href="https://dl.acm.org/doi/pdf/10.1145/3408975">https://dl.acm.org/doi/pdf/10.1145/3408975</a></li>
+</ul>
+<p><strong>• Slack (MN + JW)</strong>     <em>11/11/2020</em></p>
+<ul>
+<li>
+<p>Does there exist a good paper/resource on how staging can be used to optimise effect systems in general?</p>
+</li>
+<li>
+<p>Nope, it hasn&rsquo;t been done in general yet - there are people (NW) working on this. Additionally, the staged SOP and the Parsley paper both provide meaningful nuggets about how to use staging for optimisation.</p>
+</li>
+</ul>
+<p><strong>• Scrum Meeting 2 (MW + SF + MN)</strong>     <em>10/11/2020</em></p>
+<ul>
+<li>
+<p>Meeting with AZ</p>
+</li>
+<li>
+<p>Visualiser set up for the profiling info</p>
+</li>
+<li>
+<p>Reading up on three different effect system optimisation approaches inc:</p>
+<ul>
+<li>Alexis King - delimited continuations and the Cont monad.</li>
+<li>Codensity transformations (Csongor used this in his generic deriving paper)</li>
+<li>Staging (perhaps see JW&rsquo;s staged parser combinator paper)</li>
+<li>Tagless final style
+<ul>
+<li>SF has read this paper. Here are their notes:
+Typed tagless final style if a good approach from embedding a DSL Pros: Types are preserved; Efficient; Doesn&rsquo;t get stuck; Can express pattern matching and non-compositional things; Extensible; The heart of this style is adding a type param polymorphism and parameterisation.
+NW: “it is a precursor to algebraic effects”. Tagless final style and algebraic effects are just implementations within a broader field, it would be better to understand the general specification of how to embed properly. Following NW&rsquo;s advice I will now read a few papers that give me a broader insight into the field of algebraic effects, to get the more general view, instead of focusing on a specific implementation.
+Suggested papers: &ldquo;Handlers of Algebraic Effects&rdquo;, &ldquo;Programming and Reasoning with Algebraic Effects and Effect Handlers&rdquo;, &ldquo;From Theory to Practice of Algebraic Effects and Handlers&rdquo; (SF started reading the first, but found it a bit hard due to lack of knowledge in that area).</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Plan = Current direction is to implement using three different effect system approaches and then evaluate; hopefully something interesting will come out of this.</p>
+</li>
+<li>
+<p>Suggestion (MW): Just use a minimal calculus for experiments, and then have Monad Bayes as the big example.</p>
+</li>
+<li>
+<p>Suggestion (MW): Evaluate whether the embedding of Monad Bayes' DSL is shallow/deep and how this affects performance; shallow embeddings are naturally less efficient than deep embeddings.</p>
+</li>
+<li>
+<p>Weekly meetings set up between MN &amp; AZ to keep discussions and progress churning. Currently reading with purpose and writing up notes, while also doing some coding/profiling and discussing each week. progressing well.</p>
+</li>
+</ul>
+<p><strong>• Scrum Meeting 1 (MW + SF + MN)</strong>     <em>03/11/2020</em></p>
+<ul>
+<li>
+<p>Can the inference monad transformer stack of a program be inferred/fixed at compile time?</p>
+</li>
+<li>
+<p>Identifying smaller goals and intermediate research ideas and what is valuable to do:</p>
+<ul>
+<li>What&rsquo;s the line between papers and a very good blog post? (new things are papers)</li>
+<li>How can research/observations across monad-bayes be generalised?</li>
+<li>It is possible to do an empirical evaluation and target software dev audiences</li>
+<li>Programming languages field lacks proper evaluations; it is possible to question existing &ldquo;folklore&rdquo; with new observed results&quot;</li>
+<li>It is important to know what the benchmarking tool can and can&rsquo;t do - when experimenting we must always ask what can the tool do for me. Goal is guided by what you can measure.</li>
+</ul>
 </li>
 </ul>
 <div class="edit-meta">

@@ -35,7 +35,7 @@ The definition of the core language of GHC is given below - all source programs 
 data Expr b = Var Id | Lit Literal | App (Expr b) (Arg b) | Lam b (Expr b) | Let (Bind b) (Expr b) | Case (Expr b) b Type [Alt b] | Cast (Expr b) Coercion | Tick (Tickish Id) (Expr b) | Type Type | Coercion Coercion type Arg b = Expr b type Alt b = (AltCon, [b], Expr b) data AltCon = DataAlt DataCon | LitAlt Literal | DEFAULT data Bind b = NonRec b (Expr b) | Rec [(b, (Expr b))] • Basic Optimisations on Core">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="602">
+<meta itemprop="wordCount" content="632">
 
 
 
@@ -115,7 +115,17 @@ case x of
 </li>
 <li>
 <p><strong>Nested Case</strong>: Collapsing multiple case expressions which scrutinise the same value can result in a simpler core program. In the following example, the nested case expression could have been written as a single case expression with three branches.</p>
-</li>
+<pre><code>case x of
+  'a' → False
+  _   → case x of
+  'b' → False
+  _   → True
+⇝
+case x of
+  'a' → False
+  'b' → False
+  _   → True
+</code></pre></li>
 </ul>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
