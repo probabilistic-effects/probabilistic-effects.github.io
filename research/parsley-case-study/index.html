@@ -155,7 +155,7 @@ Usually we will see something we&rsquo;re unhappy with. In the above case, there
             <span style="color:#f92672">+#</span> o<span style="color:#f92672">#</span> <span style="color:#ae81ff">1</span>
         <span style="color:#66d9ef">in</span>
           <span style="color:#f92672">...</span>
-</code></pre></div><p>We can also make the distinction between lazy and strict values. When we see a <code>let</code>, this is a lazy variable declaration, where a <code>let!</code> signifies a strict variable declaration. We can spot code where values are lazily constructed and determine if that value doesn&rsquo;t actually need to be lazy. For example, the following code is lazy, but we should be able to determine it strictly. In theory, we should be able to find where the creation of <code>ipv</code> is in the surface program and then bang-pattern it, resulting in <code>let</code> becoming <code>let!</code> in the core program.</p>
+</code></pre></div><p>We can also make the distinction between lazy and strict values. When we see a <code>let</code>, this is a lazy variable declaration, whereas a <code>let!</code> signifies a strict variable declaration. We can spot code where values are lazily constructed and determine if that value doesn&rsquo;t actually need to be lazy. For example, the following code is lazy, but we should be able to determine it strictly. In theory, we should be able to find where the creation of <code>ipv</code> is in the surface program and then bang-pattern it, resulting in <code>let</code> becoming <code>let!</code> in the core program.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">  <span style="color:#66d9ef">let</span>
     ipv <span style="color:#f92672">=</span>
       <span style="color:#f92672">+#</span> o<span style="color:#f92672">#</span> <span style="color:#ae81ff">1</span>
@@ -169,7 +169,7 @@ Usually we will see something we&rsquo;re unhappy with. In the above case, there
 <p>If we are trying to determine what is causing slowness in a certain effect system, one thing that could be interesting to inspect is abstraction - if we have a lot of function calls that could have been inlined, or unwrapping and rewrapping of data structures.</p>
 <p>Another thing to look out for is if we certain arguments haven&rsquo;t been unboxed when instead they could have been. Most types in GHC are boxed (values of that type are represented by a pointer to a heap object, e.g. the representation of <code>Int</code> is a two-word heap object). An unboxed type is represented by the value itself, no pointers or heap allocation is involved. These correspond to the &ldquo;raw machine&rdquo; types we would use in C. Most unboxed types end in the character <code>#</code>, e.g. <code>Int#</code>, <code>Double#</code>, <code>Addr#</code>, <code>(#, #)</code>. Similarly, the primitive operations on these types look like, for example, <code>&lt;#</code>, <code>+#</code>, <code>*#</code>.</p>
 <p>To illustrate the consequence of boxed/unboxed types, consider the situation where we have a recursive call which takes an integer as an argument. If this integer had not been unboxed in the core, then the program would box the integer to the call of the recursive function; within the function it will then unbox the integer to do the work on it, and afterwards box up another integer as an argument to the recursive call. This is essentially a looping of unnecessarily boxing up and unboxing values.</p>
-<p>The following code illustrates a recursive loop where the integer argument passed in (<code>#o</code>) is already successfully unboxed:</p>
+<p>The following code illustrates a recursive loop where the integer argument passed in (<code>o#</code>) is already successfully unboxed:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">  <span style="color:#66d9ef">let</span>
     rec
       loop <span style="color:#f92672">=</span>
@@ -244,7 +244,7 @@ Last updated on 13 Nov 2020
 <br>
 Published on 13 Nov 2020
 <br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/research/literature-review/" title="Literature Review"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Literature Review</a>
-<a class="nav nav-next" href="https://probabilistic-effects.github.io/monad-bayes/" title="Monad Bayes">Next - Monad Bayes <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+<a class="nav nav-next" href="https://probabilistic-effects.github.io/research/optimising-core/" title="Optimising Core">Next - Optimising Core <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
 </nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
 </footer>
 </main>
@@ -254,10 +254,10 @@ Published on 13 Nov 2020
 <ul>
 <li class=""><a href="https://probabilistic-effects.github.io/">Home</a></li>
 
-<li class=""><a href="https://probabilistic-effects.github.io/approaches/">Approaches</a>
+<li class=""><a href="https://probabilistic-effects.github.io/activity/">Activity</a>
   
 <ul class="sub-menu">
-<li class=""><a href="https://probabilistic-effects.github.io/approaches/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/activity/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
 </ul>
   
 </li>
@@ -279,6 +279,7 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/research/literature-review/">Literature Review</a></li>
 <li class="active"><a href="https://probabilistic-effects.github.io/research/parsley-case-study/">Case Study: Optimising Parsley</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/optimising-core/">Optimising Core</a></li>
 </ul>
   
 </li>

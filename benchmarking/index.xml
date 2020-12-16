@@ -15,7 +15,7 @@
       <guid>https://probabilistic-effects.github.io/benchmarking/benchmark-log/</guid>
       <description>PMMH Inference on HMM This details the benchmarks for a program using monad-bayes to run PMMH inference on a HMM, whilst tactically adding various {-# INLINE #-} pragmas to functions of the monad-bayes library in response to analysing the Haskell core generated. Each benchmark is the average over 4 iterations.
 Source Program
-main = defaultMain [ bgroup &amp;#34;runPmmh&amp;#34; [ bench &amp;#34;(100, 100, 100)&amp;#34; $ whnfIO $ runPmmh (100, 100, 100) ] ] runPmmh :: (Int, Int, Int) -&amp;gt; IO () runPmmh (n_mhsteps, n_timesteps, n_particles) = do particleWeightings &amp;lt;- inferModel n_mhsteps n_timesteps n_particles print particleWeightings  Original Code   Inline pragma added to pmmh function   Inline pragma added to pmmh &amp;amp; pushEvidence functions   Inline pragma added to pmmh, pushEvidence, &amp;amp; hoist functions   Inline pragma added to pmmh, pushEvidence, hoist, &amp;amp; mhTrans functions  </description>
+main = defaultMain [ bgroup &amp;#34;runPmmh&amp;#34; [ bench &amp;#34;(100, 100, 100)&amp;#34; $ whnfIO $ runPmmh (100, 100, 100) ] ] runPmmh :: (Int, Int, Int) -&amp;gt; IO () runPmmh (n_mhsteps, n_timesteps, n_particles) = do particleWeightings &amp;lt;- inferModel n_mhsteps n_timesteps n_particles print particleWeightings  Original Code   Inline pragma added to pmmh function   Inline pragma added to pmmh &amp;amp; pushEvidence functions   Inline pragma added to pmmh, pushEvidence, &amp;amp; hoist functions   Inline pragma added to pmmh, pushEvidence, hoist, &amp;amp; mhTrans functions   Inline pragma added to pmmh, pushEvidence, hoist, mhTrans, &amp;amp; Traced.</description>
     </item>
     
     <item>

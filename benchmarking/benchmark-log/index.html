@@ -19,7 +19,7 @@
 <meta property="og:title" content="Benchmark Log" />
 <meta property="og:description" content="PMMH Inference on HMM This details the benchmarks for a program using monad-bayes to run PMMH inference on a HMM, whilst tactically adding various {-# INLINE #-} pragmas to functions of the monad-bayes library in response to analysing the Haskell core generated. Each benchmark is the average over 4 iterations.
 Source Program
-main = defaultMain [ bgroup &#34;runPmmh&#34; [ bench &#34;(100, 100, 100)&#34; $ whnfIO $ runPmmh (100, 100, 100) ] ] runPmmh :: (Int, Int, Int) -&gt; IO () runPmmh (n_mhsteps, n_timesteps, n_particles) = do particleWeightings &lt;- inferModel n_mhsteps n_timesteps n_particles print particleWeightings  Original Code   Inline pragma added to pmmh function   Inline pragma added to pmmh &amp; pushEvidence functions   Inline pragma added to pmmh, pushEvidence, &amp; hoist functions   Inline pragma added to pmmh, pushEvidence, hoist, &amp; mhTrans functions  " />
+main = defaultMain [ bgroup &#34;runPmmh&#34; [ bench &#34;(100, 100, 100)&#34; $ whnfIO $ runPmmh (100, 100, 100) ] ] runPmmh :: (Int, Int, Int) -&gt; IO () runPmmh (n_mhsteps, n_timesteps, n_particles) = do particleWeightings &lt;- inferModel n_mhsteps n_timesteps n_particles print particleWeightings  Original Code   Inline pragma added to pmmh function   Inline pragma added to pmmh &amp; pushEvidence functions   Inline pragma added to pmmh, pushEvidence, &amp; hoist functions   Inline pragma added to pmmh, pushEvidence, hoist, &amp; mhTrans functions   Inline pragma added to pmmh, pushEvidence, hoist, mhTrans, &amp; Traced." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://probabilistic-effects.github.io/benchmarking/benchmark-log/" />
 <meta property="article:published_time" content="2020-11-13T14:02:28+00:00" />
@@ -28,14 +28,14 @@ main = defaultMain [ bgroup &#34;runPmmh&#34; [ bench &#34;(100, 100, 100)&#34; 
 <meta name="twitter:title" content="Benchmark Log"/>
 <meta name="twitter:description" content="PMMH Inference on HMM This details the benchmarks for a program using monad-bayes to run PMMH inference on a HMM, whilst tactically adding various {-# INLINE #-} pragmas to functions of the monad-bayes library in response to analysing the Haskell core generated. Each benchmark is the average over 4 iterations.
 Source Program
-main = defaultMain [ bgroup &#34;runPmmh&#34; [ bench &#34;(100, 100, 100)&#34; $ whnfIO $ runPmmh (100, 100, 100) ] ] runPmmh :: (Int, Int, Int) -&gt; IO () runPmmh (n_mhsteps, n_timesteps, n_particles) = do particleWeightings &lt;- inferModel n_mhsteps n_timesteps n_particles print particleWeightings  Original Code   Inline pragma added to pmmh function   Inline pragma added to pmmh &amp; pushEvidence functions   Inline pragma added to pmmh, pushEvidence, &amp; hoist functions   Inline pragma added to pmmh, pushEvidence, hoist, &amp; mhTrans functions  "/>
+main = defaultMain [ bgroup &#34;runPmmh&#34; [ bench &#34;(100, 100, 100)&#34; $ whnfIO $ runPmmh (100, 100, 100) ] ] runPmmh :: (Int, Int, Int) -&gt; IO () runPmmh (n_mhsteps, n_timesteps, n_particles) = do particleWeightings &lt;- inferModel n_mhsteps n_timesteps n_particles print particleWeightings  Original Code   Inline pragma added to pmmh function   Inline pragma added to pmmh &amp; pushEvidence functions   Inline pragma added to pmmh, pushEvidence, &amp; hoist functions   Inline pragma added to pmmh, pushEvidence, hoist, &amp; mhTrans functions   Inline pragma added to pmmh, pushEvidence, hoist, mhTrans, &amp; Traced."/>
 <meta itemprop="name" content="Benchmark Log">
 <meta itemprop="description" content="PMMH Inference on HMM This details the benchmarks for a program using monad-bayes to run PMMH inference on a HMM, whilst tactically adding various {-# INLINE #-} pragmas to functions of the monad-bayes library in response to analysing the Haskell core generated. Each benchmark is the average over 4 iterations.
 Source Program
-main = defaultMain [ bgroup &#34;runPmmh&#34; [ bench &#34;(100, 100, 100)&#34; $ whnfIO $ runPmmh (100, 100, 100) ] ] runPmmh :: (Int, Int, Int) -&gt; IO () runPmmh (n_mhsteps, n_timesteps, n_particles) = do particleWeightings &lt;- inferModel n_mhsteps n_timesteps n_particles print particleWeightings  Original Code   Inline pragma added to pmmh function   Inline pragma added to pmmh &amp; pushEvidence functions   Inline pragma added to pmmh, pushEvidence, &amp; hoist functions   Inline pragma added to pmmh, pushEvidence, hoist, &amp; mhTrans functions  ">
+main = defaultMain [ bgroup &#34;runPmmh&#34; [ bench &#34;(100, 100, 100)&#34; $ whnfIO $ runPmmh (100, 100, 100) ] ] runPmmh :: (Int, Int, Int) -&gt; IO () runPmmh (n_mhsteps, n_timesteps, n_particles) = do particleWeightings &lt;- inferModel n_mhsteps n_timesteps n_particles print particleWeightings  Original Code   Inline pragma added to pmmh function   Inline pragma added to pmmh &amp; pushEvidence functions   Inline pragma added to pmmh, pushEvidence, &amp; hoist functions   Inline pragma added to pmmh, pushEvidence, hoist, &amp; mhTrans functions   Inline pragma added to pmmh, pushEvidence, hoist, mhTrans, &amp; Traced.">
 <meta itemprop="datePublished" content="2020-11-13T14:02:28+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:02:28+00:00" />
-<meta itemprop="wordCount" content="129">
+<meta itemprop="wordCount" content="144">
 
 
 
@@ -78,7 +78,11 @@ main = defaultMain [ bgroup &#34;runPmmh&#34; [ bench &#34;(100, 100, 100)&#34; 
 <ul>
 <li>Inline pragma added to <code>pmmh</code>, <code>pushEvidence</code>, <code>hoist</code>, &amp; <code>mhTrans</code> functions</li>
 </ul>
-<p><img src="https://i.ibb.co/y5GqJ1S/benchmark-pmmh-4.png" alt=""></p>
+<p><img src="https://i.ibb.co/djQtxKF/benchmark-pmmh-4.png" alt=""></p>
+<ul>
+<li>Inline pragma added to <code>pmmh</code>, <code>pushEvidence</code>, <code>hoist</code>, <code>mhTrans</code>, &amp; Traced.Static <code>&gt;&gt;=</code> of the <code>Traced</code> monad</li>
+</ul>
+<p><img src="https://i.ibb.co/XL5qSrK/benchmark-pmmh-5.png" alt=""></p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
@@ -96,10 +100,10 @@ Published on 13 Nov 2020
 <ul>
 <li class=""><a href="https://probabilistic-effects.github.io/">Home</a></li>
 
-<li class=""><a href="https://probabilistic-effects.github.io/approaches/">Approaches</a>
+<li class=""><a href="https://probabilistic-effects.github.io/activity/">Activity</a>
   
 <ul class="sub-menu">
-<li class=""><a href="https://probabilistic-effects.github.io/approaches/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/activity/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
 </ul>
   
 </li>
@@ -121,6 +125,7 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/research/literature-review/">Literature Review</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/research/parsley-case-study/">Case Study: Optimising Parsley</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/optimising-core/">Optimising Core</a></li>
 </ul>
   
 </li>

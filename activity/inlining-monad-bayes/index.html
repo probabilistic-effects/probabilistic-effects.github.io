@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Inlining Monad Bayes - Probabilistic Effects.  λθ</title>
+<meta name="generator" content="Hugo 0.78.2" />
+<link href="https://probabilistic-effects.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="https://probabilistic-effects.github.io/activity/inlining-monad-bayes/">
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="https://probabilistic-effects.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="Inlining Monad Bayes" />
+<meta property="og:description" content="Original profiling report for PMMH inference on a HMM:
+  Analysing the dumped core of Population.hs and Weighted.hs of monad-bayes:
+It turns out that we should expect to see these definitions, however if we use optimization:2, then we should also expect them to not actually be used. This is because GHC generates a lot of garbage that it doesn&rsquo;t seem to want to remove, but when we go to places where they would have been used, we should be able to find that they aren&rsquo;t actually there." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://probabilistic-effects.github.io/activity/inlining-monad-bayes/" />
+<meta property="article:published_time" content="2020-11-13T14:05:41+00:00" />
+<meta property="article:modified_time" content="2020-11-13T14:05:41+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Inlining Monad Bayes"/>
+<meta name="twitter:description" content="Original profiling report for PMMH inference on a HMM:
+  Analysing the dumped core of Population.hs and Weighted.hs of monad-bayes:
+It turns out that we should expect to see these definitions, however if we use optimization:2, then we should also expect them to not actually be used. This is because GHC generates a lot of garbage that it doesn&rsquo;t seem to want to remove, but when we go to places where they would have been used, we should be able to find that they aren&rsquo;t actually there."/>
+<meta itemprop="name" content="Inlining Monad Bayes">
+<meta itemprop="description" content="Original profiling report for PMMH inference on a HMM:
+  Analysing the dumped core of Population.hs and Weighted.hs of monad-bayes:
+It turns out that we should expect to see these definitions, however if we use optimization:2, then we should also expect them to not actually be used. This is because GHC generates a lot of garbage that it doesn&rsquo;t seem to want to remove, but when we go to places where they would have been used, we should be able to find that they aren&rsquo;t actually there.">
+<meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
+<meta itemprop="wordCount" content="544">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>Probabilistic Effects.  λθ</h1>
+</header>
+
+<div class="content-container">
+<main><h1>Inlining Monad Bayes</h1>
+<ul>
+<li>
+<p>Original profiling report for PMMH inference on a HMM:</p>
+<p><img src="https://i.ibb.co/6mv24Cp/pmmh-prof.png" alt=""></p>
+</li>
+<li>
+<p>Analysing the dumped core of <code>Population.hs</code> and <code>Weighted.hs</code> of <code>monad-bayes</code>:</p>
+<p><img src="https://i.ibb.co/RpdvP7G/image-14.png" alt=""></p>
+<p>It turns out that we should expect to see these definitions, however if we use <code>optimization:2</code>, then we should also expect them to not actually be used. This is because GHC generates a lot of garbage that it doesn&rsquo;t seem to want to remove, but when we go to places where they would have been used, we should be able to find that they aren&rsquo;t actually there.</p>
+</li>
+<li>
+<p>Here is <code>scoreModel</code> from <code>PmmhHmm.hs</code> of <code>probabilistic-programming</code>.</p>
+<p><img src="https://i.ibb.co/nPg76CB/image-12.png" alt="">
+<img src="https://i.ibb.co/0VRhHLW/image-11.png" alt=""></p>
+<p>We can see that there aren&rsquo;t any of the abstractions in there; this core looks pretty good, however <code>logProbability</code> is a numerical computation which could be inlined.</p>
+</li>
+<li>
+<p>The hope is that we won&rsquo;t find any <code>&gt;&gt;=</code>s if the optimiser has successfully removed them from the function. If we look at the <code>pmmh</code> function from <code>PMMH.hs</code> of <code>monad-bayes</code>:</p>
+<p><img src="https://i.ibb.co/vwTBtrR/image-9.png" alt="">
+<img src="https://i.ibb.co/hXWdFpv/image-8.png" alt=""></p>
+<p>This function itself won&rsquo;t be able to optimise because it needs a concrete instance of <code>MonadInfer</code>, but this isn&rsquo;t necessarily a problem. What we need to look at is when we <em>use</em> this function with something concrete. So let&rsquo;s look at <code>inferModel</code> from <code>PmmhHmm.hs</code> of <code>probabilistic-programming</code> which uses <code>pmmh</code>; the <code>MonadInfer m</code> concretises to <code>IO</code> because we called <code>sampleIO</code> of <code>monad-bayes</code> on it.</p>
+<p><img src="https://i.ibb.co/Hn11cqs/image-6.png" alt="">
+<img src="https://i.ibb.co/L8sSSFZ/image-5.png" alt=""></p>
+<p>The hope is that the call to <code>pmmh</code> (represented by the green-highlighted <code>lvl</code>) would have been inlined - however this is not the case, as it simply references <code>pmmh</code> from the <code>monad-bayes</code> library, which has <em>not</em> been marked as <code>INLINE</code> or <code>INLINABLE</code>. This means GHC isn&rsquo;t specialising it, so the program still performs dictionary lookups when that code is compiled.</p>
+</li>
+<li>
+<p>The <code>monad-bayes</code> library from <code>hackage</code> was removed as a build dependency, and the local clone of <code>monad-bayes</code> is now used as a dependency instead.</p>
+<p><img src="https://i.ibb.co/QXTPhZ4/dump-core-3-0.png" alt=""></p>
+</li>
+<li>
+<p>The <code>INLINE</code> pragma was added to <code>pmmh</code> of <code>monad-bayes</code>.</p>
+<p><img src="https://i.ibb.co/MZ15RN0/dump-core-3-1.png" alt=""></p>
+<p>Revisiting the <code>inferModel</code> function, we can now see that the call to <code>pmmh</code> (previously represented by <code>lvl</code>) has been inlined with what is now called <code>$w$spmmh</code>.</p>
+<ul>
+<li><code>$w</code> is usually prepended to functions that the compiler has unwrapped some of the arguments for (which eliminates a pattern match).</li>
+<li><code>$s</code> is usually prepended to functions that the compiler has specialised.</li>
+</ul>
+</li>
+<li>
+<p>Let&rsquo;s now visit the new version of <code>pmmh</code>, called <code>$w$spmmh</code>.</p>
+<p><img src="https://i.ibb.co/SQb1B5P/image-3.png" alt=""></p>
+<p>This immediately looks a lot better than before, as it has been specialised and has had its arguments unwrapped. There still exists some possible optimisations. When seeing occurrences of calls such as <code>$s$fMonadStateT_$c&gt;&gt;=</code>, we can see it&rsquo;s being passed to <code>mhTrans</code> - this is concerning and suggests that <code>mhTrans</code> along with other functions in similar situations such as <code>pushEvidence</code> and <code>hoist</code> can be inlined.</p>
+<p>Placing an <code>INLINE</code> pragma on these functions results in the following core, with the previous calls being inlined:</p>
+<p><img src="https://i.ibb.co/HC0Yqj8/image-1.png" alt=""></p>
+<p>Additionally, the <code>$w$c&gt;&gt;=</code> (from <code>Bayes.Traced.Static</code>) at the top is suspicious - it looks like one of the arguments is a monadic value, and so it&rsquo;s forced to use a <code>&gt;&gt;=</code> because it doesn&rsquo;t know what the monadic value is.</p>
+</li>
+<li>
+<p>Let&rsquo;s then inline the definition of <code>&gt;&gt;=</code> for the <code>Traced</code> monad inside <code>Bayes.Traced.Static</code>.</p>
+<p><img src="https://i.ibb.co/JBsjLPB/dump-core-4-0.png" alt=""></p>
+<p>This successfully inlines the call to <code>&gt;&gt;=</code> inside <code>inferModel</code>.</p>
+<p><img src="https://i.ibb.co/ydq7ZZS/dump-core-4-1.png" alt=""></p>
+</li>
+<li>
+<p>There are two references to <code>applyWeight</code> of <code>Weighted.hs</code> and a reference to <code>mh</code> of <code>Traced.Static</code> inside <code>inferModel</code>, so let&rsquo;s inline these. The profiling report now looks like:</p>
+<p><img src="https://i.ibb.co/7bPTdbb/profiling.png" alt=""></p>
+</li>
+</ul>
+<div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/activity/" title="Activity"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Activity</a>
+<a class="nav nav-next" href="https://probabilistic-effects.github.io/papers/" title="Papers">Next - Papers <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<nav class="open-menu">
+<ul>
+<li class=""><a href="https://probabilistic-effects.github.io/">Home</a></li>
+
+<li class="parent"><a href="https://probabilistic-effects.github.io/activity/">Activity</a>
+  
+<ul class="sub-menu">
+<li class="active"><a href="https://probabilistic-effects.github.io/activity/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/papers/">Papers</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/research/">Research</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/research/research-journal/">Research Journal</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/">Potential Approaches to Improving Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/literature-review/">Literature Review</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/parsley-case-study/">Case Study: Optimising Parsley</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/optimising-core/">Optimising Core</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/">Monad Bayes</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/inference-transformers/">Inference Transformers</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/pmmh-hmm/">Implementing HMM Simulation and Inference (using PMMH)</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/conditioning-scoring/">How Conditioning and Scoring Works</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/">Tooling</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/cabal/">Cabal</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/">Benchmarking</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmark-log/">Benchmark Log</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmarking-profiling/">How to Benchmark and Profile</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/monad-bayes-components/">Relevant Components of Monad Bayes for Profiling</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/background/">Background</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/background/staging/">Staging</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/smc-pmmh/">SMC and PMMH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/handrolling/">Handrolling Monad Transformer Stacks</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mtl/">MTL</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mcmc-mh/">MCMC and MH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/markov-chain/">Markov Chains</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/hidden-markov-model/">Hidden Markov Model</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/delimited-continuations/">Delimited Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/haskell-core/">Haskell Core</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
+</ul>
+  
+</li>
+</ul>
+</nav>
+
+
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>

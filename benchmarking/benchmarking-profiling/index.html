@@ -35,7 +35,7 @@ This should be under the test directory, e.g. test/BenchmarkProgram.hs which con
 testPmmh :: Int -&gt; IO () testPmmh nsteps = do observedStates &lt;- generateData initLatentState initParams nsteps print observedStates   The program that calls the profiling functions should ideally be test/Spec.">
 <meta itemprop="datePublished" content="2020-11-13T14:02:28+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:02:28+00:00" />
-<meta itemprop="wordCount" content="2072">
+<meta itemprop="wordCount" content="2090">
 
 
 
@@ -211,7 +211,7 @@ testPmmh :: Int -&gt; IO () testPmmh nsteps = do observedStates &lt;- generateDa
 </ul>
 <p>The <strong>lower</strong> and <strong>upper bounds</strong> measure the accuracy of the main estimate (using a statistical technique called bootstrapping) - this tells us that when randomly resampling the data, 95% of estimates fall within the lower and upper bounds. Having lower and upper bounds which are close to the main estimate indicates that the main estimate is of good quality.</p>
 <hr>
-<h2 id="profiling">Profiling</h2>
+<h2 id="profiling-with-stack">Profiling with Stack</h2>
 <ol>
 <li>
 <p>To run profiling while performing these benchmarks, run:</p>
@@ -226,6 +226,10 @@ stack exec --profile -- my-exe +RTS &lt;profiling options&gt;
 </code></pre></li>
 </ol>
 <p>The GHC system compiles the code and the links it with an RTS (runtime system) which handles storage management, thread scheduling, profiling, and so on. The RTS has a lot of options to control its behaviour. To set RTS options, we can declare options on the command line between <code>+RTS ... -RTS</code> when running the program. The most common (and relevant) options are <code>-p</code> which produces a standard time profile report.</p>
+<h2 id="profiling-with-cabal">Profiling with Cabal</h2>
+<p>Run:</p>
+<pre><code>cabal v2-run --enable-profiling my-exe --  +RTS -p
+</code></pre><p>This produces a file <code>my-exe.prof</code>.</p>
 <h3 id="-understanding-profiling-reports">• Understanding Profiling Reports</h3>
 <p>GHC&rsquo;s profiling system assigns costs to cost centres. A cost is the time or space required to evaluate an expression. Cost centres are program annotations around expressions - all costs incurred by the annotated expression are assigned to the enclosing cost centre.</p>
 <pre><code>        total time  =        0.14 secs   (7 ticks @ 20 ms)
@@ -308,10 +312,10 @@ Published on 13 Nov 2020
 <ul>
 <li class=""><a href="https://probabilistic-effects.github.io/">Home</a></li>
 
-<li class=""><a href="https://probabilistic-effects.github.io/approaches/">Approaches</a>
+<li class=""><a href="https://probabilistic-effects.github.io/activity/">Activity</a>
   
 <ul class="sub-menu">
-<li class=""><a href="https://probabilistic-effects.github.io/approaches/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/activity/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
 </ul>
   
 </li>
@@ -333,6 +337,7 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/research/literature-review/">Literature Review</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/research/parsley-case-study/">Case Study: Optimising Parsley</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/optimising-core/">Optimising Core</a></li>
 </ul>
   
 </li>

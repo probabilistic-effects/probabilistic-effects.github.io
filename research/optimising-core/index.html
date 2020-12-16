@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Optimising Core - Probabilistic Effects.  λθ</title>
+<meta name="generator" content="Hugo 0.78.2" />
+<link href="https://probabilistic-effects.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="https://probabilistic-effects.github.io/research/optimising-core/">
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="https://probabilistic-effects.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="Optimising Core" />
+<meta property="og:description" content="These are some organised notes on optimising core, summarised from other pages.
+1. Workflow Usually, if one is confused about something in the core, it is best to compare it with the original program. This entire process is the general work flow when searching for optimisations by looking at Haskell core:
+ Writing the program Generating the core Analysing the core to see if we are unhappy about how some code has been generated Tweaking the way the code generates so that the ineffiency disappears." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://probabilistic-effects.github.io/research/optimising-core/" />
+<meta property="article:published_time" content="2020-11-13T13:40:41+00:00" />
+<meta property="article:modified_time" content="2020-11-13T13:40:41+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Optimising Core"/>
+<meta name="twitter:description" content="These are some organised notes on optimising core, summarised from other pages.
+1. Workflow Usually, if one is confused about something in the core, it is best to compare it with the original program. This entire process is the general work flow when searching for optimisations by looking at Haskell core:
+ Writing the program Generating the core Analysing the core to see if we are unhappy about how some code has been generated Tweaking the way the code generates so that the ineffiency disappears."/>
+<meta itemprop="name" content="Optimising Core">
+<meta itemprop="description" content="These are some organised notes on optimising core, summarised from other pages.
+1. Workflow Usually, if one is confused about something in the core, it is best to compare it with the original program. This entire process is the general work flow when searching for optimisations by looking at Haskell core:
+ Writing the program Generating the core Analysing the core to see if we are unhappy about how some code has been generated Tweaking the way the code generates so that the ineffiency disappears.">
+<meta itemprop="datePublished" content="2020-11-13T13:40:41+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T13:40:41+00:00" />
+<meta itemprop="wordCount" content="2596">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>Probabilistic Effects.  λθ</h1>
+</header>
+
+<div class="content-container">
+<main><h1>Optimising Core</h1>
+<p>These are some organised notes on optimising core, summarised from other pages.</p>
+<h4 id="1-workflow">1. Workflow</h4>
+<p>Usually, if one is confused about something in the core, it is best to compare it with the original program. This entire process is the general work flow when searching for optimisations by looking at Haskell core:</p>
+<ul>
+<li>Writing the program</li>
+<li>Generating the core</li>
+<li>Analysing the core to see if we are unhappy about how some code has been generated</li>
+<li>Tweaking the way the code generates so that the ineffiency disappears. (If we are using staging, this means changing the code from the staging point-of-view.)</li>
+<li>It is generally a good idea to benchmark to verify that a optimisation change from looking at the core has improved run-time, however it can be counter-productive because we may need to make a few changes before we can see the benefits. The danger is that we can make a change which results in a better-looking core, but the performance is worse, and then we roll back the change even though we need to continue to do something else to make the entire thing work. The reason we inline things is to expose optimisations &ndash; inlining per se does not necessarily result in better performance.</li>
+</ul>
+<p>The relationship between the profiling information and the core, is more obvious than the relationship between the profiling information and the original code. We can use the profiler to guide us to the parts of the core that we want to look at.</p>
+<h4 id="2-common-syntax">2. Common Syntax</h4>
+<ul>
+<li>
+<p><code>!</code>, or bang patterns, indicate strict evaluation. When we see a <code>let</code>, this is a lazy variable declaration, whereas a <code>let!</code> signifies a strict variable declaration.</p>
+</li>
+<li>
+<p><code>$w</code> is usually prepended to functions that the compiler has unwrapped some of the arguments for (which eliminates a pattern match).</p>
+</li>
+<li>
+<p><code>$s</code> is usually prepended to functions that the compiler has specialised.</p>
+</li>
+<li>
+<p><code>#</code> indicates an unboxed type. Most unboxed types end in the character <code>#</code>, e.g. <code>Int#</code>, <code>Double#</code>, <code>Addr#</code>, <code>(#, #)</code>. Similarly, the primitive operations on these types look like, for example, <code>&lt;#</code>, <code>+#</code>, <code>*#</code>.</p>
+</li>
+</ul>
+<h4 id="3-pragmas">3. Pragmas</h4>
+<ul>
+<li><code>INLINE</code> : This is the most well-known and dangerous way of controlling inlining. By annotating a function with <code>INLINE</code> you inform the compiler to always inline the function regardless of its size or calling context. Not only does the <code>INLINE</code> pragma force the function to be inlined at every call site, it also changes what is inlined. If a function is inlined naturally then the optimised unfolding will be used to replace the function name. With the pragma, instead the unoptimised unfolding is used which amounts to an unoptimised version of the user-written right-hand side of the function being inserted directly.</li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li><code>INLINABLE</code> : This pragma is far more benign than <code>INLINE</code>. Instead of
+influencing the inlining decision from the call site, the pragma only overrides the <code>-funfolding-creation-threshold</code> option and makes sure the unfolding for a definition is included in the interface file. Like the <code>INLINE</code> pragma, it is the unoptimised definition which is included. Despite its name, the pragma is mainly used for ensuring the definition of recursive functions is made available in interface files so that they can be specialised across modules.</li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li><code>NOINLINE</code> : There is also the instruction <code>NOINLINE</code> which indicates that a function should never be inlined (the usual reason for using <code>NOINLINE</code> is in conjunction with (rewrite) <code>RULES</code> pragmas).</li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li>
+<p><code>UNPACK</code> : The UNPACK indicates to the compiler that it should unpack the contents of a constructor field into the constructor itself, removing a level of indirection. It says that we don&rsquo;t care about the constructor that wraps the arguments. This can only be done for data types with one constructor. For example:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">T</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">T</span> <span style="color:#75715e">{-# UNPACK #-}</span> <span style="color:#f92672">!</span><span style="color:#66d9ef">Float</span>
+           <span style="color:#75715e">{-# UNPACK #-}</span> <span style="color:#f92672">!</span><span style="color:#66d9ef">Float</span>
+</code></pre></div><p>will create a constructor <code>T</code> containing two unboxed floats. This may not always be an optimisation: if the <code>T</code> constructor is scrutinised and the floats passed to a non-strict function for example, they will have to be reboxed (this is done automatically by the compiler).</p>
+<p>This is good for flattening a nesting of data types.</p>
+</li>
+</ul>
+<h4 id="4-things-to-look-out-for">4. Things to look out for</h4>
+<ul>
+<li><strong>Random case statements</strong></li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li>
+<p><strong>Duplication of code</strong> (such as within a let-binding where a variable is created twice with the exact same definition)</p>
+<p>For example, the function <code>manyTest</code> is supposed to take a sequence of alternating a’s and b’s and roll them all up:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">manyTest</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Parser</span> [<span style="color:#66d9ef">Char</span>]
+<span style="color:#a6e22e">manyTest</span> <span style="color:#f92672">=</span> many (string <span style="color:#e6db74">&#34;ab&#34;</span> <span style="color:#f92672">$&gt;</span> (code <span style="color:#e6db74">&#39;c&#39;</span>))
+</code></pre></div><p>In the generated core, one of the problems we can observe is that a particular function called <code>exit</code> is created twice:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">  λs1 <span style="color:#f92672">-&gt;</span>
+    <span style="color:#f92672">...</span>
+    <span style="color:#66d9ef">let</span>
+      exit <span style="color:#f92672">=</span>
+        λo<span style="color:#f92672">#</span> eta ipv <span style="color:#f92672">-&gt;</span>
+          <span style="color:#66d9ef">case</span> <span style="color:#f92672">==#</span> o<span style="color:#f92672">#</span> ipv <span style="color:#66d9ef">of</span>
+            <span style="color:#66d9ef">DEFAULT</span> <span style="color:#f92672">-&gt;</span>
+              (<span style="color:#f92672">#</span>, <span style="color:#f92672">#</span>) eta <span style="color:#66d9ef">Nothing</span>
+            <span style="color:#ae81ff">1</span> <span style="color:#f92672">-&gt;</span>
+              <span style="color:#66d9ef">let</span><span style="color:#f92672">!</span> (<span style="color:#f92672">#</span>, <span style="color:#f92672">#</span>) ipv ipv1 <span style="color:#f92672">=</span> readMutVar<span style="color:#f92672">#</span> ipv1 eta <span style="color:#66d9ef">in</span>
+              (<span style="color:#f92672">#</span>, <span style="color:#f92672">#</span>) ipv (<span style="color:#66d9ef">Just</span> (ipv1 <span style="color:#66d9ef">[]</span>))
+      exit <span style="color:#f92672">=</span>
+        λo<span style="color:#f92672">#</span> eta ipv <span style="color:#f92672">-&gt;</span>
+          <span style="color:#66d9ef">case</span> <span style="color:#f92672">==#</span> o<span style="color:#f92672">#</span> ipv <span style="color:#66d9ef">of</span>
+            <span style="color:#66d9ef">DEFAULT</span> <span style="color:#f92672">-&gt;</span>
+              (<span style="color:#f92672">#</span>, <span style="color:#f92672">#</span>) eta <span style="color:#66d9ef">Nothing</span>
+            <span style="color:#ae81ff">1</span> <span style="color:#f92672">-&gt;</span>
+              <span style="color:#66d9ef">let</span><span style="color:#f92672">!</span> (<span style="color:#f92672">#</span>, <span style="color:#f92672">#</span>) ipv ipv1 <span style="color:#f92672">=</span> readMutVar<span style="color:#f92672">#</span> ipv1 eta <span style="color:#66d9ef">in</span>
+              (<span style="color:#f92672">#</span>, <span style="color:#f92672">#</span>) ipv (<span style="color:#66d9ef">Just</span> (ipv1 <span style="color:#66d9ef">[]</span>))
+</code></pre></div><p>The question becomes &ldquo;why has the compiler not worked out that these are the same functions, and duplicated it when it didn&rsquo;t need to?&rdquo;. In the body of the <code>let</code> statement of the core version, we can observe where <code>exit</code> is used - it tells us that the program checks if there is enough input, and if so, is that input the character &lsquo;b&rsquo;. So we expect the call of <code>exit</code> to be somewhere where we read characters.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">in</span>
+  <span style="color:#66d9ef">let</span> <span style="color:#f92672">...</span>
+  <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;#</span> ipv dt <span style="color:#66d9ef">of</span>
+        <span style="color:#66d9ef">DEFAULT</span> <span style="color:#f92672">-&gt;</span>
+          exit o<span style="color:#f92672">#</span> eta ipv
+        <span style="color:#ae81ff">1</span> <span style="color:#f92672">-&gt;</span>
+          <span style="color:#66d9ef">case</span> indexWideCharArray<span style="color:#f92672">#</span> input<span style="color:#f92672">#</span> ipv <span style="color:#66d9ef">of</span>
+            <span style="color:#66d9ef">DEFAULT</span> <span style="color:#f92672">-&gt;</span>
+              exit o<span style="color:#f92672">#</span> eta ipv
+            <span style="color:#e6db74">&#39;b&#39;</span> <span style="color:#f92672">-&gt;</span>
+              <span style="color:#f92672">...</span>
+</code></pre></div><p>These  <code>exit</code> variables would have been defined in our original code somewhere. In this case, we can see the two different functions <code>sat</code> and <code>emitLengthCheck</code> both use the expression <code>$$bad</code> which represents the <code>exit</code> variable.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">sat</span> <span style="color:#f92672">...</span> <span style="color:#f92672">=</span>
+  <span style="color:#f92672">...</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">...</span> <span style="color:#66d9ef">then</span> <span style="color:#f92672">...</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">$$</span>bad
+
+<span style="color:#a6e22e">emitLengthCheck</span> <span style="color:#f92672">...</span> <span style="color:#f92672">=</span>
+  <span style="color:#f92672">...</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">...</span> <span style="color:#66d9ef">then</span> <span style="color:#f92672">...</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">$$</span>bad
+</code></pre></div><p>We fail in the case in which we don&rsquo;t have enough input, and we fail in the case where the character doesn&rsquo;t match. So we ask why these <code>exit</code> variables are two different values, when they could have been the same one - these calls to <code>$$bad</code> should really come from the same place. The question then becomes: &ldquo;how do we work out where they came from, and how do we trace them back to their common source?&rdquo;.</p>
+<p>We can find that in some function <code>evalSat</code>, that we&rsquo;ve defined a function <code>maybeEmitCheck</code> that defines the <code>bad</code> variable in a <code>let</code> statement, and uses it twice in its body.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">evalSat</span> <span style="color:#f92672">..</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+  <span style="color:#f92672">...</span>
+  <span style="color:#66d9ef">where</span>
+    maybeEmitCheck <span style="color:#f92672">...</span> <span style="color:#f92672">=</span>
+      [<span style="color:#f92672">||</span> <span style="color:#66d9ef">let</span> bad <span style="color:#f92672">=</span> <span style="color:#f92672">$$</span>(raise y)
+          <span style="color:#66d9ef">in</span> <span style="color:#f92672">$$</span>(emitLengthCheck n (sat (genDefunc p) mk [<span style="color:#f92672">||</span>bad<span style="color:#f92672">||</span>]) [<span style="color:#f92672">||</span>bad<span style="color:#f92672">||</span>] y)
+      <span style="color:#f92672">||</span>]
+</code></pre></div><p>The first usage of <code>bad</code> is the one that gets passed to <code>sat</code>, and the second usage is the one that gets passed to <code>emitLengthCheck</code>. We can correspond this to the previous core code: the first <code>exit</code> corresponds to the <code>bad</code> passed to <code>emitLengthCheck</code>, and the second <code>exit</code> corresponds to the <code>bad</code> passed to <code>sat</code>. In this case, we don&rsquo;t currently know why GHC has chosen to define <code>exit</code> twice.</p>
+</li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li>
+<p><strong>Situations where certain operations can be factored out</strong></p>
+<p>For example, the function <code>manyTest</code> is supposed to take a sequence of alternating a’s and b’s and roll them all up:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">manyTest</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Parser</span> [<span style="color:#66d9ef">Char</span>]
+<span style="color:#a6e22e">manyTest</span> <span style="color:#f92672">=</span> many (string <span style="color:#e6db74">&#34;ab&#34;</span> <span style="color:#f92672">$&gt;</span> (code <span style="color:#e6db74">&#39;c&#39;</span>))
+</code></pre></div><p>In the generated core, we could ask: can these length checks &lt;# o# dt and &lt;# ipv dt be factored out, and why is it doing these twice?</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">λo</span><span style="color:#f92672">#</span> eta <span style="color:#f92672">-&gt;</span>
+  <span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;#</span> o<span style="color:#f92672">#</span> dt <span style="color:#66d9ef">of</span>
+    <span style="color:#66d9ef">DEFAULT</span> <span style="color:#f92672">-&gt;</span>
+      exit eta
+    <span style="color:#ae81ff">1</span> <span style="color:#f92672">-&gt;</span>
+      <span style="color:#f92672">...</span>
+      <span style="color:#66d9ef">let</span>
+        ipv <span style="color:#f92672">=</span>
+          <span style="color:#f92672">+#</span> o<span style="color:#f92672">#</span> <span style="color:#ae81ff">1</span>
+      <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;#</span> ipv dt <span style="color:#66d9ef">of</span>
+        <span style="color:#66d9ef">DEFAULT</span> <span style="color:#f92672">-&gt;</span>
+          <span style="color:#f92672">...</span>
+</code></pre></div><p>We can actually fix this by changing the definition of manyTest to:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">manyTest</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Parser</span> [<span style="color:#66d9ef">Char</span>]
+<span style="color:#a6e22e">manyTest</span> <span style="color:#f92672">=</span> many (try (string <span style="color:#e6db74">&#34;ab&#34;</span>) <span style="color:#f92672">$&gt;</span> (code <span style="color:#e6db74">&#39;c&#39;</span>))
+</code></pre></div><p>Going back to the core, we can see now that the first length check has been replaced with the second length check i.e. it&rsquo;s been factored out. Because we always want to read an <code>a</code> character followed by a <code>b</code> character, this code will now always check if there are <em>atleast</em> two characters before trying to read any characters at all, rather than reading an <code>a</code> and then failing when there are no further characters.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">  λo<span style="color:#f92672">#</span> eta <span style="color:#f92672">-&gt;</span>
+    <span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;#</span> (<span style="color:#f92672">+#</span> o<span style="color:#f92672">#</span> <span style="color:#ae81ff">1</span>) dt <span style="color:#66d9ef">of</span>
+      <span style="color:#66d9ef">DEFAULT</span> <span style="color:#f92672">-&gt;</span>
+        exit eta
+      <span style="color:#ae81ff">1</span> <span style="color:#f92672">-&gt;</span>
+        <span style="color:#f92672">...</span>
+        <span style="color:#66d9ef">let</span>
+          ipv <span style="color:#f92672">=</span>
+            <span style="color:#f92672">+#</span> o<span style="color:#f92672">#</span> <span style="color:#ae81ff">1</span>
+        <span style="color:#66d9ef">in</span>
+          <span style="color:#f92672">...</span>
+</code></pre></div></li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li>
+<p><strong>Use of strict and lazy values</strong></p>
+<p>When we see a <code>let</code>, this is a lazy variable declaration, whereas a <code>let!</code> signifies a strict variable declaration. We can spot code where values are lazily constructed and determine if that value doesn’t actually need to be lazy. For example, the following code is lazy, but we should be able to determine it strictly:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">  <span style="color:#66d9ef">let</span>
+    ipv <span style="color:#f92672">=</span>
+      <span style="color:#f92672">+#</span> o<span style="color:#f92672">#</span> <span style="color:#ae81ff">1</span>
+</code></pre></div><p>In theory, we should be able to find where the creation of <code>ipv</code> is in the surface program and then bang-pattern it, resulting in <code>let</code> becoming <code>let!</code> in the core program.</p>
+<p>In the core visualisation, we also can highlight over certain fragments of code, and in the top right corner, this shows us the type information and also strictness properties. Even though something may appear to be lazy, we can identify that something is actually a strict binding (because it says <code>S</code> rather than <code>L</code>).</p>
+</li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li><strong>Expensive function applications</strong> (referenced from external modules)</li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li>
+<p><strong>Function calls that could have been inlined</strong> (referenced from external modules)</p>
+<p>For example, in the following function <code>inferModel</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">inferModel</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> [[(<span style="color:#66d9ef">Params</span>, <span style="color:#66d9ef">Numeric</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Log</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)]]
+<span style="color:#a6e22e">inferModel</span> n_mhsteps n_timesteps n_particles <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+    ys <span style="color:#f92672">&lt;-</span> parseFromFile dataParser <span style="color:#e6db74">&#34;data/datafile&#34;</span>
+    <span style="color:#66d9ef">case</span> ys <span style="color:#66d9ef">of</span>
+      (<span style="color:#66d9ef">Left</span> <span style="color:#66d9ef">_</span>)    <span style="color:#f92672">-&gt;</span> <span style="color:#a6e22e">error</span> <span style="color:#e6db74">&#34;naughty&#34;</span>
+      (<span style="color:#66d9ef">Right</span> obsData) <span style="color:#f92672">-&gt;</span> sampleIO <span style="color:#f92672">$</span> <span style="color:#66d9ef">do</span>
+              pmmhRes <span style="color:#f92672">&lt;-</span> prior <span style="color:#f92672">$</span> pmmh n_mhsteps n_timesteps n_particles paramsPrior (scoreModel initLatentState (map <span style="color:#66d9ef">Obs</span> obsData))
+              return pmmhRes
+</code></pre></div><p>In the generated core, we can see a function call to <code>pmmh</code> which is from an external module. The hope is that the call to <code>pmmh</code> (represented by the green-highlighted <code>lvl</code>) would have been inlined - however this is not the case, as it simply references <code>pmmh</code> from the <code>monad-bayes</code> library, which has not been marked as <code>INLINE</code> or <code>INLINABLE</code>. This means GHC isn’t specialising it, so the program still performs dictionary lookups when that code is compiled.</p>
+<p><img src="https://i.ibb.co/L8sSSFZ/image-5.png" alt=""></p>
+<p>We can add an <code>{-# INLINABLE #-}</code> or <code>{-# INLINE #-}</code> pragma to <code>pmmh</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Particle Marginal Metropolis-Hastings sampling.</span>
+<span style="color:#a6e22e">pmmh</span> <span style="color:#f92672">::</span>
+  <span style="color:#66d9ef">MonadInfer</span> m <span style="color:#f92672">=&gt;</span>
+  <span style="color:#75715e">-- | number of Metropolis-Hastings steps</span>
+  <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span>
+  <span style="color:#75715e">-- | number of time steps</span>
+  <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span>
+  <span style="color:#75715e">-- | number of particles</span>
+  <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span>
+  <span style="color:#75715e">-- | model parameters prior</span>
+  <span style="color:#66d9ef">Traced</span> m b <span style="color:#f92672">-&gt;</span>
+  <span style="color:#75715e">-- | model</span>
+  (b <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Sequential</span> (<span style="color:#66d9ef">Population</span> m) a) <span style="color:#f92672">-&gt;</span>
+  m [[(a, <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)]]
+<span style="color:#a6e22e">pmmh</span> t k n param model <span style="color:#f92672">=</span>
+  mh t (param <span style="color:#f92672">&gt;&gt;=</span> runPopulation <span style="color:#f92672">.</span> pushEvidence <span style="color:#f92672">.</span> <span style="color:#66d9ef">Pop</span><span style="color:#f92672">.</span>hoist lift <span style="color:#f92672">.</span>
+        smcSystematic k n <span style="color:#f92672">.</span> model)
+
+<span style="color:#75715e">{-# INLINE pmmh #-}</span>
+</code></pre></div><p>Revisiting the <code>inferModel</code> function, we can now see that the call to <code>pmmh</code> (previously represented by <code>lvl</code>) has been inlined with what is now called <code>$w$spmmh</code>.</p>
+<ul>
+<li><code>$w</code> is usually prepended to functions that the compiler has unwrapped some of the arguments for (which eliminates a pattern match).</li>
+<li><code>$s</code> is usually prepended to functions that the compiler has specialised.</li>
+</ul>
+<p><img src="https://i.ibb.co/SQb1B5P/image-3.png" alt=""></p>
+</li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li>
+<p><strong>Unwrapping and rewrapping of data structures</strong></p>
+<p>This is when we see functions that take arguments containing a data constructor, unwrap the constructor (i.e. use its contained values to compute new ones), and then pass the new values wrapped inside the constructor to another function (possibly recursively). This is also wasted memory allocation. Note that this doesn&rsquo;t happen with <code>newtype</code>s.</p>
+</li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li>
+<p><strong>Arguments which haven&rsquo;t been unboxed when instead they could have been</strong></p>
+<p>Most types in GHC are boxed (values of that type are represented by a pointer to a heap object, e.g. the representation of <code>Int</code> is a two-word heap object). An unboxed type is represented by the value itself, no pointers or heap allocation is involved. These correspond to the &ldquo;raw machine&rdquo; types we would use in C. Most unboxed types end in the character <code>#</code>, e.g. <code>Int#</code>, <code>Double#</code>, <code>Addr#</code>, <code>(#, #)</code>. Similarly, the primitive operations on these types look like, for example, <code>&lt;#</code>, <code>+#</code>, <code>*#</code>.</p>
+<p>To illustrate the consequence of boxed/unboxed types, consider the situation where we have a recursive call which takes an integer as an argument. If this integer had not been unboxed in the core, then the program would box the integer to the call of the recursive function; within the function it will then unbox the integer to do the work on it, and afterwards box up another integer as an argument to the recursive call. This is essentially a looping of unnecessarily boxing up and unboxing values.</p>
+<p>The following code illustrates a recursive loop where the integer argument passed in (<code>o#</code>) is already successfully unboxed:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">  <span style="color:#66d9ef">let</span>
+    rec
+      loop <span style="color:#f92672">=</span>
+        λo<span style="color:#f92672">#</span> eta <span style="color:#f92672">-&gt;</span>
+          <span style="color:#f92672">...</span>
+          loop (<span style="color:#f92672">+#</span> ipv <span style="color:#ae81ff">1</span>) s2<span style="color:#f92672">#</span>
+</code></pre></div><p>So we are looking for constructors where we see a call to function wrap something up, and immediately on the other end of the function, wrap something up again.</p>
+</li>
+</ul>
+<h4 id="5-other-notes">5. Other notes</h4>
+<ul>
+<li>Although memory leaks might not be what our performance issues are, they also could be. In Haskell, it&rsquo;s not called a memory leak, it&rsquo;s a space leak which is a bunch of unevaluated thunks which is causing a long chain of computation. The memory is held on to by the thunks even though it is potentially not used. If we see lots of heap activity, this could be a sign that laziness in our program is adding overhead. Also, if we are seeing a lot of objects being churned through (even if they are going through quite fast), we could ask &ldquo;are those objects necessary, or could they have been unboxed and thrown away?&rdquo;.</li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li>The canonical way of fixing performance issues in effect systems is removing the monad transformers and hand-rolling the entire instance. Although this is against the point of effect systems, at the same it can be very helpful. If we handroll the instance (which we can do by basically taking the monad transformed instances and inlining the definitions ourselves until we get to something primitive), we are essentially looking to see whether the core has generated that. This is a pattern of creating the ideal program, and working out which bits the compiler has missed out on that we have recognised. This is always a good approach when we don’t understand what can be done better to the original program yet, and is a way to recognise and understand unfamiliar structures in core.</li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li>GHC can specialise the monads when it sees them concretely then the inliner works its magic on the specialised code to form what we see there. No particular code changes are necessary to ensure that the program specialises; even if there are cases of non-concrete monads <code>m</code> in type definitions, the only part of the core that we are interested in is where <code>m</code> becomes concrete.</li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li>If we happen to inline a particular function and this results in a slower program, this implies that the code size is too big - so this leads to memory problems (cache issues). If the function isn’t being optimised after it has been inlined, then it shouldn’t be inlined.</li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li>Generally speaking, the <code>INLINABLE</code> pragma is always helpful (non-dangerous) for the compiler, but the <code>INLINE</code> pragma should be used when we are fairly certain that an optimisation can happen, but the compiler isn&rsquo;t realising it even with the use of the <code>INLINABLE</code> pragma.</li>
+</ul>
+<div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/research/parsley-case-study/" title="Case Study: Optimising Parsley"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Case Study: Optimising Parsley</a>
+<a class="nav nav-next" href="https://probabilistic-effects.github.io/monad-bayes/" title="Monad Bayes">Next - Monad Bayes <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<nav class="open-menu">
+<ul>
+<li class=""><a href="https://probabilistic-effects.github.io/">Home</a></li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/activity/">Activity</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/activity/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/papers/">Papers</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>
+</ul>
+  
+</li>
+
+<li class="parent"><a href="https://probabilistic-effects.github.io/research/">Research</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/research/research-journal/">Research Journal</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/">Potential Approaches to Improving Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/literature-review/">Literature Review</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/parsley-case-study/">Case Study: Optimising Parsley</a></li>
+<li class="active"><a href="https://probabilistic-effects.github.io/research/optimising-core/">Optimising Core</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/">Monad Bayes</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/inference-transformers/">Inference Transformers</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/pmmh-hmm/">Implementing HMM Simulation and Inference (using PMMH)</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/conditioning-scoring/">How Conditioning and Scoring Works</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/">Tooling</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/cabal/">Cabal</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/">Benchmarking</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmark-log/">Benchmark Log</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmarking-profiling/">How to Benchmark and Profile</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/monad-bayes-components/">Relevant Components of Monad Bayes for Profiling</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/background/">Background</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/background/staging/">Staging</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/smc-pmmh/">SMC and PMMH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/handrolling/">Handrolling Monad Transformer Stacks</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mtl/">MTL</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mcmc-mh/">MCMC and MH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/markov-chain/">Markov Chains</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/hidden-markov-model/">Hidden Markov Model</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/delimited-continuations/">Delimited Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/haskell-core/">Haskell Core</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
+</ul>
+  
+</li>
+</ul>
+</nav>
+
+
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>

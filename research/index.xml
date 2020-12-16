@@ -13,10 +13,12 @@
       <pubDate>Fri, 13 Nov 2020 14:05:57 +0000</pubDate>
       
       <guid>https://probabilistic-effects.github.io/research/research-journal/</guid>
-      <description>Meeting (MN + RP + MW) 15/12/2020
+      <description>Meeting (MN + JW) 16/12/2020
+   Activity (MN) 16/12/2020
+ Getting deep into investigating and optimising core of monad-bayes.  Meeting (MN + RP + MW) 15/12/2020
  Todo: look at handwriting some monad-bayes, and get more involved with Haskell core  Activity (MN) 11/12/2020 - 14/12/2020
  Reading, implementing, and writing up of Fusion for Free (fusion-for-free).  Meeting (MN + NW) 11/12/2020
- Inlining with Typeclasses - GHC is rather reluctant to inline in general recursive code. There is only one exception: GHC is keen to create type-specialised copies of (constraint) polymorphic recursive definitions and to inline the definitions of typeclass methods in the process.</description>
+ Inlining with Typeclasses - GHC is rather reluctant to inline in general recursive code.</description>
     </item>
     
     <item>
@@ -58,6 +60,17 @@ Summary  Real world benchmarks make it difficult to isolate costs Microbenchmark
       <description>Process of Optimising Haskell Core
 The best way to understand why a profiling report outputs certain performance metrics (for Haskell) is to dive into the actual core itself, which is what the surface-level Haskell code compiles down into. To inspect the core in a coherent manner, we can add the following to either our package.yaml file (when using stack):
 ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (when using cabal):</description>
+    </item>
+    
+    <item>
+      <title>Optimising Core</title>
+      <link>https://probabilistic-effects.github.io/research/optimising-core/</link>
+      <pubDate>Fri, 13 Nov 2020 13:40:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/research/optimising-core/</guid>
+      <description>These are some organised notes on optimising core, summarised from other pages.
+1. Workflow Usually, if one is confused about something in the core, it is best to compare it with the original program. This entire process is the general work flow when searching for optimisations by looking at Haskell core:
+ Writing the program Generating the core Analysing the core to see if we are unhappy about how some code has been generated Tweaking the way the code generates so that the ineffiency disappears.</description>
     </item>
     
   </channel>
