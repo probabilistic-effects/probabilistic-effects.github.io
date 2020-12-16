@@ -18,8 +18,9 @@
 </style>
 <meta property="og:title" content="Optimising Core" />
 <meta property="og:description" content="These are some organised notes on optimising core, summarised from other pages.
-1. Workflow Usually, if one is confused about something in the core, it is best to compare it with the original program. This entire process is the general work flow when searching for optimisations by looking at Haskell core:
- Writing the program Generating the core Analysing the core to see if we are unhappy about how some code has been generated Tweaking the way the code generates so that the ineffiency disappears." />
+1. Dumping core &amp; enabling optimisations   To inspect the core (in a coherent manner), we can add the following to either our package.yaml file (when using stack):
+ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (when using cabal):
+build-depends: dump-core ghc-options: -fplugin-DumpCore When we build our program (stack build or ghc), this creates a folder called dump-core containing html files." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://probabilistic-effects.github.io/research/optimising-core/" />
 <meta property="article:published_time" content="2020-11-13T13:40:41+00:00" />
@@ -27,15 +28,17 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Optimising Core"/>
 <meta name="twitter:description" content="These are some organised notes on optimising core, summarised from other pages.
-1. Workflow Usually, if one is confused about something in the core, it is best to compare it with the original program. This entire process is the general work flow when searching for optimisations by looking at Haskell core:
- Writing the program Generating the core Analysing the core to see if we are unhappy about how some code has been generated Tweaking the way the code generates so that the ineffiency disappears."/>
+1. Dumping core &amp; enabling optimisations   To inspect the core (in a coherent manner), we can add the following to either our package.yaml file (when using stack):
+ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (when using cabal):
+build-depends: dump-core ghc-options: -fplugin-DumpCore When we build our program (stack build or ghc), this creates a folder called dump-core containing html files."/>
 <meta itemprop="name" content="Optimising Core">
 <meta itemprop="description" content="These are some organised notes on optimising core, summarised from other pages.
-1. Workflow Usually, if one is confused about something in the core, it is best to compare it with the original program. This entire process is the general work flow when searching for optimisations by looking at Haskell core:
- Writing the program Generating the core Analysing the core to see if we are unhappy about how some code has been generated Tweaking the way the code generates so that the ineffiency disappears.">
+1. Dumping core &amp; enabling optimisations   To inspect the core (in a coherent manner), we can add the following to either our package.yaml file (when using stack):
+ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (when using cabal):
+build-depends: dump-core ghc-options: -fplugin-DumpCore When we build our program (stack build or ghc), this creates a folder called dump-core containing html files.">
 <meta itemprop="datePublished" content="2020-11-13T13:40:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:40:41+00:00" />
-<meta itemprop="wordCount" content="2596">
+<meta itemprop="wordCount" content="2724">
 
 
 
@@ -48,7 +51,29 @@
 <div class="content-container">
 <main><h1>Optimising Core</h1>
 <p>These are some organised notes on optimising core, summarised from other pages.</p>
-<h4 id="1-workflow">1. Workflow</h4>
+<h4 id="1-dumping-core--enabling-optimisations">1. Dumping core &amp; enabling optimisations</h4>
+<ul>
+<li>
+<p><strong>To inspect the core</strong> (in a coherent manner), we can add the following to either our <code>package.yaml</code> file (when using <code>stack</code>):</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">    <span style="color:#f92672">ghc-options</span>:
+    - <span style="color:#ae81ff">dump-core</span>
+    <span style="color:#f92672">dependencies</span>:
+    - -<span style="color:#ae81ff">fplugin=DumpCore</span>
+</code></pre></div><p>or our <code>.cabal</code> file (when using cabal):</p>
+<pre><code class="language-cabal" data-lang="cabal">build-depends: dump-core
+ghc-options:   -fplugin-DumpCore
+</code></pre><p>When we build our program (<code>stack build</code> or <code>ghc</code>), this creates a folder called <code>dump-core</code> containing <code>html</code> files. Opening one of these files gives us a nice visualisation of the core code of our program. The code we see is how Haskell looks in reality.</p>
+</li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li>
+<p><strong>To enable optimisations</strong> (for a cabal project), we can compiled with <code>-O2</code> by creating a <code>cabal.project</code> file and placing <code>optimization:2</code> inside <code>cabal.project</code>.</p>
+<pre><code>packages:.
+optimization:2
+</code></pre></li>
+</ul>
+<h4 id="2-workflow">2. Workflow</h4>
 <p>Usually, if one is confused about something in the core, it is best to compare it with the original program. This entire process is the general work flow when searching for optimisations by looking at Haskell core:</p>
 <ul>
 <li>Writing the program</li>
@@ -58,7 +83,7 @@
 <li>It is generally a good idea to benchmark to verify that a optimisation change from looking at the core has improved run-time, however it can be counter-productive because we may need to make a few changes before we can see the benefits. The danger is that we can make a change which results in a better-looking core, but the performance is worse, and then we roll back the change even though we need to continue to do something else to make the entire thing work. The reason we inline things is to expose optimisations &ndash; inlining per se does not necessarily result in better performance.</li>
 </ul>
 <p>The relationship between the profiling information and the core, is more obvious than the relationship between the profiling information and the original code. We can use the profiler to guide us to the parts of the core that we want to look at.</p>
-<h4 id="2-common-syntax">2. Common Syntax</h4>
+<h4 id="3-common-syntax">3. Common Syntax</h4>
 <ul>
 <li>
 <p><code>!</code>, or bang patterns, indicate strict evaluation. When we see a <code>let</code>, this is a lazy variable declaration, whereas a <code>let!</code> signifies a strict variable declaration.</p>
@@ -73,7 +98,7 @@
 <p><code>#</code> indicates an unboxed type. Most unboxed types end in the character <code>#</code>, e.g. <code>Int#</code>, <code>Double#</code>, <code>Addr#</code>, <code>(#, #)</code>. Similarly, the primitive operations on these types look like, for example, <code>&lt;#</code>, <code>+#</code>, <code>*#</code>.</p>
 </li>
 </ul>
-<h4 id="3-pragmas">3. Pragmas</h4>
+<h4 id="4-pragmas">4. Pragmas</h4>
 <ul>
 <li><code>INLINE</code> : This is the most well-known and dangerous way of controlling inlining. By annotating a function with <code>INLINE</code> you inform the compiler to always inline the function regardless of its size or calling context. Not only does the <code>INLINE</code> pragma force the function to be inlined at every call site, it also changes what is inlined. If a function is inlined naturally then the optimised unfolding will be used to replace the function name. With the pragma, instead the unoptimised unfolding is used which amounts to an unoptimised version of the user-written right-hand side of the function being inserted directly.</li>
 </ul>
@@ -96,7 +121,7 @@ influencing the inlining decision from the call site, the pragma only overrides 
 <p>This is good for flattening a nesting of data types.</p>
 </li>
 </ul>
-<h4 id="4-things-to-look-out-for">4. Things to look out for</h4>
+<h4 id="5-things-to-look-out-for">5. Things to look out for</h4>
 <ul>
 <li><strong>Random case statements</strong></li>
 </ul>
@@ -276,7 +301,7 @@ influencing the inlining decision from the call site, the pragma only overrides 
 </code></pre></div><p>So we are looking for constructors where we see a call to function wrap something up, and immediately on the other end of the function, wrap something up again.</p>
 </li>
 </ul>
-<h4 id="5-other-notes">5. Other notes</h4>
+<h4 id="6-other-notes">6. Other notes</h4>
 <ul>
 <li>Although memory leaks might not be what our performance issues are, they also could be. In Haskell, it&rsquo;s not called a memory leak, it&rsquo;s a space leak which is a bunch of unevaluated thunks which is causing a long chain of computation. The memory is held on to by the thunks even though it is potentially not used. If we see lots of heap activity, this could be a sign that laziness in our program is adding overhead. Also, if we are seeing a lot of objects being churned through (even if they are going through quite fast), we could ask &ldquo;are those objects necessary, or could they have been unboxed and thrown away?&rdquo;.</li>
 </ul>
@@ -295,6 +320,10 @@ influencing the inlining decision from the call site, the pragma only overrides 
 <!-- raw HTML omitted -->
 <ul>
 <li>Generally speaking, the <code>INLINABLE</code> pragma is always helpful (non-dangerous) for the compiler, but the <code>INLINE</code> pragma should be used when we are fairly certain that an optimisation can happen, but the compiler isn&rsquo;t realising it even with the use of the <code>INLINABLE</code> pragma.</li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li>If we don’t see $w or $s in the core anywhere, optimisations are not on.</li>
 </ul>
 <div class="edit-meta">
 Last updated on 13 Nov 2020

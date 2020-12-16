@@ -17,25 +17,25 @@
 :root {}
 </style>
 <meta property="og:title" content="Case Study: Optimising Parsley" />
-<meta property="og:description" content="Process of Optimising Haskell Core
-The best way to understand why a profiling report outputs certain performance metrics (for Haskell) is to dive into the actual core itself, which is what the surface-level Haskell code compiles down into. To inspect the core in a coherent manner, we can add the following to either our package.yaml file (when using stack):
-ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (when using cabal):" />
+<meta property="og:description" content="The best way to understand why a profiling report outputs certain performance metrics (for Haskell) is to dive into the actual core itself, which is what the surface-level Haskell code compiles down into.
+Usually, if one is confused about something in the core, it is best to compare it with the original program.
+regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://probabilistic-effects.github.io/research/parsley-case-study/" />
 <meta property="article:published_time" content="2020-11-13T13:49:05+00:00" />
 <meta property="article:modified_time" content="2020-11-13T13:49:05+00:00" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Case Study: Optimising Parsley"/>
-<meta name="twitter:description" content="Process of Optimising Haskell Core
-The best way to understand why a profiling report outputs certain performance metrics (for Haskell) is to dive into the actual core itself, which is what the surface-level Haskell code compiles down into. To inspect the core in a coherent manner, we can add the following to either our package.yaml file (when using stack):
-ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (when using cabal):"/>
+<meta name="twitter:description" content="The best way to understand why a profiling report outputs certain performance metrics (for Haskell) is to dive into the actual core itself, which is what the surface-level Haskell code compiles down into.
+Usually, if one is confused about something in the core, it is best to compare it with the original program.
+regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time."/>
 <meta itemprop="name" content="Case Study: Optimising Parsley">
-<meta itemprop="description" content="Process of Optimising Haskell Core
-The best way to understand why a profiling report outputs certain performance metrics (for Haskell) is to dive into the actual core itself, which is what the surface-level Haskell code compiles down into. To inspect the core in a coherent manner, we can add the following to either our package.yaml file (when using stack):
-ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (when using cabal):">
+<meta itemprop="description" content="The best way to understand why a profiling report outputs certain performance metrics (for Haskell) is to dive into the actual core itself, which is what the surface-level Haskell code compiles down into.
+Usually, if one is confused about something in the core, it is best to compare it with the original program.
+regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="2796">
+<meta itemprop="wordCount" content="2708">
 
 
 
@@ -47,16 +47,7 @@ ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (w
 
 <div class="content-container">
 <main><h1>Case Study: Optimising Parsley</h1>
-<p><strong>Process of Optimising Haskell Core</strong></p>
-<p>The best way to understand why a profiling report outputs certain performance metrics (for Haskell) is to dive into the actual core itself, which is what the surface-level Haskell code compiles down into. To inspect the core in a coherent manner, we can add the following to either our <code>package.yaml</code> file (when using <code>stack</code>):</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">    <span style="color:#f92672">ghc-options</span>:
-    - <span style="color:#ae81ff">dump-core</span>
-    <span style="color:#f92672">dependencies</span>:
-    - -<span style="color:#ae81ff">fplugin=DumpCore</span>
-</code></pre></div><p>or our <code>.cabal</code> file (when using cabal):</p>
-<pre><code class="language-cabal" data-lang="cabal">build-depends: dump-core
-ghc-options:   -fplugin-DumpCore
-</code></pre><p>When we build our program (<code>stack build</code> or <code>ghc</code>), this creates a folder called <code>dump-core</code> containing <code>html</code> files. Opening one of these files gives us a nice visualisation of the core code of our program. The code we see is how Haskell looks in reality.</p>
+<p>The best way to understand why a profiling report outputs certain performance metrics (for Haskell) is to dive into the actual core itself, which is what the surface-level Haskell code compiles down into.</p>
 <p>Usually, if one is confused about something in the core, it is best to compare it with the original program.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">regTest</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Parser</span> <span style="color:#66d9ef">Int</span>
 <span style="color:#a6e22e">regTest</span> <span style="color:#f92672">=</span> newRegister_ (code <span style="color:#ae81ff">7</span>) (<span style="color:#a6e22e">\</span>r <span style="color:#f92672">-&gt;</span> modify_ r makeQ (succ <span style="color:#f92672">@</span><span style="color:#66d9ef">Int</span>) [<span style="color:#f92672">||</span>succ <span style="color:#f92672">@</span><span style="color:#66d9ef">Int</span><span style="color:#f92672">||</span>]) <span style="color:#f92672">*&gt;</span> (<span style="color:#66d9ef">let</span> g <span style="color:#f92672">=</span> get r <span style="color:#66d9ef">in</span> g <span style="color:#f92672">*&gt;</span> g))
