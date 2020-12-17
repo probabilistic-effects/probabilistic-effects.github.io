@@ -35,7 +35,7 @@ Usually, if one is confused about something in the core, it is best to compare i
 regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="2708">
+<meta itemprop="wordCount" content="3404">
 
 
 
@@ -228,6 +228,48 @@ it is inlined into the function, and the internals are simplified further. The <
 <p>If we happen to inline a particular function and this results in a slower program, this implies that the code size is too big - so this leads to memory problems (cache issues). If the function isn&rsquo;t being optimised after it has been inlined, then it shouldn&rsquo;t be inlined.</p>
 <p><strong>Q:</strong> Is it ever the case that you can undo an inline for some other function, and keep the new inline (which previously resulted in slower performance), so that it results in an overall better run-time?</p>
 <p><strong>A:</strong> Yes. You can set the phase of the inliner. You can say &ldquo;inline past phase 2&rdquo; etc.</p>
+<hr>
+<p>Consider a program where we have the state monad in all different sorts of places, and we are unhappy with the building of the tuples being around.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">type</span> <span style="color:#66d9ef">State</span> s <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> s <span style="color:#66d9ef">Identity</span>
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">StateT</span> s m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> { runStateT <span style="color:#f92672">::</span> s <span style="color:#f92672">-&gt;</span> m (a, s) }
+</code></pre></div><p>A good way to get rid of that is to use the continuation-passing-style form of the state monad.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">StateT</span> s m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> { unStateT <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> s <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> s <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> m r}
+  <span style="color:#66d9ef">deriving</span> <span style="color:#66d9ef">Functor</span>
+</code></pre></div><p>The translation we do is, we leave the result type <code>r</code> abstract, we take the state <code>s</code>, and then we take the function that consumes the <code>a</code> produced by this computation as well as the <code>s</code> in order to return the <code>m r</code>. This is actually the transformation we get when we apply the codensity transformation to state.</p>
+<p>To run the state itself, we call <code>f</code> which is the function of type <code>forall r. s -&gt; (a -&gt; s -&gt; m r) -&gt; m r</code>, but we have to give it an argument of type <code>(a -&gt; s -&gt; m r)</code> as well as the initial state <code>s</code>. What we&rsquo;re looking for is an <code>a -&gt; s -&gt; m (a, s)</code> so that we can roughly recover <code>m (a, s)</code>. So the function we pass it is simply something that takes an <code>a</code> and <code>s</code> and calls <code>return</code> on the tuple <code>(a, s)</code> &ndash; so this is the final continuation that runs with the state.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">runStateT</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">StateT</span> s m a <span style="color:#f92672">-&gt;</span> s <span style="color:#f92672">-&gt;</span> m (a, s)
+<span style="color:#a6e22e">runStateT</span> (<span style="color:#66d9ef">StateT</span> f) s <span style="color:#f92672">=</span> f s (<span style="color:#a6e22e">\</span>x s&#39; <span style="color:#f92672">-&gt;</span> return (x, s&#39;))
+</code></pre></div><p>Defining the actual instances of the CPS-form state monad is relatively okay after that point. We will find that the <code>m</code> never actually requires a monad constraint, because what we&rsquo;re actually doing all the time is building up continuations &ndash; we don&rsquo;t actually have to interact with the underlying monad <code>m</code> until we lift stuff into it (but most of the time, we are just feeding along continuations).</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Applicative</span> (<span style="color:#66d9ef">StateT</span> s m) <span style="color:#66d9ef">where</span>
+  <span style="color:#75715e">{-# INLINE pure #-}</span>
+  pure x <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (flip (<span style="color:#f92672">$</span> x))
+  <span style="color:#75715e">{-# INLINE liftA2 #-}</span>
+  liftA2 f (<span style="color:#66d9ef">StateT</span> mx) (<span style="color:#66d9ef">StateT</span> my) <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (<span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> mx s (<span style="color:#a6e22e">\</span>x s&#39; <span style="color:#f92672">-&gt;</span> my s&#39; (<span style="color:#a6e22e">\</span>y s&#39;&#39; <span style="color:#f92672">-&gt;</span> k (f x y) s&#39;&#39;)))
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">StateT</span> s m) <span style="color:#66d9ef">where</span>
+  <span style="color:#75715e">{-# INLINE return #-}</span>
+  return <span style="color:#f92672">=</span> pure
+  <span style="color:#75715e">{-# INLINE (&gt;&gt;=) #-}</span>
+  <span style="color:#66d9ef">StateT</span> mx <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (<span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> mx s (<span style="color:#a6e22e">\</span>x s&#39; <span style="color:#f92672">-&gt;</span> unStateT (f x) s&#39; k))
+</code></pre></div><p>The advantage is that given a monad with a data constructor containing n parameters, such as:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Trace</span> a
+  <span style="color:#f92672">=</span> <span style="color:#66d9ef">Trace</span>
+      { variables <span style="color:#f92672">::</span> [<span style="color:#66d9ef">Double</span>],
+        output <span style="color:#f92672">::</span> a,
+        density <span style="color:#f92672">::</span> <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>
+      }
+</code></pre></div><p>this becomes an n argument function.</p>
+<p>For example with the <code>StateT</code> monad, this becomes a function where we say, here&rsquo;s the next thing along, <code>mx</code> :</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">  <span style="color:#66d9ef">StateT</span> mx <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (<span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> mx
+</code></pre></div><p>we provide it with the current parameters one after another (which in this case is just <code>s</code>) :</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">  <span style="color:#66d9ef">StateT</span> mx <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (<span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> mx s
+</code></pre></div><p>and once it&rsquo;s done (producing an <code>x</code>) :</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">  <span style="color:#66d9ef">StateT</span> mx <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (<span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> mx s (<span style="color:#a6e22e">\</span>x
+</code></pre></div><p>take all of the new parameters (which is just <code>s'</code>) :</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">  <span style="color:#66d9ef">StateT</span> mx <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (<span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> mx s (<span style="color:#a6e22e">\</span>x s&#39;
+</code></pre></div><p>and do what was meant to be done after the computation <code>k</code>, which is the <code>f</code> :</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">  <span style="color:#66d9ef">StateT</span> mx <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (<span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> mx s (<span style="color:#a6e22e">\</span>x s&#39; <span style="color:#f92672">-&gt;</span> unStateT (f x) s&#39; k))
+</code></pre></div><p>Very often, CPS is a good technique for optimisation. It doesn&rsquo;t always work, but it rarely makes things worse. The fact that we don&rsquo;t have to interact with the underlying monad means that the effect of the monad <code>m</code> in the <code>StateT s m</code> only gets ran when we use an operation from that monad. We can think of it as, the <code>StateT</code> computation is building that computation using continuations, so it doesn&rsquo;t need to interact with <code>m</code> at every step.</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
@@ -265,12 +307,6 @@ Published on 13 Nov 2020
 <li class="parent"><a href="https://probabilistic-effects.github.io/research/">Research</a>
   
 <ul class="sub-menu">
-<li class=""><a href="https://probabilistic-effects.github.io/research/research-journal/">Research Journal</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/">Potential Approaches to Improving Monad Bayes</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/research/literature-review/">Literature Review</a></li>
-<li class="active"><a href="https://probabilistic-effects.github.io/research/parsley-case-study/">Case Study: Optimising Parsley</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/research/optimising-core/">Optimising Core</a></li>
 </ul>
   
 </li>

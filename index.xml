@@ -13,10 +13,11 @@
       <pubDate>Fri, 13 Nov 2020 14:05:57 +0000</pubDate>
       
       <guid>https://probabilistic-effects.github.io/research/research-journal/</guid>
-      <description>Activity (MN) 16/12/2020
- Getting deep into investigating and optimising core of monad-bayes (with help of JW). Writing up optimising core. Todo: write up JW&amp;rsquo;s continuation passing style example  Meeting (MN + RP + MW) 15/12/2020
+      <description>Activity (MN) 17/12/2020
+ Wrote up JW&amp;rsquo;s continuation passing style example  Activity (MN) 16/12/2020
+ Getting deep into investigating and optimising core of monad-bayes (with help of JW). Writing up optimising core.  Meeting (MN + RP + MW) 15/12/2020
  Todo: look at handwriting some monad-bayes, and get more involved with Haskell core  Activity (MN) 11/12/2020 - 14/12/2020
- Reading, implementing, and writing up of Fusion for Free (fusion-for-free).  Meeting (MN + NW) 11/12/2020</description>
+ Reading, implementing, and writing up of Fusion for Free (fusion-for-free).</description>
     </item>
     
     <item>
