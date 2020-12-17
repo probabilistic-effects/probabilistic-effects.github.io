@@ -35,7 +35,7 @@ Usually, if one is confused about something in the core, it is best to compare i
 regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="3404">
+<meta itemprop="wordCount" content="3496">
 
 
 
@@ -270,6 +270,23 @@ it is inlined into the function, and the internals are simplified further. The <
 </code></pre></div><p>and do what was meant to be done after the computation <code>k</code>, which is the <code>f</code> :</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">  <span style="color:#66d9ef">StateT</span> mx <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (<span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> mx s (<span style="color:#a6e22e">\</span>x s&#39; <span style="color:#f92672">-&gt;</span> unStateT (f x) s&#39; k))
 </code></pre></div><p>Very often, CPS is a good technique for optimisation. It doesn&rsquo;t always work, but it rarely makes things worse. The fact that we don&rsquo;t have to interact with the underlying monad means that the effect of the monad <code>m</code> in the <code>StateT s m</code> only gets ran when we use an operation from that monad. We can think of it as, the <code>StateT</code> computation is building that computation using continuations, so it doesn&rsquo;t need to interact with <code>m</code> at every step.</p>
+<hr>
+<ul>
+<li>
+<p>Q : Given a record data type such as:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Trace</span> a
+  <span style="color:#f92672">=</span> <span style="color:#66d9ef">Trace</span>
+      {
+        variables <span style="color:#f92672">::</span> [<span style="color:#66d9ef">Double</span>],
+        output <span style="color:#f92672">::</span> a,
+        density <span style="color:#f92672">::</span> <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>
+      }
+</code></pre></div><p>is it unavoidable to lose the whole record feature (named parameters) if we were to optimise this to avoid the wrapping and rewrapping of the constructor</p>
+</li>
+<li>
+<p>A : Nope! If it&rsquo;s strict and haskell can unbox it, you can still use the record syntax and record accessors &ndash; it&rsquo;s just they will get optimised out and replaced with just the relevant argument of the function directly.</p>
+</li>
+</ul>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
@@ -307,6 +324,12 @@ Published on 13 Nov 2020
 <li class="parent"><a href="https://probabilistic-effects.github.io/research/">Research</a>
   
 <ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/research/research-journal/">Research Journal</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/">Potential Approaches to Improving Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/literature-review/">Literature Review</a></li>
+<li class="active"><a href="https://probabilistic-effects.github.io/research/parsley-case-study/">Case Study: Optimising Parsley</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/optimising-core/">Optimising Core</a></li>
 </ul>
   
 </li>

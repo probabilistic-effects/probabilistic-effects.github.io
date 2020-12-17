@@ -38,7 +38,7 @@ ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (w
 build-depends: dump-core ghc-options: -fplugin-DumpCore When we build our program (stack build or ghc), this creates a folder called dump-core containing html files.">
 <meta itemprop="datePublished" content="2020-11-13T13:40:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:40:41+00:00" />
-<meta itemprop="wordCount" content="2724">
+<meta itemprop="wordCount" content="2865">
 
 
 
@@ -96,6 +96,9 @@ optimization:2
 </li>
 <li>
 <p><code>#</code> indicates an unboxed type. Most unboxed types end in the character <code>#</code>, e.g. <code>Int#</code>, <code>Double#</code>, <code>Addr#</code>, <code>(#, #)</code>. Similarly, the primitive operations on these types look like, for example, <code>&lt;#</code>, <code>+#</code>, <code>*#</code>.</p>
+</li>
+<li>
+<p><code>lvl</code> refers to function bound to a variable defined somewhere else in the same module. It&rsquo;s useful to click on these and follow them back to the source definition in the core.</p>
 </li>
 </ul>
 <h4 id="4-pragmas">4. Pragmas</h4>
@@ -324,6 +327,25 @@ influencing the inlining decision from the call site, the pragma only overrides 
 <!-- raw HTML omitted -->
 <ul>
 <li>If we don’t see $w or $s in the core anywhere, optimisations are not on.</li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li>A way to avoid packing and unpacking of data structures in core is to use continuation-passing-style form.</li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li>
+<p><strong>Q</strong> : Given a record data type such as:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Trace</span> a
+  <span style="color:#f92672">=</span> <span style="color:#66d9ef">Trace</span>
+      {
+        variables <span style="color:#f92672">::</span> [<span style="color:#66d9ef">Double</span>],
+        output <span style="color:#f92672">::</span> a,
+        density <span style="color:#f92672">::</span> <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>
+      }
+</code></pre></div><p>is it unavoidable to lose the whole record feature (named parameters) if we were to optimise this to avoid the wrapping and rewrapping of the constructor?</p>
+<p><strong>A</strong> : Nope! If it&rsquo;s strict and haskell can unbox it, you can still use the record syntax and record accessors &ndash; it&rsquo;s just they will get optimised out and replaced with just the relevant argument of the function directly.</p>
+</li>
 </ul>
 <div class="edit-meta">
 Last updated on 13 Nov 2020

@@ -35,7 +35,7 @@ It turns out that we should expect to see these definitions, however if we use o
 It turns out that we should expect to see these definitions, however if we use optimization:2, then we should also expect them to not actually be used. This is because GHC generates a lot of garbage that it doesn&rsquo;t seem to want to remove, but when we go to places where they would have been used, we should be able to find that they aren&rsquo;t actually there.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="544">
+<meta itemprop="wordCount" content="853">
 
 
 
@@ -102,6 +102,81 @@ It turns out that we should expect to see these definitions, however if we use o
 <li>
 <p>There are two references to <code>applyWeight</code> of <code>Weighted.hs</code> and a reference to <code>mh</code> of <code>Traced.Static</code> inside <code>inferModel</code>, so let&rsquo;s inline these. The profiling report now looks like:</p>
 <p><img src="https://i.ibb.co/7bPTdbb/profiling.png" alt=""></p>
+</li>
+<li>
+<p>Added inlines to <code>prior</code>, <code>extractWeight</code>, <code>flatten</code> &amp; <code>applyWeight</code> of <code>Bayes.Weighted</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">prior</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Functor</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Weighted</span> m a <span style="color:#f92672">-&gt;</span> m a
+<span style="color:#a6e22e">prior</span> <span style="color:#f92672">=</span> fmap fst <span style="color:#f92672">.</span> runWeighted
+
+<span style="color:#75715e">{-# INLINABLE prior #-}</span>
+
+<span style="color:#a6e22e">extractWeight</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Functor</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Weighted</span> m a <span style="color:#f92672">-&gt;</span> m (<span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)
+<span style="color:#a6e22e">extractWeight</span> <span style="color:#f92672">=</span> fmap snd <span style="color:#f92672">.</span> runWeighted
+
+<span style="color:#75715e">{-# INLINABLE extractWeight #-}</span>
+
+<span style="color:#a6e22e">flatten</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">Weighted</span> m) a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Weighted</span> m a
+<span style="color:#a6e22e">flatten</span> m <span style="color:#f92672">=</span> withWeight <span style="color:#f92672">$</span> (<span style="color:#a6e22e">\</span>((x, p), q) <span style="color:#f92672">-&gt;</span> (x, p <span style="color:#f92672">*</span> q)) <span style="color:#f92672">&lt;$&gt;</span> runWeighted (runWeighted m)
+
+<span style="color:#75715e">{-# INLINABLE flatten #-}</span>
+
+<span style="color:#a6e22e">applyWeight</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadCond</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Weighted</span> m a <span style="color:#f92672">-&gt;</span> m a
+<span style="color:#a6e22e">applyWeight</span> m <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+  (x, w) <span style="color:#f92672">&lt;-</span> runWeighted m
+  factor w
+  return x
+
+<span style="color:#75715e">{-# INLINABLE applyWeight #-}</span>
+</code></pre></div><p><img src="https://i.ibb.co/m4Lvchm/benchmark-pmmh-6.png" alt=""></p>
+</li>
+<li>
+<p>Added inlines to <code>resampleGeneric</code>, <code>resampleSystematic</code>, <code>runWeighted</code>, <code>sir</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">resampleGeneric</span> <span style="color:#f92672">::</span>
+  <span style="color:#66d9ef">MonadSample</span> m <span style="color:#f92672">=&gt;</span>
+  (<span style="color:#66d9ef">V</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Vector</span> <span style="color:#66d9ef">Double</span> <span style="color:#f92672">-&gt;</span> m [<span style="color:#66d9ef">Int</span>]) <span style="color:#f92672">-&gt;</span>
+  <span style="color:#66d9ef">Population</span> m a <span style="color:#f92672">-&gt;</span>
+  <span style="color:#66d9ef">Population</span> m a
+<span style="color:#a6e22e">resampleGeneric</span> resampler m <span style="color:#f92672">=</span> fromWeightedList <span style="color:#f92672">$</span> <span style="color:#66d9ef">do</span>
+  pop <span style="color:#f92672">&lt;-</span> runPopulation m
+  <span style="color:#66d9ef">let</span> (xs, ps) <span style="color:#f92672">=</span> unzip pop
+  <span style="color:#66d9ef">let</span> n <span style="color:#f92672">=</span> length xs
+  <span style="color:#66d9ef">let</span> z <span style="color:#f92672">=</span> sum ps
+  <span style="color:#66d9ef">if</span> z <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>
+    <span style="color:#66d9ef">then</span> <span style="color:#66d9ef">do</span>
+      <span style="color:#66d9ef">let</span> weights <span style="color:#f92672">=</span> <span style="color:#66d9ef">V</span><span style="color:#f92672">.</span>fromList (map (exp <span style="color:#f92672">.</span> ln <span style="color:#f92672">.</span> (<span style="color:#f92672">/</span> z)) ps)
+      ancestors <span style="color:#f92672">&lt;-</span> resampler weights
+      <span style="color:#66d9ef">let</span> xvec <span style="color:#f92672">=</span> <span style="color:#66d9ef">V</span><span style="color:#f92672">.</span>fromList xs
+      <span style="color:#66d9ef">let</span> offsprings <span style="color:#f92672">=</span> map (xvec <span style="color:#66d9ef">V</span><span style="color:#f92672">.!</span>) ancestors
+      return <span style="color:#f92672">$</span> map (,z <span style="color:#f92672">/</span> fromIntegral n) offsprings
+    <span style="color:#66d9ef">else</span>
+      return pop
+
+<span style="color:#75715e">{-# INLINABLE resampleGeneric #-}</span>
+
+<span style="color:#a6e22e">resampleSystematic</span> <span style="color:#f92672">::</span>
+  (<span style="color:#66d9ef">MonadSample</span> m) <span style="color:#f92672">=&gt;</span>
+  <span style="color:#66d9ef">Population</span> m a <span style="color:#f92672">-&gt;</span>
+  <span style="color:#66d9ef">Population</span> m a
+<span style="color:#a6e22e">resampleSystematic</span> <span style="color:#f92672">=</span> resampleGeneric (<span style="color:#a6e22e">\</span>ps <span style="color:#f92672">-&gt;</span> (`systematic` ps) <span style="color:#f92672">&lt;$&gt;</span> random)
+
+<span style="color:#75715e">{-# INLINABLE resampleSystematic #-}</span>
+
+<span style="color:#a6e22e">sir</span> <span style="color:#f92672">::</span>
+  <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span>
+  (forall x<span style="color:#f92672">.</span> <span style="color:#66d9ef">Population</span> m x <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Population</span> m x) <span style="color:#f92672">-&gt;</span>
+  <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span>
+  <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span>
+  <span style="color:#66d9ef">Sequential</span> (<span style="color:#66d9ef">Population</span> m) a <span style="color:#f92672">-&gt;</span>
+  <span style="color:#66d9ef">Population</span> m a
+<span style="color:#a6e22e">sir</span> resampler k n <span style="color:#f92672">=</span> sis resampler k <span style="color:#f92672">.</span> <span style="color:#66d9ef">Seq</span><span style="color:#f92672">.</span>hoistFirst (spawn n <span style="color:#f92672">&gt;&gt;</span>)
+
+<span style="color:#75715e">{-# INLINABLE sir #-}</span>
+
+<span style="color:#a6e22e">runWeighted</span> <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Functor</span> m) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Weighted</span> m a <span style="color:#f92672">-&gt;</span> m (a, <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)
+<span style="color:#a6e22e">runWeighted</span> (<span style="color:#66d9ef">Weighted</span> m) <span style="color:#f92672">=</span> runStateT m <span style="color:#ae81ff">1</span>
+
+<span style="color:#75715e">{-# INLINABLE runWeighted #-}</span>
+</code></pre></div><p><img src="https://i.ibb.co/vwC4kJf/benchmark-pmmh-7.png" alt=""></p>
 </li>
 </ul>
 <div class="edit-meta">

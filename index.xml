@@ -14,7 +14,7 @@
       
       <guid>https://probabilistic-effects.github.io/research/research-journal/</guid>
       <description>Activity (MN) 17/12/2020
- Wrote up JW&amp;rsquo;s continuation passing style example  Activity (MN) 16/12/2020
+ Wrote up JW&amp;rsquo;s continuation passing style example More analysis and inlining of monad-bayes  Activity (MN) 16/12/2020
  Getting deep into investigating and optimising core of monad-bayes (with help of JW). Writing up optimising core.  Meeting (MN + RP + MW) 15/12/2020
  Todo: look at handwriting some monad-bayes, and get more involved with Haskell core  Activity (MN) 11/12/2020 - 14/12/2020
  Reading, implementing, and writing up of Fusion for Free (fusion-for-free).</description>
@@ -128,7 +128,7 @@ data ObservedState = Obs { obs :: Int } deriving Show data LatentState = Lat { l
       <guid>https://probabilistic-effects.github.io/benchmarking/benchmark-log/</guid>
       <description>PMMH Inference on HMM This details the benchmarks for a program using monad-bayes to run PMMH inference on a HMM, whilst tactically adding various {-# INLINE #-} pragmas to functions of the monad-bayes library in response to analysing the Haskell core generated. Each benchmark is the average over 4 iterations.
 Source Program
-main = defaultMain [ bgroup &amp;#34;runPmmh&amp;#34; [ bench &amp;#34;(100, 100, 100)&amp;#34; $ whnfIO $ runPmmh (100, 100, 100) ] ] runPmmh :: (Int, Int, Int) -&amp;gt; IO () runPmmh (n_mhsteps, n_timesteps, n_particles) = do particleWeightings &amp;lt;- inferModel n_mhsteps n_timesteps n_particles print particleWeightings  Original Code   Inline pragma added to pmmh function   Inline pragma added to pmmh &amp;amp; pushEvidence functions   Inline pragma added to pmmh, pushEvidence, &amp;amp; hoist functions   Inline pragma added to pmmh, pushEvidence, hoist, &amp;amp; mhTrans functions   Inline pragma added to pmmh, pushEvidence, hoist, mhTrans, &amp;amp; Traced.</description>
+main = defaultMain [ bgroup &amp;#34;runPmmh&amp;#34; [ bench &amp;#34;(100, 100, 100)&amp;#34; $ whnfIO $ runPmmh (100, 100, 100) ] ] runPmmh :: (Int, Int, Int) -&amp;gt; IO () runPmmh (n_mhsteps, n_timesteps, n_particles) = do particleWeightings &amp;lt;- inferModel n_mhsteps n_timesteps n_particles print particleWeightings  Original Code   Inline pragma added to pmmh function   Inline pragma added to pushEvidence function   Inline pragma added to hoist function   Inline pragma added to mhTrans functions   Inline pragma added to Traced.</description>
     </item>
     
     <item>
