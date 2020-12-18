@@ -35,7 +35,7 @@ It turns out that we should expect to see these definitions, however if we use o
 It turns out that we should expect to see these definitions, however if we use optimization:2, then we should also expect them to not actually be used. This is because GHC generates a lot of garbage that it doesn&rsquo;t seem to want to remove, but when we go to places where they would have been used, we should be able to find that they aren&rsquo;t actually there.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="853">
+<meta itemprop="wordCount" content="859">
 
 
 
@@ -177,6 +177,8 @@ It turns out that we should expect to see these definitions, however if we use o
 
 <span style="color:#75715e">{-# INLINABLE runWeighted #-}</span>
 </code></pre></div><p><img src="https://i.ibb.co/vwC4kJf/benchmark-pmmh-7.png" alt=""></p>
+<p>The profiling report now looks like:</p>
+<p><img src="https://i.ibb.co/pZ69ZNz/profiling-2.png" alt=""></p>
 </li>
 </ul>
 <div class="edit-meta">
@@ -239,7 +241,7 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/tooling/">Tooling</a>
   
 <ul class="sub-menu">
-<li class=""><a href="https://probabilistic-effects.github.io/tooling/cabal/">Cabal</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/cabal/">Cabal Projects</a></li>
 </ul>
   
 </li>

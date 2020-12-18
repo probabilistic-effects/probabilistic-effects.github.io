@@ -3,7 +3,7 @@
 <head><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Cabal - Probabilistic Effects.  λθ</title>
+<title>Cabal Projects - Probabilistic Effects.  λθ</title>
 <meta name="generator" content="Hugo 0.78.2" />
 <link href="https://probabilistic-effects.github.io//index.xml" rel="alternate" type="application/rss+xml">
 <link rel="canonical" href="https://probabilistic-effects.github.io/tooling/cabal/">
@@ -16,7 +16,7 @@
 <script src="https://probabilistic-effects.github.io/js/bundle.js"></script><style>
 :root {}
 </style>
-<meta property="og:title" content="Cabal" />
+<meta property="og:title" content="Cabal Projects" />
 <meta property="og:description" content="The executable field specifies the part of the package which can be executed with cabal run &lt;executable&gt;.
  main-is - The executable file containing a Main module and the function main. build-depends - Other library packages from which modules are imported. This can contain modules from the current package itself if they are found in the exposed-modules field of the library, by specifying the name of our package. hs-source-dirs - The local directories from which the executable can be found (leave empty if it isn&rsquo;t inside a directory) and any other local modules it imports (if they aren&rsquo;t found in the build-depends field)." />
 <meta property="og:type" content="article" />
@@ -24,15 +24,15 @@
 <meta property="article:published_time" content="2020-11-13T14:05:41+00:00" />
 <meta property="article:modified_time" content="2020-11-13T14:05:41+00:00" />
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="Cabal"/>
+<meta name="twitter:title" content="Cabal Projects"/>
 <meta name="twitter:description" content="The executable field specifies the part of the package which can be executed with cabal run &lt;executable&gt;.
  main-is - The executable file containing a Main module and the function main. build-depends - Other library packages from which modules are imported. This can contain modules from the current package itself if they are found in the exposed-modules field of the library, by specifying the name of our package. hs-source-dirs - The local directories from which the executable can be found (leave empty if it isn&rsquo;t inside a directory) and any other local modules it imports (if they aren&rsquo;t found in the build-depends field)."/>
-<meta itemprop="name" content="Cabal">
+<meta itemprop="name" content="Cabal Projects">
 <meta itemprop="description" content="The executable field specifies the part of the package which can be executed with cabal run &lt;executable&gt;.
  main-is - The executable file containing a Main module and the function main. build-depends - Other library packages from which modules are imported. This can contain modules from the current package itself if they are found in the exposed-modules field of the library, by specifying the name of our package. hs-source-dirs - The local directories from which the executable can be found (leave empty if it isn&rsquo;t inside a directory) and any other local modules it imports (if they aren&rsquo;t found in the build-depends field).">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="313">
+<meta itemprop="wordCount" content="370">
 
 
 
@@ -43,7 +43,7 @@
 </header>
 
 <div class="content-container">
-<main><h1>Cabal</h1>
+<main><h1>Cabal Projects</h1>
 <p>The <code>executable</code> field specifies the part of the package which can be executed with <code>cabal run &lt;executable&gt;</code>.</p>
 <ul>
 <li><code>main-is</code> - The executable file containing a <code>Main</code> module and the function <code>main</code>.</li>
@@ -60,7 +60,24 @@
 <li><code>other-modules</code> - For modules that do not form part of our package’s public interface, you can move those modules to the other-modules field. Either way, all modules in the library need to be listed.</li>
 </ul>
 <p>For a library, <code>cabal init</code> looks in the project directory for files that look like Haskell modules and adds all the modules to the <code>library:exposed-modules</code> field.</p>
-<div class="edit-meta">
+<p>For module names and organisation of directories, the module prefixes indicate the directory the module is found in. For example:</p>
+<pre><code class="language-cabal" data-lang="cabal">library
+    ...
+    hs-source-dirs:     src
+    exposed-modules:    PmmhHmm
+                        Monad.Coroutine
+                        Monad.Coroutine.Nested
+                        Monad.Coroutine.SuspensionFunctors
+    ...
+</code></pre><p>This indicates that our project must look like:</p>
+<pre><code>src/
+    PmmhHmm.hs                             -- module PmmhHmm
+    Monad/
+          Coroutine.hs                     -- module Monad.Coroutine
+          Coroutine/
+                    Nested.hs              -- module Monad.Coroutine.Nested
+                    SuspensionFunctors.hs  -- module Monad.Coroutine.SuspensionFunctors
+</code></pre><div class="edit-meta">
 Last updated on 13 Nov 2020
 
 
@@ -80,7 +97,6 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/activity/">Activity</a>
   
 <ul class="sub-menu">
-<li class=""><a href="https://probabilistic-effects.github.io/activity/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
 </ul>
   
 </li>
@@ -120,7 +136,7 @@ Published on 13 Nov 2020
 <li class="parent"><a href="https://probabilistic-effects.github.io/tooling/">Tooling</a>
   
 <ul class="sub-menu">
-<li class="active"><a href="https://probabilistic-effects.github.io/tooling/cabal/">Cabal</a></li>
+<li class="active"><a href="https://probabilistic-effects.github.io/tooling/cabal/">Cabal Projects</a></li>
 </ul>
   
 </li>
