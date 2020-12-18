@@ -35,7 +35,7 @@ It turns out that we should expect to see these definitions, however if we use o
 It turns out that we should expect to see these definitions, however if we use optimization:2, then we should also expect them to not actually be used. This is because GHC generates a lot of garbage that it doesn&rsquo;t seem to want to remove, but when we go to places where they would have been used, we should be able to find that they aren&rsquo;t actually there.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="900">
+<meta itemprop="wordCount" content="922">
 
 
 
@@ -189,6 +189,12 @@ It turns out that we should expect to see these definitions, however if we use o
 <p><img src="https://i.ibb.co/0sLMwtj/coroutine.png" alt=""></p>
 <p>This results in the run-time of our benchmark program dropping further:</p>
 <p><img src="https://i.ibb.co/HKzS638/benchmark-pmmh-8.png" alt=""></p>
+</li>
+<li>
+<p><code>scoreModel</code> also makes a reference call to <code>&gt;&gt;=</code> of the <code>Control.Monad.Coroutine</code> module.</p>
+<p><img src="https://i.ibb.co/rfzqNFd/dump-core-5-1.png" alt=""></p>
+<p>Adding an <code>INLINABLE</code> pragma to <code>&gt;&gt;=</code> as well, results in:</p>
+<p><img src="https://i.ibb.co/KmStqmS/benchmark-pmmh-9.png" alt=""></p>
 </li>
 </ul>
 <div class="edit-meta">
