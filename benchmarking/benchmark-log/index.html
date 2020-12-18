@@ -35,7 +35,7 @@ Source Program
 main = defaultMain [ bgroup &#34;runPmmh&#34; [ bench &#34;(100, 100, 100)&#34; $ whnfIO $ runPmmh (100, 100, 100) ] ] runPmmh :: (Int, Int, Int) -&gt; IO () runPmmh (n_mhsteps, n_timesteps, n_particles) = do particleWeightings &lt;- inferModel n_mhsteps n_timesteps n_particles print particleWeightings  Original Code   Inline pragma added to pmmh function   Inline pragma added to pushEvidence function   Inline pragma added to hoist function   Inline pragma added to mhTrans functions   Inline pragma added to Traced.">
 <meta itemprop="datePublished" content="2020-11-13T14:02:28+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:02:28+00:00" />
-<meta itemprop="wordCount" content="146">
+<meta itemprop="wordCount" content="156">
 
 
 
@@ -91,6 +91,10 @@ main = defaultMain [ bgroup &#34;runPmmh&#34; [ bench &#34;(100, 100, 100)&#34; 
 <li>Added inlines to <code>resampleGeneric</code>, <code>resampleSystematic</code>, <code>runWeighted</code>, <code>sir</code>.</li>
 </ul>
 <p><img src="https://i.ibb.co/vwC4kJf/benchmark-pmmh-7.png" alt=""></p>
+<ul>
+<li>Locally cloned <code>Control.Monad.Coroutine</code> module and inlined the definition of <code>&gt;&gt;</code>.</li>
+</ul>
+<p><img src="https://i.ibb.co/HKzS638/benchmark-pmmh-8.png" alt=""></p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
