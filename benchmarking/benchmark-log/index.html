@@ -35,7 +35,7 @@ Source Program
 main = defaultMain [ bgroup &#34;runPmmh&#34; [ bench &#34;(100, 100, 100)&#34; $ whnfIO $ runPmmh (100, 100, 100) ] ] runPmmh :: (Int, Int, Int) -&gt; IO () runPmmh (n_mhsteps, n_timesteps, n_particles) = do particleWeightings &lt;- inferModel n_mhsteps n_timesteps n_particles print particleWeightings  Original Code   Inline pragma added to pmmh function   Inline pragma added to pushEvidence function   Inline pragma added to hoist function   Inline pragma added to mhTrans functions   Inline pragma added to Traced.">
 <meta itemprop="datePublished" content="2020-11-13T14:02:28+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:02:28+00:00" />
-<meta itemprop="wordCount" content="229">
+<meta itemprop="wordCount" content="228">
 
 
 
@@ -100,13 +100,13 @@ main = defaultMain [ bgroup &#34;runPmmh&#34; [ bench &#34;(100, 100, 100)&#34; 
 </ul>
 <p><img src="https://i.ibb.co/KmStqmS/benchmark-pmmh-9.png" alt=""></p>
 <ul>
-<li>Added bang-patterns to <code>Params</code> datatype of <code>PmmhHmm.hs</code>. Added <code>INLINABLE</code> to <code>await</code> of <code>Control.Monad.Coroutine.SuspensionFunctors</code>.  Unpacked and added bang-patterns to <em>all</em> parameters of the <code>Trace</code> datatype of <code>Bayes.Traced.Common</code>.</li>
+<li>Added bang-patterns to <code>Params</code> datatype of <code>PmmhHmm.hs</code>. Added <code>INLINABLE</code> to <code>await</code> of <code>Control.Monad.Coroutine.SuspensionFunctors</code>.  Unpacked and added bang-patterns to <em>all</em> possible parameters of the <code>Trace</code> datatype of <code>Bayes.Traced.Common</code>.</li>
 </ul>
 <p><img src="https://i.ibb.co/SNghqzn/benchmark-12.png" alt=""></p>
 <ul>
 <li>
 <p><code>INLINABLE</code> pragmas were added to <code>runPopulation</code>, <code>explicitPopulation</code>, <code>extractEvidence</code>, <code>proper</code>, <code>evidence</code>, and <code>collapse</code> of <code>Bayes.Population</code>.</p>
-<p>Also, the arguments of the <code>Traced</code> datatype from <code>Bayes.Traced.Static</code> were unpacked and made strict. This made things slower (so these changes were undone.)</p>
+<p>Also, the arguments of the <code>Traced</code> datatype from <code>Bayes.Traced.Static</code> were made strict. This made things slower (so these changes were undone.)</p>
 </li>
 </ul>
 <p><img src="https://i.ibb.co/82PYPVx/benchmark-11.png" alt=""></p>
