@@ -38,7 +38,7 @@ ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (w
 build-depends: dump-core ghc-options: -fplugin-DumpCore When we build our program (stack build or ghc), this creates a folder called dump-core containing html files.">
 <meta itemprop="datePublished" content="2020-11-13T13:40:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:40:41+00:00" />
-<meta itemprop="wordCount" content="2865">
+<meta itemprop="wordCount" content="3137">
 
 
 
@@ -89,6 +89,9 @@ optimization:2
 <p><code>!</code>, or bang patterns, indicate strict evaluation. When we see a <code>let</code>, this is a lazy variable declaration, whereas a <code>let!</code> signifies a strict variable declaration.</p>
 </li>
 <li>
+<p><code>$d</code> is prepended to type class dictionaries which contain class method implementations.</p>
+</li>
+<li>
 <p><code>$w</code> is usually prepended to functions that the compiler has unwrapped some of the arguments for (which eliminates a pattern match).</p>
 </li>
 <li>
@@ -107,8 +110,22 @@ optimization:2
 </ul>
 <!-- raw HTML omitted -->
 <ul>
-<li><code>INLINABLE</code> : This pragma is far more benign than <code>INLINE</code>. Instead of
-influencing the inlining decision from the call site, the pragma only overrides the <code>-funfolding-creation-threshold</code> option and makes sure the unfolding for a definition is included in the interface file. Like the <code>INLINE</code> pragma, it is the unoptimised definition which is included. Despite its name, the pragma is mainly used for ensuring the definition of recursive functions is made available in interface files so that they can be specialised across modules.</li>
+<li>
+<p><code>INLINABLE</code> : This pragma is far more benign than <code>INLINE</code>. Instead of
+influencing the inlining decision from the call site, the pragma only overrides the <code>-funfolding-creation-threshold</code> option and makes sure the unfolding for a definition is included in the interface file. Like the <code>INLINE</code> pragma, it is the unoptimised definition which is included. Despite its name, the pragma is mainly used for ensuring the definition of recursive functions is made available in interface files so that they can be specialised across modules.</p>
+<p>Reasons to possibly not use <code>INLINABLE</code>:</p>
+<ul>
+<li>
+<p>Without <code>INLINABLE</code>, the definition that goes in the interface file is the code after optimisation, whereas with <code>INLINABLE</code>, it is the code you wrote (more or less). In particular, without <code>INLINABLE</code>, GHC might inline other functions into the function&rsquo;s definition.</p>
+</li>
+<li>
+<p>Without <code>INLINABLE</code>, GHC will omit the definition from the interface file if it is too big. If some other function got inlined into the right-hand-side, this could easily push it over the limit.</p>
+</li>
+<li>
+<p><code>INLINABLE</code> also turns on some clever machinery that automatically specialises overloaded functions where they are used, and shares the specialised versions with other modules that transitively import the module in which the specialised version was created.</p>
+</li>
+</ul>
+</li>
 </ul>
 <!-- raw HTML omitted -->
 <ul>
@@ -336,15 +353,31 @@ influencing the inlining decision from the call site, the pragma only overrides 
 <ul>
 <li>
 <p><strong>Q</strong> : Given a record data type such as:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Trace</span> a
-  <span style="color:#f92672">=</span> <span style="color:#66d9ef">Trace</span>
-      {
-        variables <span style="color:#f92672">::</span> [<span style="color:#66d9ef">Double</span>],
-        output <span style="color:#f92672">::</span> a,
-        density <span style="color:#f92672">::</span> <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>
-      }
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Params</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">Params</span> {
+    transition_p  <span style="color:#f92672">::</span> <span style="color:#f92672">!</span><span style="color:#66d9ef">Double</span>,
+    observation_p <span style="color:#f92672">::</span> <span style="color:#f92672">!</span><span style="color:#66d9ef">Double</span>
+} <span style="color:#66d9ef">deriving</span> <span style="color:#66d9ef">Show</span>
 </code></pre></div><p>is it unavoidable to lose the whole record feature (named parameters) if we were to optimise this to avoid the wrapping and rewrapping of the constructor?</p>
 <p><strong>A</strong> : Nope! If it&rsquo;s strict and haskell can unbox it, you can still use the record syntax and record accessors &ndash; it&rsquo;s just they will get optimised out and replaced with just the relevant argument of the function directly.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Params</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">Params</span> {
+    transition_p  <span style="color:#f92672">::</span> <span style="color:#75715e">{-# UNPACK #-}</span> <span style="color:#f92672">!</span><span style="color:#66d9ef">Double</span>,
+    observation_p <span style="color:#f92672">::</span> <span style="color:#75715e">{-# UNPACK #-}</span> <span style="color:#f92672">!</span><span style="color:#66d9ef">Double</span>
+} <span style="color:#66d9ef">deriving</span> <span style="color:#66d9ef">Show</span>
+</code></pre></div></li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li>
+<p>GHC loves single-constructor datatypes, such as tuples. A single-constructor datatype can be unpacked when it is passed to a strict function. For example, given this function:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">f</span> (x,y) <span style="color:#f92672">=</span> <span style="color:#f92672">...</span>
+</code></pre></div><p>GHC&rsquo;s strictness analyser will detect that f is strict in its argument, and compile the function like this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">f</span> z <span style="color:#f92672">=</span> <span style="color:#66d9ef">case</span> z <span style="color:#66d9ef">of</span> (x,y) <span style="color:#f92672">-&gt;</span> f&#39; x y
+<span style="color:#a6e22e">f&#39;</span> x y <span style="color:#f92672">=</span> <span style="color:#f92672">...</span>
+</code></pre></div><p>where f is called the wrapper, and f' is called the worker. The wrapper is inlined everywhere, so for example if you had a call to f like this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#f92672">...</span> f (<span style="color:#ae81ff">3</span>,<span style="color:#ae81ff">4</span>) <span style="color:#f92672">...</span>
+</code></pre></div><p>this will end up being compiled to</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#f92672">...</span> f&#39; <span style="color:#ae81ff">3</span> <span style="color:#ae81ff">4</span> <span style="color:#f92672">...</span>
+</code></pre></div><p>and the tuple has been completely optimised away. This only happens when the function argument is a single-constructor type</p>
 </li>
 </ul>
 <div class="edit-meta">
