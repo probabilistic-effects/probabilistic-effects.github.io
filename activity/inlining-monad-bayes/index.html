@@ -35,7 +35,7 @@ It turns out that we should expect to see these definitions, however if we use o
 It turns out that we should expect to see these definitions, however if we use optimization:2, then we should also expect them to not actually be used. This is because GHC generates a lot of garbage that it doesn&rsquo;t seem to want to remove, but when we go to places where they would have been used, we should be able to find that they aren&rsquo;t actually there.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="1142">
+<meta itemprop="wordCount" content="1132">
 
 
 
@@ -208,15 +208,15 @@ It turns out that we should expect to see these definitions, however if we use o
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Trace</span> a
   <span style="color:#f92672">=</span> <span style="color:#66d9ef">Trace</span>
       { variables <span style="color:#f92672">::</span> [<span style="color:#66d9ef">Double</span>],
-        output    <span style="color:#f92672">::</span> <span style="color:#75715e">{-# UNPACK #-}</span> <span style="color:#f92672">!</span>a,
+        output    <span style="color:#f92672">::</span> <span style="color:#f92672">!</span>a,
         density   <span style="color:#f92672">::</span> <span style="color:#75715e">{-# UNPACK #-}</span> <span style="color:#f92672">!</span>(<span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)
       }
 </code></pre></div><p><img src="https://i.ibb.co/FqHYNYn/dump-core-6-1.png" alt=""></p>
-<p>Unpacking and adding bang-patterns to <em>all</em> parameters of the <code>Trace</code> datatype results in both a better looking core and a faster run-time.</p>
+<p>Unpacking and adding bang-patterns to <em>all</em> parameters of the <code>Trace</code> datatype results in both a better looking core and a faster run-time. (Only strict, single-constructor types can be unpacked).</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Trace</span> a
   <span style="color:#f92672">=</span> <span style="color:#66d9ef">Trace</span>
-      { variables <span style="color:#f92672">::</span> <span style="color:#75715e">{-# UNPACK #-}</span> <span style="color:#f92672">!</span>([<span style="color:#66d9ef">Double</span>]),
-        output    <span style="color:#f92672">::</span> <span style="color:#75715e">{-# UNPACK #-}</span> <span style="color:#f92672">!</span>a,
+      { variables <span style="color:#f92672">::</span> <span style="color:#f92672">!</span>([<span style="color:#66d9ef">Double</span>]),
+        output    <span style="color:#f92672">::</span> <span style="color:#f92672">!</span>a,
         density   <span style="color:#f92672">::</span> <span style="color:#75715e">{-# UNPACK #-}</span> <span style="color:#f92672">!</span>(<span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)
       }
 </code></pre></div><p><img src="https://i.ibb.co/PzRLWBd/dump-core-6-0.png" alt=""></p>
@@ -227,11 +227,11 @@ It turns out that we should expect to see these definitions, however if we use o
 <p><img src="https://i.ibb.co/f96HhvN/dump-core-6-4.png" alt="">
 <img src="https://i.ibb.co/Lp7sMkL/dump-core-6-3.png" alt=""></p>
 <p>To try and get rid of this, <code>INLINABLE</code> pragmas were added to <code>runPopulation</code>, <code>explicitPopulation</code>, <code>extractEvidence</code>, <code>proper</code>, <code>evidence</code>, and <code>collapse</code> of <code>Bayes.Population</code>.</p>
-<p>Also, the arguments of the <code>Traced</code> datatype from <code>Bayes.Traced.Static</code> were unpacked and made strict.</p>
+<p>Also, the arguments of the <code>Traced</code> datatype from <code>Bayes.Traced.Static</code> were made strict.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Traced</span> m a
   <span style="color:#f92672">=</span> <span style="color:#66d9ef">Traced</span>
-      { model     <span style="color:#f92672">::</span> <span style="color:#75715e">{-# UNPACK #-}</span> <span style="color:#f92672">!</span>(<span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">FreeSampler</span> m) a),
-        traceDist <span style="color:#f92672">::</span> <span style="color:#75715e">{-# UNPACK #-}</span> <span style="color:#f92672">!</span>(m (<span style="color:#66d9ef">Trace</span> a))
+      { model     <span style="color:#f92672">::</span> <span style="color:#f92672">!</span>(<span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">FreeSampler</span> m) a),
+        traceDist <span style="color:#f92672">::</span> <span style="color:#f92672">!</span>(m (<span style="color:#66d9ef">Trace</span> a))
       }
 </code></pre></div><p>This made things slower, so these changes were undone.</p>
 <p><img src="https://i.ibb.co/82PYPVx/benchmark-11.png" alt=""></p>
