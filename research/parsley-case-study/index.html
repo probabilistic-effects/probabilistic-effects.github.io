@@ -35,7 +35,7 @@ Usually, if one is confused about something in the core, it is best to compare i
 regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="3496">
+<meta itemprop="wordCount" content="4357">
 
 
 
@@ -182,7 +182,7 @@ Usually we will see something we&rsquo;re unhappy with. In the above case, there
 <p>And we have this function, <code>evalPush</code>:</p>
 <p><img src="https://i.ibb.co/9c7cRVX/image-32.png" alt=""></p>
 <p>But in the core, we can see the reader monad has been completely eliminated. There is no <code>fmap</code>, and no <code>IFunctor</code> instance from the <code>cata4</code> - it&rsquo;s just made as a recursive function.</p>
-<p><img src="https://i.ibb.co/Mnd8wMS/image-31.png" alt=""></p>
+<p><img src="https://i.ibb.co/**Q**:d8wMS/image-31.png" alt=""></p>
 <p>Here is another example - this involves <code>StateT + Reader</code></p>
 <p><img src="https://i.ibb.co/GQMcmJY/image-30.png" alt=""></p>
 <p>Let&rsquo;s go find this in the core and verify again the abstraction is gone.</p>
@@ -214,7 +214,7 @@ In the ideal, monads should be just as fast as the hand written equivalent.</p>
 <p><img src="https://i.ibb.co/JkcXtjH/image-19.png" alt=""></p>
 <p>Another thing to notice is that, before when the <code>expose</code> parameter was left there, it made the code more complex than it needed to be (because the expose function used here is actually just <code>pure</code> roughly). After having marked <code>traverseCombinator</code> as <code>INLINE</code>,
 it is inlined into the function, and the internals are simplified further. The <code>eta</code> is the reader context. We can obviously see that the state is being passed around happily - that&rsquo;s as optimal as it gets, and all GHC needed to go from the slower only-unwrapped version to this fully inlined and optimised version was an <code>INLINE</code> pragma.</p>
-<p><img src="https://i.ibb.co/nMn8HHf/image-18.png" alt=""></p>
+<p><img src="https://i.ibb.co/n**Q**:8HHf/image-18.png" alt=""></p>
 <p>GHC has also done the same with the other use of <code>traverseCombinator</code>:</p>
 <p><img src="https://i.ibb.co/LPMpN6Q/image-17.png" alt="">
 <img src="https://i.ibb.co/rH5JCxf/image-16.png" alt="">
@@ -229,11 +229,12 @@ it is inlined into the function, and the internals are simplified further. The <
 <p><strong>Q:</strong> Is it ever the case that you can undo an inline for some other function, and keep the new inline (which previously resulted in slower performance), so that it results in an overall better run-time?</p>
 <p><strong>A:</strong> Yes. You can set the phase of the inliner. You can say &ldquo;inline past phase 2&rdquo; etc.</p>
 <hr>
+<h5 id="an-example-of-using-cps-in-parsley">An example of using CPS in Parsley</h5>
 <p>Consider a program where we have the state monad in all different sorts of places, and we are unhappy with the building of the tuples being around.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">type</span> <span style="color:#66d9ef">State</span> s <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> s <span style="color:#66d9ef">Identity</span>
 <span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">StateT</span> s m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> { runStateT <span style="color:#f92672">::</span> s <span style="color:#f92672">-&gt;</span> m (a, s) }
 </code></pre></div><p>A good way to get rid of that is to use the continuation-passing-style form of the state monad.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">StateT</span> s m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> { unStateT <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> s <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> s <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> m r}
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">StateT</span> s m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> { unStateT <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> s <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> s <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> m r }
   <span style="color:#66d9ef">deriving</span> <span style="color:#66d9ef">Functor</span>
 </code></pre></div><p>The translation we do is, we leave the result type <code>r</code> abstract, we take the state <code>s</code>, and then we take the function that consumes the <code>a</code> produced by this computation as well as the <code>s</code> in order to return the <code>m r</code>. This is actually the transformation we get when we apply the codensity transformation to state.</p>
 <p>To run the state itself, we call <code>f</code> which is the function of type <code>forall r. s -&gt; (a -&gt; s -&gt; m r) -&gt; m r</code>, but we have to give it an argument of type <code>(a -&gt; s -&gt; m r)</code> as well as the initial state <code>s</code>. What we&rsquo;re looking for is an <code>a -&gt; s -&gt; m (a, s)</code> so that we can roughly recover <code>m (a, s)</code>. So the function we pass it is simply something that takes an <code>a</code> and <code>s</code> and calls <code>return</code> on the tuple <code>(a, s)</code> &ndash; so this is the final continuation that runs with the state.</p>
@@ -287,6 +288,101 @@ it is inlined into the function, and the internals are simplified further. The <
 <p>A : Nope! If it&rsquo;s strict and haskell can unbox it, you can still use the record syntax and record accessors &ndash; it&rsquo;s just they will get optimised out and replaced with just the relevant argument of the function directly.</p>
 </li>
 </ul>
+<hr>
+<h5 id="a-conversation-on-cpsing-datatypes">A Conversation on CPS&rsquo;ing Datatypes</h5>
+<p><strong>MN</strong>: I&rsquo;m struggling a bit to work out what this (monadic) data type looks like in CPS-form, could you help me out?</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Trace</span> a
+  <span style="color:#f92672">=</span> <span style="color:#66d9ef">Trace</span>
+      { variables <span style="color:#f92672">::</span> [<span style="color:#66d9ef">Double</span>],
+        output    <span style="color:#f92672">::</span> a,
+        density   <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)
+      }
+</code></pre></div><p><strong>JW</strong>:
+What&rsquo;s the instance?</p>
+<p><strong>MN</strong>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monad</span> <span style="color:#66d9ef">Trace</span> <span style="color:#66d9ef">where</span>
+  t <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span>
+    <span style="color:#66d9ef">let</span> t&#39; <span style="color:#f92672">=</span> f (output t)
+     <span style="color:#66d9ef">in</span> t&#39; {variables <span style="color:#f92672">=</span> variables t <span style="color:#f92672">++</span> variables t&#39;, density <span style="color:#f92672">=</span> density t <span style="color:#f92672">*</span> density t&#39;}
+</code></pre></div><p><strong>JW</strong>:
+Thats a writer monad</p>
+<p><strong>MN</strong>:
+I wasn&rsquo;t aware that the instance mattered as well</p>
+<p><strong>JW</strong>:
+It helps me see what the semantics are.</p>
+<p>This one is a weird one. I think this is it:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Trace</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Trace</span> { runTrace <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> ([<span style="color:#66d9ef">Double</span>] <span style="color:#f92672">-&gt;</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span> <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r }
+</code></pre></div><p><strong>MN</strong>:
+I was looking back at your <code>StateT</code> CPS example, and i was wondering why there was an extra parameter <code>s</code> before the continuation:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">StateT</span> s m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> { runStateT <span style="color:#f92672">::</span> s <span style="color:#f92672">-&gt;</span> m (a, s) }
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">StateT</span> s m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> { runStateT <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> s <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> s <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> m r}
+</code></pre></div><p>I&rsquo;m just trying to grasp a general blueprint of CPS&rsquo;ing.</p>
+<p><strong>JW</strong>:
+That&rsquo;s the input. The inputs stay as inputs, the outputs get turned into a function, and then you can curry the function when otherwise you return a tuple.</p>
+<p><strong>MN</strong>:
+Is there a general rule for multiple constructor data types? For example, would:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Either</span> a b <span style="color:#f92672">=</span> <span style="color:#66d9ef">Left</span> a <span style="color:#f92672">|</span> <span style="color:#66d9ef">Right</span> b
+</code></pre></div><p>look like:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Either</span> a b <span style="color:#f92672">=</span> <span style="color:#66d9ef">Either</span> { forall r<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> b <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r}
+</code></pre></div><p><strong>JW</strong>:
+No, it can&rsquo;t. That implies that you have both results available at once, i.e. a product. For a coproduct, you have two continuations:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Except</span> e a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Except</span> { runExcept <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> (e <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r }
+</code></pre></div><p><strong>MN</strong>:
+Ooh i understand, thanks.</p>
+<p><strong>JW</strong>:
+So here&rsquo;s the same problem in reverse:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">ParsecT</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">ParsecT</span> { runParsecT <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> <span style="color:#66d9ef">String</span> <span style="color:#f92672">-&gt;</span> (<span style="color:#66d9ef">String</span> <span style="color:#f92672">-&gt;</span> a <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> (<span style="color:#66d9ef">String</span> <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> m r }
+</code></pre></div><p>Can you figure out what the &ldquo;original&rdquo; datatype was?</p>
+<p><strong>MN</strong>:
+I&rsquo;m having a think, the input String and the multiple continuations together are confusing</p>
+<p><strong>JW</strong>:
+Perhaps break it into two parts then?</p>
+<p><strong>MN</strong>:
+I would&rsquo;ve thought that the original data type would contain a function <code>String -&gt; m (String, a)</code></p>
+<p><strong>JW</strong>:
+Ok, so that represents the <code>StateT</code> monad: <code>String -&gt; m (a, String)</code> is <code>StateT</code>.</p>
+<p>So now let&rsquo;s factor that out:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">type</span> <span style="color:#66d9ef">ParsecT</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (<span style="color:#66d9ef">Foo</span> m) a
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Foo</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Foo</span> { runFoo <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> m r <span style="color:#f92672">-&gt;</span> m r }
+</code></pre></div><p>Now, try to reverse engineer <code>Foo</code>.</p>
+<p><strong>MN</strong>:
+Alright, now that&rsquo;s confusing because there&rsquo;s an input after the continuation</p>
+<p><strong>JW</strong>:
+It&rsquo;s not an input ;). Does this help:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Foo</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Foo</span> { runFoo <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> (() <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> m r }
+</code></pre></div><p><strong>MN</strong>:
+Right, so something like:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Foo</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Foo</span> (m a) <span style="color:#f92672">|</span> <span style="color:#66d9ef">Bar</span>
+</code></pre></div><p><strong>JW</strong>:
+Yep, or, in other words: <code>MaybeT</code>.</p>
+<p>So now you have:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">type</span> <span style="color:#66d9ef">ParsecT</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> <span style="color:#66d9ef">String</span> (<span style="color:#66d9ef">MaybeT</span> m) a
+</code></pre></div><p>or rather:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">ParsecT</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">ParsecT</span> { runParser <span style="color:#f92672">::</span> <span style="color:#66d9ef">String</span> <span style="color:#f92672">-&gt;</span> m (<span style="color:#66d9ef">Maybe</span> (a, <span style="color:#66d9ef">String</span>)) }
+</code></pre></div><p><strong>MN</strong>:
+Ohh, that&rsquo;s so complex - how that second continuation comes in is wacky</p>
+<p><strong>JW</strong>:
+You can conceptualise it as two outcomes: either the parser succeeds, or the parser fails.
+Those represent the two branches of the maybe.</p>
+<p>In reality, the real parsec has 4 continuations:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">type</span> <span style="color:#66d9ef">Parsec</span> a <span style="color:#f92672">=</span> forall r<span style="color:#f92672">.</span> <span style="color:#66d9ef">String</span> <span style="color:#f92672">-&gt;</span> (<span style="color:#66d9ef">String</span> <span style="color:#f92672">-&gt;</span> a <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> (<span style="color:#66d9ef">String</span> <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r <span style="color:#f92672">-&gt;</span> r
+</code></pre></div><p>One for success consuming input, one for success not consuming input, one for failure consuming input, and one for failure not consuming input.</p>
+<p><strong>MN</strong>:
+I see, so multiple continuations can represent either multiple constructors, or a nesting of monad transformers?</p>
+<p><strong>JW</strong>:
+The multiple continuations represent multiple constructors, or rather, multiple paths. It can mean that the nested monad has multiple branches itself, which is the case here, but all composed monads form their own unique monad.</p>
+<p><strong>MN</strong>:
+This is great stuff, thanks a lot!</p>
+<p><strong>JW</strong>:
+Just don&rsquo;t be tempted to transform List, or any recursive type for that matter. It&rsquo;s an infinite type unless you use Fix.</p>
+<p><strong>MN</strong>:
+I&rsquo;m seeing two different versions of what the result <code>r</code> is when CPS&rsquo;ing data types, for instance:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Maybe</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Maybe</span> { runMaybe <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r}
+</code></pre></div><p>and</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Maybe</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Maybe</span> { runMaybe <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Maybe</span> r) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Maybe</span> r}
+</code></pre></div><p>Are either/both correct?</p>
+<p><strong>JW</strong>
+Neither is correct. They are both missing the <code>Nothing</code> continuation. However, the first is more correct. The second is technically more correct without the second continuation, but is far too strong. We want the <code>r</code> to be as weak as possible. Your second one is the codensity maybe.</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
@@ -315,8 +411,6 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/papers/">Papers</a>
   
 <ul class="sub-menu">
-<li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>
 </ul>
   
 </li>
