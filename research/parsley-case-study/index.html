@@ -428,7 +428,7 @@ I&rsquo;m having a difficult time defining the applicative instance for MaybeCPS
 </code></pre></div><p>but i&rsquo;ve no idea how to make that possible</p>
 <p><strong>JW</strong>:
 Again, I would get rid of the unit, but just intuitively:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">mf</span> <span style="color:#f92672">&lt;*&gt;</span> mx <span style="color:#f92672">=</span> <span style="color:#a6e22e">\</span>good bad <span style="color:#f92672">-&gt;</span> mf (<span style="color:#a6e22e">\</span>f <span style="color:#f92672">-&gt;</span> mx (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> good (f x)) bad)) bad
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">mf</span> <span style="color:#f92672">&lt;*&gt;</span> mx <span style="color:#f92672">=</span> <span style="color:#a6e22e">\</span>good bad <span style="color:#f92672">-&gt;</span> mf (<span style="color:#a6e22e">\</span>f <span style="color:#f92672">-&gt;</span> mx (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> good (f x)) bad) bad
 </code></pre></div><p>That&rsquo;ll do it.</p>
 <p><strong>MN</strong>:
 i&rsquo;m just including the second continuation so i can see how this idea would apply to data types with multiple continuations</p>
