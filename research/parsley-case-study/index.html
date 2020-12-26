@@ -35,7 +35,7 @@ Usually, if one is confused about something in the core, it is best to compare i
 regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="4648">
+<meta itemprop="wordCount" content="4852">
 
 
 
@@ -418,7 +418,26 @@ If you want the <code>Trace</code> datatype to come out, then sure. Perhaps you&
 I get it! thanks.</p>
 <p><strong>JW</strong>:
 Realistically you can provide anything, including the rest of your program if you wanted to eliminate the Trace datatype entirely..</p>
-<div class="edit-meta">
+<p><strong>MN</strong>:
+I&rsquo;m having a difficult time defining the applicative instance for MaybeCPS:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">MaybeCPS</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">MaybeCPS</span> { unMaybeCPS <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> (() <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r }
+</code></pre></div><p>I think i need a function of type:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">app</span> <span style="color:#f92672">::</span> ((a <span style="color:#f92672">-&gt;</span> r)      <span style="color:#f92672">-&gt;</span> (() <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r)
+    <span style="color:#f92672">-&gt;</span> ((a <span style="color:#f92672">-&gt;</span> b <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> (() <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r)
+    <span style="color:#f92672">-&gt;</span> ((b <span style="color:#f92672">-&gt;</span> r)      <span style="color:#f92672">-&gt;</span> (() <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r)
+</code></pre></div><p>but i&rsquo;ve no idea how to make that possible</p>
+<p><strong>JW</strong>:
+Again, I would get rid of the unit, but just intuitively:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">mf</span> <span style="color:#f92672">&lt;*&gt;</span> mx <span style="color:#f92672">=</span> <span style="color:#a6e22e">\</span>good bad <span style="color:#f92672">-&gt;</span> mf (<span style="color:#a6e22e">\</span>f <span style="color:#f92672">-&gt;</span> mx (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> good (f x)) bad)) bad
+</code></pre></div><p>That&rsquo;ll do it.</p>
+<p><strong>MN</strong>:
+i&rsquo;m just including the second continuation so i can see how this idea would apply to data types with multiple continuations</p>
+<p><strong>JW</strong>:
+The second continuation is still a continuation without the <code>()</code> because it&rsquo;s lazy.
+<code>() =&gt; a</code> is iso to <code>a</code> in a lazy language. In a strict language you&rsquo;d have to use <code>() =&gt; a</code> (like scalas <code>=&gt;A</code> type).</p>
+<p>You gave me the type of <code>&gt;&gt;=</code> above though, which is this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">mx</span> <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span> <span style="color:#a6e22e">\</span>good bad <span style="color:#f92672">-&gt;</span> mx (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> f x good bad) bad
+</code></pre></div><div class="edit-meta">
 Last updated on 13 Nov 2020
 
 
