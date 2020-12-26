@@ -35,7 +35,7 @@ Usually, if one is confused about something in the core, it is best to compare i
 regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="4357">
+<meta itemprop="wordCount" content="4648">
 
 
 
@@ -381,8 +381,43 @@ I&rsquo;m seeing two different versions of what the result <code>r</code> is whe
 </code></pre></div><p>and</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Maybe</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Maybe</span> { runMaybe <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Maybe</span> r) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Maybe</span> r}
 </code></pre></div><p>Are either/both correct?</p>
-<p><strong>JW</strong>
+<p><strong>JW</strong>:
 Neither is correct. They are both missing the <code>Nothing</code> continuation. However, the first is more correct. The second is technically more correct without the second continuation, but is far too strong. We want the <code>r</code> to be as weak as possible. Your second one is the codensity maybe.</p>
+<p><strong>MN</strong>:
+I was wondering about how to write the corresponding run functions for CPS data types - i understand your type definition for your CPS <code>StateT</code>, but i&rsquo;m not sure how to apply it to types such as <code>Maybe</code>. Here&rsquo;s my attempt:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Maybe</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Just</span> a <span style="color:#f92672">|</span> <span style="color:#66d9ef">Nothing</span>
+
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">MaybeCPS</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">MaybeCPS</span> { unMaybeCPS <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> (() <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r }
+
+<span style="color:#a6e22e">runMaybeCPS</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">MaybeCPS</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Maybe</span> a
+<span style="color:#a6e22e">runMaybeCPS</span> m <span style="color:#f92672">=</span> (unMaybeCPS m) <span style="color:#66d9ef">Just</span> (<span style="color:#a6e22e">\</span>() <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Nothing</span>)
+</code></pre></div><p><strong>JW</strong>:
+Yeah that&rsquo;s correct. Obviously you don&rsquo;t need the const <code>Nothing</code>. You can just remove the <code>()</code> from the type.</p>
+<p><strong>MN</strong>:
+Thanks, also, given your <code>runStateT</code> has type:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">runStateT</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">StateT</span> s m a <span style="color:#f92672">-&gt;</span> s <span style="color:#f92672">-&gt;</span> m (a, s)
+</code></pre></div><p>Would it also be valid to use the approach i&rsquo;ve done with Maybe and MaybeCPS? Making a function:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">runStateTCPS</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">StateTCPS</span> s m a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">StateT</span> s m a
+</code></pre></div><p><strong>JW</strong>:
+Nah, <code>Maybe</code> is kinda incidental. You want the same type as before. The <code>runStateT</code> provides <code>(return . (,))</code> or something.</p>
+<p><strong>MN</strong>:
+Ah i see, so just for the cases where constructors don&rsquo;t contain functions? Such as:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Trace</span> a
+  <span style="color:#f92672">=</span> <span style="color:#66d9ef">Trace</span>
+      { variables <span style="color:#f92672">::</span> [<span style="color:#66d9ef">Double</span>],
+        output    <span style="color:#f92672">::</span> a,
+        density   <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)
+      }
+
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">TraceCPS</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">TraceCPS</span> { unTraceCPS <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> ([<span style="color:#66d9ef">Double</span>] <span style="color:#f92672">-&gt;</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span> <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r }
+
+<span style="color:#a6e22e">runTraceCPS</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">TraceCPS</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Trace</span> a
+</code></pre></div><p><strong>JW</strong>:
+If you want the <code>Trace</code> datatype to come out, then sure. Perhaps you&rsquo;re only interested in one of the outputs. Idk.</p>
+<p><strong>MN</strong>:
+I get it! thanks.</p>
+<p><strong>JW</strong>:
+Realistically you can provide anything, including the rest of your program if you wanted to eliminate the Trace datatype entirely..</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
