@@ -35,7 +35,7 @@ The direct-style factorial fac takes a single argument.
 fac :: Integral a =&gt; a -&gt; a fac 0 = 1 fac n = n * fac (n - 1) Continuation-passing-style functions are suspended computations with general type a -&gt; (b -&gt; r) -&gt; r, which represent direct-style functions with type a -&gt; b.">
 <meta itemprop="datePublished" content="2020-11-13T13:40:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:40:41+00:00" />
-<meta itemprop="wordCount" content="3865">
+<meta itemprop="wordCount" content="4416">
 
 
 
@@ -98,10 +98,36 @@ fac :: Integral a =&gt; a -&gt; a fac 0 = 1 fac n = n * fac (n - 1) Continuation
         output    <span style="color:#f92672">::</span> a,
         density   <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)
       }
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Applicative</span> <span style="color:#66d9ef">Trace</span> <span style="color:#66d9ef">where</span>
+  pure x <span style="color:#f92672">=</span> <span style="color:#66d9ef">Trace</span> {variables <span style="color:#f92672">=</span> <span style="color:#66d9ef">[]</span>, output <span style="color:#f92672">=</span> x, density <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>}
+  tf <span style="color:#f92672">&lt;*&gt;</span> tx <span style="color:#f92672">=</span>
+    <span style="color:#66d9ef">Trace</span>
+      { variables <span style="color:#f92672">=</span> variables tf <span style="color:#f92672">++</span> variables tx,
+        output <span style="color:#f92672">=</span> output tf (output tx),
+        density <span style="color:#f92672">=</span> density tf <span style="color:#f92672">*</span> density tx
+      }
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monad</span> <span style="color:#66d9ef">Trace</span> <span style="color:#66d9ef">where</span>
+  t <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span>
+    <span style="color:#66d9ef">let</span> t&#39; <span style="color:#f92672">=</span> f (output t)
+     <span style="color:#66d9ef">in</span> t&#39; {variables <span style="color:#f92672">=</span> variables t <span style="color:#f92672">++</span> variables t&#39;, density <span style="color:#f92672">=</span> density t <span style="color:#f92672">*</span> density t&#39;}
 </code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">TraceCPS</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">TraceCPS</span> { unTraceCPS <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> ([<span style="color:#66d9ef">Double</span>] <span style="color:#f92672">-&gt;</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span> <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r }
 
 <span style="color:#a6e22e">runTraceCPS</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">TraceCPS</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Trace</span> a
 <span style="color:#a6e22e">runTraceCPS</span> m <span style="color:#f92672">=</span> (unTraceCPS m) <span style="color:#66d9ef">Trace</span>
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Applicative</span> <span style="color:#66d9ef">TraceCPS</span> <span style="color:#66d9ef">where</span>
+  pure x <span style="color:#f92672">=</span> <span style="color:#66d9ef">TraceCPS</span> (<span style="color:#a6e22e">\</span>k <span style="color:#f92672">-&gt;</span> k <span style="color:#66d9ef">[]</span> x <span style="color:#ae81ff">1</span>)
+  (<span style="color:#66d9ef">TraceCPS</span> mf) <span style="color:#f92672">&lt;*&gt;</span> (<span style="color:#66d9ef">TraceCPS</span> mx) <span style="color:#f92672">=</span>
+    <span style="color:#66d9ef">TraceCPS</span> (<span style="color:#a6e22e">\</span>k <span style="color:#f92672">-&gt;</span>
+      mf (<span style="color:#a6e22e">\</span>v f d <span style="color:#f92672">-&gt;</span> mx (<span style="color:#a6e22e">\</span>v&#39; x d&#39; <span style="color:#f92672">-&gt;</span> k (v <span style="color:#f92672">++</span> v&#39;) (f x) (d <span style="color:#f92672">*</span> d&#39;) ) ) )
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monad</span> <span style="color:#66d9ef">TraceCPS</span> <span style="color:#66d9ef">where</span>
+  return <span style="color:#f92672">=</span> pure
+  (<span style="color:#66d9ef">TraceCPS</span> mx) <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span>
+    <span style="color:#66d9ef">TraceCPS</span> (<span style="color:#a6e22e">\</span>k <span style="color:#f92672">-&gt;</span>
+      mx (<span style="color:#a6e22e">\</span>v x d <span style="color:#f92672">-&gt;</span> (unTraceCPS <span style="color:#f92672">$</span> f x) (<span style="color:#a6e22e">\</span>v&#39; x&#39; d&#39; <span style="color:#f92672">-&gt;</span> k (v <span style="color:#f92672">++</span> v&#39;) x&#39; (d <span style="color:#f92672">*</span> d&#39;) ) ) )
 </code></pre></div><p><strong>• Maybe</strong></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Maybe</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Just</span> a <span style="color:#f92672">|</span> <span style="color:#66d9ef">Nothing</span>
 </code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">MaybeCPS</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">MaybeCPS</span> { unMaybeCPS <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> (() <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r }
@@ -112,6 +138,18 @@ fac :: Integral a =&gt; a -&gt; a fac 0 = 1 fac n = n * fac (n - 1) Continuation
 <span style="color:#a6e22e">runMaybeCPS</span> m <span style="color:#f92672">=</span> (unMaybeCPS m) <span style="color:#66d9ef">Just</span> (<span style="color:#a6e22e">\</span>() <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Nothing</span>)
 <span style="color:#75715e">-- or</span>
 <span style="color:#a6e22e">runMaybeCPS</span> m <span style="color:#f92672">=</span> (unMaybeCPS m) <span style="color:#66d9ef">Just</span> <span style="color:#66d9ef">Nothing</span>
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Applicative</span> <span style="color:#66d9ef">MaybeCPS</span> <span style="color:#66d9ef">where</span>
+  pure a <span style="color:#f92672">=</span> <span style="color:#66d9ef">MaybeCPS</span> (<span style="color:#a6e22e">\</span>k_just k_nothing <span style="color:#f92672">-&gt;</span> k_just a)
+  (<span style="color:#66d9ef">MaybeCPS</span> mf) <span style="color:#f92672">&lt;*&gt;</span> (<span style="color:#66d9ef">MaybeCPS</span> mx) <span style="color:#f92672">=</span>
+    <span style="color:#66d9ef">MaybeCPS</span> (<span style="color:#a6e22e">\</span>k_just k_nothing <span style="color:#f92672">-&gt;</span>
+                mf (<span style="color:#a6e22e">\</span>f <span style="color:#f92672">-&gt;</span> mx (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> k_just (f x)) k_nothing) k_nothing)
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monad</span> <span style="color:#66d9ef">MaybeCPS</span> <span style="color:#66d9ef">where</span>
+  return               <span style="color:#f92672">=</span> pure
+  (<span style="color:#66d9ef">MaybeCPS</span> mx) <span style="color:#f92672">&gt;&gt;=</span> f  <span style="color:#f92672">=</span>
+    <span style="color:#66d9ef">MaybeCPS</span> (<span style="color:#a6e22e">\</span>k_just k_nothing <span style="color:#f92672">-&gt;</span>
+                mx (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> unMaybeCPS (f x) k_just k_nothing) k_nothing)
 </code></pre></div><p>For multiple constructor data types, as this is a coproduct, we require a continuation for each possible constructor case.</p>
 <p><strong>• Either</strong></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Either</span> e a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Left</span> e <span style="color:#f92672">|</span> <span style="color:#66d9ef">Right</span> a
@@ -119,12 +157,36 @@ fac :: Integral a =&gt; a -&gt; a fac 0 = 1 fac n = n * fac (n - 1) Continuation
 
 <span style="color:#a6e22e">runEitherCPS</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">EitherCPS</span> e a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Either</span> e a
 <span style="color:#a6e22e">runEitherCPS</span> m <span style="color:#f92672">=</span> (unEitherCPS m) <span style="color:#66d9ef">Left</span> <span style="color:#66d9ef">Right</span>
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Applicative</span> (<span style="color:#66d9ef">EitherCPS</span> e) <span style="color:#66d9ef">where</span>
+  pure x <span style="color:#f92672">=</span> <span style="color:#66d9ef">EitherCPS</span> (<span style="color:#a6e22e">\</span>k_left k_right <span style="color:#f92672">-&gt;</span> k_right x)
+  (<span style="color:#66d9ef">EitherCPS</span> mf) <span style="color:#f92672">&lt;*&gt;</span> (<span style="color:#66d9ef">EitherCPS</span> mx) <span style="color:#f92672">=</span>
+    <span style="color:#66d9ef">EitherCPS</span> (<span style="color:#a6e22e">\</span>k_left k_right <span style="color:#f92672">-&gt;</span>
+                 mf k_left (<span style="color:#a6e22e">\</span>f <span style="color:#f92672">-&gt;</span> mx k_left (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> k_right (f x))))
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">EitherCPS</span> e) <span style="color:#66d9ef">where</span>
+  return <span style="color:#f92672">=</span> pure
+  (<span style="color:#66d9ef">EitherCPS</span> mx) <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span>
+    <span style="color:#66d9ef">EitherCPS</span> (<span style="color:#a6e22e">\</span>k_left k_right <span style="color:#f92672">-&gt;</span>
+                 mx k_left (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> unEitherCPS (f x) k_left k_right ))
 </code></pre></div><p><strong>• Writer</strong></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Writer</span> w a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Writer</span> { runWriter <span style="color:#f92672">::</span> (a, w) }
 </code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">WriterCPS</span> w a <span style="color:#f92672">=</span> <span style="color:#66d9ef">WriterCPS</span> { unWriterCPS <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> w <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r}
 
 <span style="color:#a6e22e">runWriterCPS</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monoid</span> w <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">WriterCPS</span> w a <span style="color:#f92672">-&gt;</span> (a, w)
 <span style="color:#a6e22e">runWriterCPS</span> m <span style="color:#f92672">=</span> (unWriterCPS m) (<span style="color:#a6e22e">\</span>a w <span style="color:#f92672">-&gt;</span> (a, w))
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monoid</span> w <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Applicative</span> (<span style="color:#66d9ef">WriterCPS</span> w) <span style="color:#66d9ef">where</span>
+  pure x <span style="color:#f92672">=</span> <span style="color:#66d9ef">WriterCPS</span> (<span style="color:#a6e22e">\</span>k <span style="color:#f92672">-&gt;</span> k x mempty)
+  (<span style="color:#66d9ef">WriterCPS</span> mf) <span style="color:#f92672">&lt;*&gt;</span> (<span style="color:#66d9ef">WriterCPS</span> mx) <span style="color:#f92672">=</span>
+    <span style="color:#66d9ef">WriterCPS</span> (<span style="color:#a6e22e">\</span>k <span style="color:#f92672">-&gt;</span>
+      mf (<span style="color:#a6e22e">\</span>f w1 <span style="color:#f92672">-&gt;</span> mx (<span style="color:#a6e22e">\</span>x w2 <span style="color:#f92672">-&gt;</span> k (f x) (w1 `mappend` w2))))
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monoid</span> w <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">WriterCPS</span> w) <span style="color:#66d9ef">where</span>
+  return <span style="color:#f92672">=</span> pure
+  (<span style="color:#66d9ef">WriterCPS</span> mx) <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span>
+    <span style="color:#66d9ef">WriterCPS</span> (<span style="color:#a6e22e">\</span>k <span style="color:#f92672">-&gt;</span>
+      mx (<span style="color:#a6e22e">\</span>x w1 <span style="color:#f92672">-&gt;</span> unWriterCPS (f x) (<span style="color:#a6e22e">\</span>x&#39; w2 <span style="color:#f92672">-&gt;</span> k x&#39; (w1 `mappend` w2))))
 </code></pre></div><p><strong>• Reader</strong></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Reader</span> env a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Reader</span> { runReader <span style="color:#f92672">::</span> env <span style="color:#f92672">-&gt;</span> a }
 </code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">ReaderCPS</span> env a <span style="color:#f92672">=</span> <span style="color:#66d9ef">ReaderCPS</span> { unReaderCPS <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> env <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r }
@@ -133,12 +195,34 @@ fac :: Integral a =&gt; a -&gt; a fac 0 = 1 fac n = n * fac (n - 1) Continuation
 <span style="color:#a6e22e">runReaderCPS</span> m env <span style="color:#f92672">=</span> (unReaderCPS m) env (<span style="color:#a6e22e">\</span>a <span style="color:#f92672">-&gt;</span> a)
 <span style="color:#75715e">-- or</span>
 <span style="color:#a6e22e">runReaderCPS</span> m env <span style="color:#f92672">=</span> (unReaderCPS m) env id
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Applicative</span> (<span style="color:#66d9ef">ReaderCPS</span> env) <span style="color:#66d9ef">where</span>
+  pure x <span style="color:#f92672">=</span> <span style="color:#66d9ef">ReaderCPS</span> (<span style="color:#a6e22e">\</span>env k <span style="color:#f92672">-&gt;</span> k x)
+  (<span style="color:#66d9ef">ReaderCPS</span> mf) <span style="color:#f92672">&lt;*&gt;</span> (<span style="color:#66d9ef">ReaderCPS</span> mx) <span style="color:#f92672">=</span>
+    <span style="color:#66d9ef">ReaderCPS</span> (<span style="color:#a6e22e">\</span>env k <span style="color:#f92672">-&gt;</span>
+      mf env (<span style="color:#a6e22e">\</span>f <span style="color:#f92672">-&gt;</span> mx env (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> k (f x) ) ) )
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">ReaderCPS</span> env) <span style="color:#66d9ef">where</span>
+  return <span style="color:#f92672">=</span> pure
+  (<span style="color:#66d9ef">ReaderCPS</span> mx) <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span>
+    <span style="color:#66d9ef">ReaderCPS</span> (<span style="color:#a6e22e">\</span>env k <span style="color:#f92672">-&gt;</span>
+      mx env (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> (unReaderCPS <span style="color:#f92672">$</span> f x) env k) )
 </code></pre></div><p><strong>• State</strong></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">State</span> s a <span style="color:#f92672">=</span> <span style="color:#66d9ef">State</span> { runState <span style="color:#f92672">::</span> s <span style="color:#f92672">-&gt;</span> (a, s) }
 </code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">StateCPS</span> s a <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateCPS</span> { unStateCPS <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> s <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> s <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r }
 
 <span style="color:#a6e22e">runStateCPS</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">StateCPS</span> s a <span style="color:#f92672">-&gt;</span> s <span style="color:#f92672">-&gt;</span> (a, s)
 <span style="color:#a6e22e">runStateCPS</span> m s <span style="color:#f92672">=</span> (unStateCPS m) s (<span style="color:#a6e22e">\</span>a s&#39; <span style="color:#f92672">-&gt;</span> (a, s))
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Applicative</span> (<span style="color:#66d9ef">StateCPS</span> s) <span style="color:#66d9ef">where</span>
+  pure x <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateCPS</span> (<span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> k x s)
+  (<span style="color:#66d9ef">StateCPS</span> mf) <span style="color:#f92672">&lt;*&gt;</span> (<span style="color:#66d9ef">StateCPS</span> mx) <span style="color:#f92672">=</span>
+    <span style="color:#66d9ef">StateCPS</span> (<span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> mf s (<span style="color:#a6e22e">\</span>f s&#39; <span style="color:#f92672">-&gt;</span> mx s&#39; (<span style="color:#a6e22e">\</span>x s&#39;&#39; <span style="color:#f92672">-&gt;</span> k (f x) s&#39;&#39;)))
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">StateCPS</span> s) <span style="color:#66d9ef">where</span>
+  return <span style="color:#f92672">=</span> pure
+  (<span style="color:#66d9ef">StateCPS</span> mx) <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span>
+    <span style="color:#66d9ef">StateCPS</span> (<span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> mx s (<span style="color:#a6e22e">\</span>x s&#39; <span style="color:#f92672">-&gt;</span> (unStateCPS <span style="color:#f92672">$</span> f x) s&#39; k))
 </code></pre></div><p><strong>• MaybeT</strong></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">MaybeT</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">MaybeT</span> { runMaybeT <span style="color:#f92672">::</span> m (<span style="color:#66d9ef">Maybe</span> a) }
 </code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">MaybeTCPS</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">MaybeTCPS</span> { unMaybeTCPS <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> (() <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> m r }
@@ -174,6 +258,16 @@ fac :: Integral a =&gt; a -&gt; a fac 0 = 1 fac n = n * fac (n - 1) Continuation
 
 <span style="color:#a6e22e">runStateTCPS</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">StateTCPS</span> s m a <span style="color:#f92672">-&gt;</span> s <span style="color:#f92672">-&gt;</span> m (a, s)
 <span style="color:#a6e22e">runStateTCPS</span> (<span style="color:#66d9ef">StateTCPS</span> f) s <span style="color:#f92672">=</span> f s (<span style="color:#a6e22e">\</span>x s&#39; <span style="color:#f92672">-&gt;</span> return (x, s))
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Applicative</span> (<span style="color:#66d9ef">StateTCPS</span> s m) <span style="color:#66d9ef">where</span>
+  pure x <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateTCPS</span> (flip (<span style="color:#f92672">$</span> x))
+  (<span style="color:#66d9ef">StateTCPS</span> mx) <span style="color:#f92672">&lt;$&gt;</span> (<span style="color:#66d9ef">StateTCPS</span> my) <span style="color:#f92672">=</span>
+      <span style="color:#66d9ef">StateTCPS</span> (<span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> mf s (<span style="color:#a6e22e">\</span>f s&#39; <span style="color:#f92672">-&gt;</span> mx s&#39; (<span style="color:#a6e22e">\</span>x s&#39;&#39; <span style="color:#f92672">-&gt;</span> k (f x) s&#39;&#39;)))
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">StateTCPS</span> s m) <span style="color:#66d9ef">where</span>
+  return <span style="color:#f92672">=</span> pure
+  (<span style="color:#66d9ef">StateTCPS</span> mx) <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span>
+   <span style="color:#66d9ef">StateTCPS</span> (<span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> mx s (<span style="color:#a6e22e">\</span>x s&#39; <span style="color:#f92672">-&gt;</span> unStateTCPS (f x) s&#39; k))
 </code></pre></div><p>With constructors containing functions, when CPS&rsquo;ing, the inputs stay as inputs, the outputs get turned into a function, and then we can also curry the function when otherwise we would have returned a tuple.</p>
 <p><strong>• ParsecT</strong></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">type</span> <span style="color:#66d9ef">ParsecT</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> <span style="color:#66d9ef">String</span> (<span style="color:#66d9ef">MaybeT</span> m) a
