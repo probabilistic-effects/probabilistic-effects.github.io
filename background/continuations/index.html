@@ -35,7 +35,7 @@ The direct-style factorial fac takes a single argument.
 fac :: Integral a =&gt; a -&gt; a fac 0 = 1 fac n = n * fac (n - 1) Continuation-passing-style functions are suspended computations with general type a -&gt; (b -&gt; r) -&gt; r, which represent direct-style functions with type a -&gt; b.">
 <meta itemprop="datePublished" content="2020-11-13T13:40:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:40:41+00:00" />
-<meta itemprop="wordCount" content="3549">
+<meta itemprop="wordCount" content="3865">
 
 
 
@@ -67,16 +67,31 @@ fac :: Integral a =&gt; a -&gt; a fac 0 = 1 fac n = n * fac (n - 1) Continuation
 <hr>
 <h3 id="defining-data-types-in-cps">Defining Data Types in CPS</h3>
 <p>Given a data type <code>Foo</code>, we can create a CPS&rsquo;d version of it <code>FooCPS</code> in the form of a <code>newtype</code> which contains a function <code>unFooCPS</code>. The type of this should be</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">FooCPS</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">FooCPS</span> {
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">FooCPS</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">FooCPS</span> {
    unFooCPS <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span>
                any inputs to functions contained <span style="color:#66d9ef">in</span> constructors <span style="color:#f92672">-&gt;</span>
                continuations for each constructor <span style="color:#f92672">-&gt;</span>
                r
    }
 </code></pre></div><p>Each CPS&rsquo;d datatype <code>FooCPS</code> is accompanied by a function <code>runFooCPS</code>. When defining this function, it should take the CPS&rsquo;d version of the data type, and return something from the original un-CPS&rsquo;d type &ndash; what this is depends on the context - this can be the original un-CPS&rsquo;d version of the data type, or just one of its arguments, etc. A vague example is:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">runFooCPS</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">FooCPS</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Foo</span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">runFooCPS</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">FooCPS</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Foo</span> a
 <span style="color:#a6e22e">runFooCPS</span> m <span style="color:#f92672">=</span> (unFooCPS m) <span style="color:#f92672">...</span>
-</code></pre></div><p><strong>• Trace</strong></p>
+</code></pre></div><p>When defining the Applicative and Monad instances, the general blueprint is:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Applicative</span> <span style="color:#66d9ef">FooCPS</span> <span style="color:#66d9ef">where</span>
+   pure x <span style="color:#f92672">=</span> <span style="color:#66d9ef">FooCPS</span> (<span style="color:#a6e22e">\</span>k_1 k_2 <span style="color:#f92672">..</span> <span style="color:#f92672">-&gt;</span> k_i x)
+   (<span style="color:#66d9ef">FooCPS</span> mf) <span style="color:#f92672">&lt;*&gt;</span> (<span style="color:#66d9ef">FooCPS</span> mx) <span style="color:#f92672">=</span>
+      <span style="color:#66d9ef">FooCPS</span> (<span style="color:#a6e22e">\</span>k_1 k_2 <span style="color:#f92672">..</span> <span style="color:#f92672">-&gt;</span>
+                  mf k_1 (<span style="color:#a6e22e">\</span>f <span style="color:#f92672">-&gt;</span> mx k_1 (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> k_i (f x))))
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monad</span> <span style="color:#66d9ef">FooCPS</span> <span style="color:#66d9ef">where</span>
+   return <span style="color:#f92672">=</span> pure
+   (<span style="color:#66d9ef">FooCPS</span> mx) <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span>
+      <span style="color:#66d9ef">FooCPS</span> (<span style="color:#a6e22e">\</span>k_1 k_2 <span style="color:#f92672">..</span> <span style="color:#f92672">-&gt;</span>
+                  mx k_1 (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> (unFooCPS <span style="color:#f92672">$</span> f x) k_1 k_2 <span style="color:#f92672">..</span>))
+</code></pre></div><p>Embedded inside the <code>FooCPS</code> constructor is a lambda function which takes as inputs the continuations <code>k_1</code>, <code>k_2</code>, etc. representing the continations needed for each constructor case in <code>FooCPS</code>. The body of the lambda function then uses <code>mf</code> and <code>mx</code> to figure out how to return the type <code>r</code>.</p>
+<p>In the applicative case, as <code>mf</code> and <code>mx</code> both share the same general function type (found in <code>FooCPS</code>), they must each be passed the necessary continuations for each constructor case. For <code>mf</code>, one of these continuations describes how to continue in the situation that we are given an <code>f</code>. Inside that continuation, we then use <code>mx</code> where one of its continuations describes how to continue in the situation that we are given an <code>x</code>. Inside that continuation, we apply <code>f</code> to <code>x</code>, and then apply the correct continuation <code>k_i</code> to the result, which describes what we do with the final result <code>f x</code>.</p>
+<p>In the monad case, we only need to use <code>mx</code> and provide it with its continuations. One of these continuations describes how to proceed when we are given an <code>x</code> &ndash; in this case, we first apply <code>f :: a -&gt; FooCPS b</code> to <code>x :: a</code> to create a type <code>f x :: FooCPS b</code>. Finally, to continue we must then extract the function inside <code>FooCPS b</code> by calling <code>unFooCPS</code>, and pass it the necessary continuations <code>k_1</code>, <code>k_n</code>, etc. that we were given at the start.</p>
+<p><strong>• Trace</strong></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Trace</span> a
   <span style="color:#f92672">=</span> <span style="color:#66d9ef">Trace</span>
       { variables <span style="color:#f92672">::</span> [<span style="color:#66d9ef">Double</span>],
@@ -447,6 +462,7 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/tooling/">Tooling</a>
   
 <ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/cabal/">Cabal Projects</a></li>
 </ul>
   
 </li>
