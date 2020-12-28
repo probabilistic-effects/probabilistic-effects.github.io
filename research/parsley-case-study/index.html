@@ -35,7 +35,7 @@ Usually, if one is confused about something in the core, it is best to compare i
 regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="4852">
+<meta itemprop="wordCount" content="5281">
 
 
 
@@ -312,7 +312,8 @@ I wasn&rsquo;t aware that the instance mattered as well</p>
 It helps me see what the semantics are.</p>
 <p>This one is a weird one. I think this is it:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Trace</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Trace</span> { runTrace <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> ([<span style="color:#66d9ef">Double</span>] <span style="color:#f92672">-&gt;</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span> <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r }
-</code></pre></div><p><strong>MN</strong>:
+</code></pre></div><hr>
+<p><strong>MN</strong>:
 I was looking back at your <code>StateT</code> CPS example, and i was wondering why there was an extra parameter <code>s</code> before the continuation:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">StateT</span> s m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> { runStateT <span style="color:#f92672">::</span> s <span style="color:#f92672">-&gt;</span> m (a, s) }
 <span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">StateT</span> s m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> { runStateT <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> s <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> s <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> m r}
@@ -375,6 +376,7 @@ The multiple continuations represent multiple constructors, or rather, multiple 
 This is great stuff, thanks a lot!</p>
 <p><strong>JW</strong>:
 Just don&rsquo;t be tempted to transform List, or any recursive type for that matter. It&rsquo;s an infinite type unless you use Fix.</p>
+<hr>
 <p><strong>MN</strong>:
 I&rsquo;m seeing two different versions of what the result <code>r</code> is when CPS&rsquo;ing data types, for instance:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Maybe</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Maybe</span> { runMaybe <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r}
@@ -383,6 +385,7 @@ I&rsquo;m seeing two different versions of what the result <code>r</code> is whe
 </code></pre></div><p>Are either/both correct?</p>
 <p><strong>JW</strong>:
 Neither is correct. They are both missing the <code>Nothing</code> continuation. However, the first is more correct. The second is technically more correct without the second continuation, but is far too strong. We want the <code>r</code> to be as weak as possible. Your second one is the codensity maybe.</p>
+<hr>
 <p><strong>MN</strong>:
 I was wondering about how to write the corresponding run functions for CPS data types - i understand your type definition for your CPS <code>StateT</code>, but i&rsquo;m not sure how to apply it to types such as <code>Maybe</code>. Here&rsquo;s my attempt:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Maybe</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Just</span> a <span style="color:#f92672">|</span> <span style="color:#66d9ef">Nothing</span>
@@ -418,6 +421,7 @@ If you want the <code>Trace</code> datatype to come out, then sure. Perhaps you&
 I get it! thanks.</p>
 <p><strong>JW</strong>:
 Realistically you can provide anything, including the rest of your program if you wanted to eliminate the Trace datatype entirely..</p>
+<hr>
 <p><strong>MN</strong>:
 I&rsquo;m having a difficult time defining the applicative instance for MaybeCPS:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">MaybeCPS</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">MaybeCPS</span> { unMaybeCPS <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> (() <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r }
@@ -431,13 +435,50 @@ Again, I would get rid of the unit, but just intuitively:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">mf</span> <span style="color:#f92672">&lt;*&gt;</span> mx <span style="color:#f92672">=</span> <span style="color:#a6e22e">\</span>good bad <span style="color:#f92672">-&gt;</span> mf (<span style="color:#a6e22e">\</span>f <span style="color:#f92672">-&gt;</span> mx (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> good (f x)) bad) bad
 </code></pre></div><p>That&rsquo;ll do it.</p>
 <p><strong>MN</strong>:
-i&rsquo;m just including the second continuation so i can see how this idea would apply to data types with multiple continuations</p>
+I&rsquo;m just including the second continuation so i can see how this idea would apply to data types with multiple continuations</p>
 <p><strong>JW</strong>:
 The second continuation is still a continuation without the <code>()</code> because it&rsquo;s lazy.
 <code>() =&gt; a</code> is iso to <code>a</code> in a lazy language. In a strict language you&rsquo;d have to use <code>() =&gt; a</code> (like scalas <code>=&gt;A</code> type).</p>
 <p>You gave me the type of <code>&gt;&gt;=</code> above though, which is this:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">mx</span> <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span> <span style="color:#a6e22e">\</span>good bad <span style="color:#f92672">-&gt;</span> mx (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> f x good bad) bad
-</code></pre></div><div class="edit-meta">
+</code></pre></div><hr>
+<p><strong>MN</strong>:
+So, i&rsquo;m trying to redefine this function in terms of TraceCPS (which is essentially the writer monad), but it&rsquo;s looking unbelievably awkward because m itself isn&rsquo;t in CPS form:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">bind</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> m (<span style="color:#66d9ef">Trace</span> a) <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> m (<span style="color:#66d9ef">Trace</span> b)) <span style="color:#f92672">-&gt;</span> m (<span style="color:#66d9ef">Trace</span> b)
+<span style="color:#a6e22e">bind</span> dx f <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+  t1 <span style="color:#f92672">&lt;-</span> dx
+  t2 <span style="color:#f92672">&lt;-</span> f (output t1)
+  return <span style="color:#f92672">$</span> t2 {variables <span style="color:#f92672">=</span> variables t1 <span style="color:#f92672">++</span> variables t2, density <span style="color:#f92672">=</span> density t1 <span style="color:#f92672">*</span> density t2}
+</code></pre></div><p>Is there a nice way of doing this?</p>
+<p><strong>JW</strong>:
+Huh? Why not <code>mT Trace a</code> or <code>TraceT m a</code></p>
+<p><strong>MN</strong>:
+Shit you&rsquo;re right</p>
+<p><strong>JW</strong>:
+I think you want <code>TraceT</code> as it happens</p>
+<p><strong>MN</strong>:
+I&rsquo;m also guessing that it&rsquo;s not possible to swap two arbitrary monads, i.e. a generalised <code>sequence</code>?</p>
+<p><strong>JW</strong>:
+No, the order of composition matters. <code>StateT s []</code> is not the same as <code>ListT (State s)</code> &ndash; one is localised state, the other is global state. In other words: <code>s -&gt; [(a, s)]</code> vs <code>s -&gt; ([a], s)</code></p>
+<hr>
+<p><strong>MN</strong>:
+So, i obviously don&rsquo;t expect you to look at all of this, but is this the general transformation i should expect when handling arbitrary monads m inside of a CPS-form monad transformer?</p>
+<p><img src="https://i.ibb.co/VHB5DFc/mhtrans.png" alt=""></p>
+<p>i.e. will there will inevitably be some block of normal monad work? I don&rsquo;t know if that question makes sense, i&rsquo;m just not too confident about how the rest of my program should transform to accommodate the introduction of a CPS&rsquo;d monad.</p>
+<p><strong>JW</strong>:
+It shouldn&rsquo;t need to accomodate it at all if you&rsquo;ve done it right. You can substitute a monad in for its CPS form without any changes. Like, you&rsquo;re passing in a <code>TraceCPS a</code> in there &ndash; I don&rsquo;t expect that. The original trace data should be passed in at point of <code>runTrace</code>.</p>
+<p><strong>MN</strong>:
+Hmm, this might be the situation of me trying to convert functions which are already designed silly.</p>
+<p><strong>JW</strong>:
+Your <code>mhTrace</code> is weird.</p>
+<p><strong>MN</strong>:
+Yeah, that was the existing function found in monad-bayes.</p>
+<p><strong>JW</strong>:
+It starts with a trace, and ends in another monad that returns a trace, the whole thing should just be a <code>TraceT m a</code> computation. Then you provide the initial configuration by running that if you wanted.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">runTraceT</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">TraceCPST</span> m a <span style="color:#f92672">-&gt;</span> m (<span style="color:#66d9ef">Trace</span> a)
+</code></pre></div><p>is something you can do. The input trace is a little weird because that implies it is more of a state than a writer.</p>
+<p>It might be that <code>Trace</code> is used more like <code>State</code>, in which case <code>runTraceT :: TraceCPST m a -&gt; Trace a -&gt; m (Trace a)</code> is a more acceptable type.</p>
+<div class="edit-meta">
 Last updated on 13 Nov 2020
 
 
