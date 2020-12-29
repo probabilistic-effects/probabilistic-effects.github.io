@@ -35,7 +35,7 @@ Source Program
 main = defaultMain [ bgroup &#34;runPmmh&#34; [ bench &#34;(100, 100, 100)&#34; $ whnfIO $ runPmmh (100, 100, 100) ] ] runPmmh :: (Int, Int, Int) -&gt; IO () runPmmh (n_mhsteps, n_timesteps, n_particles) = do particleWeightings &lt;- inferModel n_mhsteps n_timesteps n_particles print particleWeightings  Original Code   Inline pragma added to pmmh function   Inline pragma added to pushEvidence function   Inline pragma added to hoist function   Inline pragma added to mhTrans functions   Inline pragma added to Traced.">
 <meta itemprop="datePublished" content="2020-11-13T14:02:28+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:02:28+00:00" />
-<meta itemprop="wordCount" content="228">
+<meta itemprop="wordCount" content="236">
 
 
 
@@ -110,6 +110,11 @@ main = defaultMain [ bgroup &#34;runPmmh&#34; [ bench &#34;(100, 100, 100)&#34; 
 </li>
 </ul>
 <p><img src="https://i.ibb.co/82PYPVx/benchmark-11.png" alt=""></p>
+<ul>
+<li>Implemented and integrated CPS version of <code>StateT</code> monad.</li>
+</ul>
+<p><img src="https://i.ibb.co/dcQjYGX/benchmark-13.png" alt="">
+<img src="https://i.ibb.co/TwnwPJH/prof-3.png" alt=""></p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
@@ -131,6 +136,7 @@ Published on 13 Nov 2020
   
 <ul class="sub-menu">
 <li class=""><a href="https://probabilistic-effects.github.io/activity/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/activity/cps/"></a></li>
 </ul>
   
 </li>
@@ -138,6 +144,7 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/papers/">Papers</a>
   
 <ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/papers/asymptotic-improvement/">Asymptotic Improvement of Computations over Free Monads</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>
 </ul>

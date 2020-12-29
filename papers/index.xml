@@ -8,6 +8,15 @@
     <language>en-us</language>
     <lastBuildDate>Fri, 13 Nov 2020 13:52:51 +0000</lastBuildDate><atom:link href="https://probabilistic-effects.github.io/papers/index.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Asymptotic Improvement of Computations over Free Monads</title>
+      <link>https://probabilistic-effects.github.io/papers/asymptotic-improvement/</link>
+      <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/papers/asymptotic-improvement/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>Freer Monads, More Extensible Effects</title>
       <link>https://probabilistic-effects.github.io/papers/freer-monads/</link>
       <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>

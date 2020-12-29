@@ -13,10 +13,18 @@
       <pubDate>Fri, 13 Nov 2020 14:05:57 +0000</pubDate>
       
       <guid>https://probabilistic-effects.github.io/research/research-journal/</guid>
-      <description>Activity (MN) 28/12/2020
- Reimplementing components of monad-bayes in CPS-form  Activity (MN) 22/12/2020 - 27/12/2020
- More analysis, inlining and benchmarking of monad-bayes. Wrote up conversation with JW on CPS&amp;rsquo;ing data types in Haskell and some notes on continuations. Implementing and understanding CPS version of various monadic data types.  Activity (MN) 16/12/2020 - 18/12/2020
- Wrote up JW&amp;rsquo;s continuation passing style example More analysis, inlining and benchmarking of monad-bayes.</description>
+      <description>Activity (MN) 28/12/2020 - 29/12/2020
+ Trying to reimplement and integrate components of monad-bayes in CPS-form  Successfully integrated CPS version of StateT into branch MonadLibCPS of probabilistic-programming(https://github.com/probabilistic-effects/probabilistic-programming).   More CPS conversation with JW  Activity (MN) 22/12/2020 - 27/12/2020
+ More analysis, inlining and benchmarking of monad-bayes. Wrote up conversation with JW on CPS&amp;rsquo;ing data types in Haskell and some notes on continuations. Implementing and understanding CPS version of various monadic data types.</description>
+    </item>
+    
+    <item>
+      <title>Asymptotic Improvement of Computations over Free Monads</title>
+      <link>https://probabilistic-effects.github.io/papers/asymptotic-improvement/</link>
+      <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/papers/asymptotic-improvement/</guid>
+      <description></description>
     </item>
     
     <item>
@@ -303,6 +311,15 @@ fac :: Integral a =&amp;gt; a -&amp;gt; a fac 0 = 1 fac n = n * fac (n - 1) Cont
 1. Dumping core &amp;amp; enabling optimisations   To inspect the core (in a coherent manner), we can add the following to either our package.yaml file (when using stack):
 ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (when using cabal):
 build-depends: dump-core ghc-options: -fplugin-DumpCore When we build our program (stack build or ghc), this creates a folder called dump-core containing html files.</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://probabilistic-effects.github.io/activity/cps/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/activity/cps/</guid>
+      <description></description>
     </item>
     
   </channel>

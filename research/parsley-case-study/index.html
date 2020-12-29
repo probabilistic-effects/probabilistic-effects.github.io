@@ -35,7 +35,7 @@ Usually, if one is confused about something in the core, it is best to compare i
 regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="5837">
+<meta itemprop="wordCount" content="6270">
 
 
 
@@ -528,6 +528,39 @@ It&rsquo;s like <code>Cont</code> but no <code>r</code>, which should feel famil
 Why would one ever use the <code>ContT</code> monad if <code>Cod</code> exists &ndash; i&rsquo;m having difficulty understanding what one achieves over the other.</p>
 <p><strong>JW</strong>:
 They don&rsquo;t do the same thing. <code>ContT</code> makes progress towards a known <code>r</code>. You&rsquo;ll notice there is no <code>CodT</code> &ndash; <code>Cod</code> is intrinsically tied to another monad and has no <code>callCC</code> operation.</p>
+<hr>
+<p><strong>MN</strong>:
+I&rsquo;m having an issue when trying to define a CPS version of <code>liftPass</code> (the bottom version doesn&rsquo;t compile - i&rsquo;m not sure what i&rsquo;m supposed to do with the <code>f</code>).</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">liftPass</span> <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Monad</span> m) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Pass</span> w m (a,s) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Pass</span> w (<span style="color:#66d9ef">StateT</span> s m) a
+<span style="color:#a6e22e">liftPass</span> pass m <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> <span style="color:#f92672">$</span> <span style="color:#a6e22e">\</span> s <span style="color:#f92672">-&gt;</span> pass <span style="color:#f92672">$</span> <span style="color:#66d9ef">do</span>
+    <span style="color:#f92672">~</span>((a, f), s&#39;) <span style="color:#f92672">&lt;-</span> runStateT m s
+    return ((a, s&#39;), f)
+
+<span style="color:#a6e22e">liftPass</span> <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Monad</span> m) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Pass</span> w m (a,s) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Pass</span> w (<span style="color:#66d9ef">StateT</span> s m) a
+<span style="color:#a6e22e">liftPass</span> pass m <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> <span style="color:#f92672">$</span> <span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> pass <span style="color:#f92672">$</span> <span style="color:#66d9ef">do</span>
+    <span style="color:#f92672">~</span>((a, f), s&#39;) <span style="color:#f92672">&lt;-</span> runStateT m s
+    k (a, s&#39;) f
+</code></pre></div><p><strong>JW</strong>:
+What is <code>Pass</code>?</p>
+<p><strong>MN</strong>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">type</span> <span style="color:#66d9ef">Pass</span> w m a <span style="color:#f92672">=</span>  m (a, w <span style="color:#f92672">-&gt;</span> w) <span style="color:#f92672">-&gt;</span> m a
+</code></pre></div><p><strong>JW</strong>:
+Let&rsquo;s start with this non mangled function:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">liftPass</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadWriter</span> w m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">StateT</span> s (a, w <span style="color:#f92672">-&gt;</span> w) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">StateT</span> s a
+<span style="color:#a6e22e">liftPass</span> m <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> <span style="color:#f92672">$</span> <span style="color:#a6e22e">\</span> s <span style="color:#f92672">-&gt;</span> pass <span style="color:#f92672">$</span> <span style="color:#66d9ef">do</span>
+    ((a, f), s&#39;) <span style="color:#f92672">&lt;-</span> runStateT m s
+    return ((a, s&#39;), f)
+</code></pre></div><p>Got it</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">pass</span> (<span style="color:#66d9ef">StateT</span> mx) <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> <span style="color:#f92672">$</span> <span style="color:#a6e22e">\</span> s k <span style="color:#f92672">-&gt;</span>
+    pass (mx s (<span style="color:#a6e22e">\</span>(x, f) s&#39; <span style="color:#f92672">-&gt;</span> return ((x, s&#39;), f))) <span style="color:#f92672">&gt;&gt;=</span> uncurry k
+</code></pre></div><p>I&rsquo;ve not used <code>runStateT</code> here because it gets wrapped up in another return anyway, so no point in doing return <code>((a, f), s) &gt;&gt;= \((a, f), s) -&gt; return ((a, s), f)</code> &ndash; completely redundant.</p>
+<p>I&rsquo;ll write it in words:</p>
+<p>Take <code>mx</code>, feed it the state <code>s</code> and you will get <code>(x, f)</code> out of it along with a new state <code>s'</code>, these can be fed to a continuation (as opposed to using <code>runStateT</code>, which repackages them into a form that <code>pass</code> accepts. This produces a <code>m (a, s)</code> which we can bind on using <code>uncurry k</code> as the next step.</p>
+<p>So you were close, just put the <code>pass</code> in the wrong place &ndash; at least, I think so.</p>
+<p>It&rsquo;s really hard to tell with operations like this &ndash; lots of wrong things type check. Like it also type checks if you put the pass inside the continuation for <code>mx</code>. It also type checks if you put the <code>&gt;&gt;= uncurry k</code> in there as well, but I think that changes the meaning slightly.</p>
+<p>I think the key here is by putting the <code>pass</code> inside the continuation to <code>mx</code>, you make <code>pass</code>&rsquo;s effect happen to the <code>return</code>, which always applies <code>f</code> to the <code>mempty</code>.</p>
+<p>That&rsquo;s probably not what you wanted, so best to run out the entire computation first.
+I think <code>local</code> from <code>reader</code> is another annoying one. Though they use <code>mapStateT</code> for that.</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
@@ -549,6 +582,7 @@ Published on 13 Nov 2020
   
 <ul class="sub-menu">
 <li class=""><a href="https://probabilistic-effects.github.io/activity/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/activity/cps/"></a></li>
 </ul>
   
 </li>
@@ -556,6 +590,7 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/papers/">Papers</a>
   
 <ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/papers/asymptotic-improvement/">Asymptotic Improvement of Computations over Free Monads</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>
 </ul>

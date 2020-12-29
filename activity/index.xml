@@ -18,5 +18,14 @@
 It turns out that we should expect to see these definitions, however if we use optimization:2, then we should also expect them to not actually be used. This is because GHC generates a lot of garbage that it doesn&amp;rsquo;t seem to want to remove, but when we go to places where they would have been used, we should be able to find that they aren&amp;rsquo;t actually there.</description>
     </item>
     
+    <item>
+      <title></title>
+      <link>https://probabilistic-effects.github.io/activity/cps/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/activity/cps/</guid>
+      <description></description>
+    </item>
+    
   </channel>
 </rss>

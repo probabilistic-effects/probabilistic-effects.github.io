@@ -3,10 +3,10 @@
 <head><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>How Conditioning and Scoring Works - Probabilistic Effects.  λθ</title>
+<title>Probabilistic Effects.  λθ</title>
 <meta name="generator" content="Hugo 0.78.2" />
 <link href="https://probabilistic-effects.github.io//index.xml" rel="alternate" type="application/rss+xml">
-<link rel="canonical" href="https://probabilistic-effects.github.io/monad-bayes/conditioning-scoring/">
+<link rel="canonical" href="https://probabilistic-effects.github.io/activity/cps/">
 <link rel="stylesheet" href="https://probabilistic-effects.github.io/css/theme.min.css">
 <script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
 <link rel="stylesheet" href="https://probabilistic-effects.github.io/css/chroma.min.css">
@@ -16,20 +16,18 @@
 <script src="https://probabilistic-effects.github.io/js/bundle.js"></script><style>
 :root {}
 </style>
-<meta property="og:title" content="How Conditioning and Scoring Works" />
-<meta property="og:description" content="A sample path is the course of a program as it executes, hence being the monadic context that the code is executing in. During this path, a new thread created for every random decision. It can be thought of as an execution trace. In probabilistic programming, each sample path is associated with a probability of how likely that execution trace is to happen. This probability is the joint probability of a bunch of random decisions made during the execution of the program." />
+<meta property="og:title" content="" />
+<meta property="og:description" content="" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://probabilistic-effects.github.io/monad-bayes/conditioning-scoring/" />
-<meta property="article:published_time" content="2020-11-13T14:04:44+00:00" />
-<meta property="article:modified_time" content="2020-11-13T14:04:44+00:00" />
+<meta property="og:url" content="https://probabilistic-effects.github.io/activity/cps/" />
+
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="How Conditioning and Scoring Works"/>
-<meta name="twitter:description" content="A sample path is the course of a program as it executes, hence being the monadic context that the code is executing in. During this path, a new thread created for every random decision. It can be thought of as an execution trace. In probabilistic programming, each sample path is associated with a probability of how likely that execution trace is to happen. This probability is the joint probability of a bunch of random decisions made during the execution of the program."/>
-<meta itemprop="name" content="How Conditioning and Scoring Works">
-<meta itemprop="description" content="A sample path is the course of a program as it executes, hence being the monadic context that the code is executing in. During this path, a new thread created for every random decision. It can be thought of as an execution trace. In probabilistic programming, each sample path is associated with a probability of how likely that execution trace is to happen. This probability is the joint probability of a bunch of random decisions made during the execution of the program.">
-<meta itemprop="datePublished" content="2020-11-13T14:04:44+00:00" />
-<meta itemprop="dateModified" content="2020-11-13T14:04:44+00:00" />
-<meta itemprop="wordCount" content="302">
+<meta name="twitter:title" content=""/>
+<meta name="twitter:description" content=""/>
+<meta itemprop="name" content="">
+<meta itemprop="description" content="">
+
+<meta itemprop="wordCount" content="0">
 
 
 
@@ -40,19 +38,11 @@
 </header>
 
 <div class="content-container">
-<main><h1>How Conditioning and Scoring Works</h1>
-<p>A sample path is the course of a program as it executes, hence being the monadic context that the code is executing in. During this path, a new thread created for every random decision. It can be thought of as an execution trace. In probabilistic programming, each sample path is associated with a probability of how likely that execution trace is to happen. This probability is the joint probability of a bunch of random decisions made during the execution of the program. Some of this may be related to the actual variables in the model used (such as a latent variable we define), but if there is a random decision made, it will also be joint with the random variable corresponding to that random decision.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">class</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">MonadCond</span> m <span style="color:#66d9ef">where</span>
-   score <span style="color:#f92672">::</span> <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">R</span> <span style="color:#f92672">-&gt;</span> m ()
-</code></pre></div><p>The <code>score</code> function manually updates the probability of a sample path the program is on. For the most part, the probability of each sample path is hard-coded in all the random decisions we make - but the function <code>score</code> acts like an override. When the user calls <code>score</code> midway in a program to update the probability by some specified factor (for example the likelihood that an observed variable y is generated by a latent variable x), they explicitly supply the likelihood resulting from a conditioning operation. This tells the program to update the sample path&rsquo;s associated probability such that during the execution path&rsquo;s hard-coded updating of its probability it is as though the program notices &ldquo;oh, i have some data here to compare to and hence update the sample path&rsquo;s probability appropriately&rdquo;. The fact that <code>score</code> can be called on a double that is calculated by some specific equation is incidental to whatever algorithm, model, or statistical context is implemented in the program.</p>
+<main><h1></h1>
 <div class="edit-meta">
-Last updated on 13 Nov 2020
 
-
-<br>
-Published on 13 Nov 2020
-<br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/monad-bayes/pmmh-hmm/" title="Implementing HMM Simulation and Inference (using PMMH)"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Implementing HMM Simulation and Inference (using PMMH)</a>
-<a class="nav nav-next" href="https://probabilistic-effects.github.io/tooling/" title="Tooling">Next - Tooling <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+<br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/activity/inlining-monad-bayes/" title="Inlining Monad Bayes"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Inlining Monad Bayes</a>
+<a class="nav nav-next" href="https://probabilistic-effects.github.io/papers/" title="Papers">Next - Papers <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
 </nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
 </footer>
 </main>
@@ -62,11 +52,11 @@ Published on 13 Nov 2020
 <ul>
 <li class=""><a href="https://probabilistic-effects.github.io/">Home</a></li>
 
-<li class=""><a href="https://probabilistic-effects.github.io/activity/">Activity</a>
+<li class="parent"><a href="https://probabilistic-effects.github.io/activity/">Activity</a>
   
 <ul class="sub-menu">
 <li class=""><a href="https://probabilistic-effects.github.io/activity/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/activity/cps/"></a></li>
+<li class="active"><a href="https://probabilistic-effects.github.io/activity/cps/"></a></li>
 </ul>
   
 </li>
@@ -94,12 +84,12 @@ Published on 13 Nov 2020
   
 </li>
 
-<li class="parent"><a href="https://probabilistic-effects.github.io/monad-bayes/">Monad Bayes</a>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/">Monad Bayes</a>
   
 <ul class="sub-menu">
 <li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/inference-transformers/">Inference Transformers</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/pmmh-hmm/">Implementing HMM Simulation and Inference (using PMMH)</a></li>
-<li class="active"><a href="https://probabilistic-effects.github.io/monad-bayes/conditioning-scoring/">How Conditioning and Scoring Works</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/conditioning-scoring/">How Conditioning and Scoring Works</a></li>
 </ul>
   
 </li>
