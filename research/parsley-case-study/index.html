@@ -35,7 +35,7 @@ Usually, if one is confused about something in the core, it is best to compare i
 regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="5639">
+<meta itemprop="wordCount" content="5837">
 
 
 
@@ -495,7 +495,7 @@ This is interesting, i wonder if this has any performance impacts compared to th
 <p><strong>JW</strong>:
 Doubt it &ndash; it&rsquo;s all amortized because the <code>&gt;&gt;=</code> you&rsquo;ve introduced in <code>n</code> would have materialised somewhere else instead. You save binds in the CPS form, you don&rsquo;t introduce them, except in one specific case where it introduces 1 which is if you immediately run out <code>n</code> after this computation.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">runN</span> <span style="color:#f92672">.</span> runStateT s <span style="color:#f92672">.</span> mapStateT f <span style="color:#f92672">=</span> runN <span style="color:#f92672">.</span> f <span style="color:#f92672">.</span> runStateT s
-</code></pre></div><p>The left-hand side has 1 bind the right does not</p>
+</code></pre></div><p>The left-hand side has 1 bind the right does not.</p>
 <p><strong>MN</strong>:
 Is it important to keep <code>runStateT</code> out of intermediate computations then?</p>
 <p><strong>JW</strong>:
@@ -509,6 +509,25 @@ It is, but <code>return</code> is cheap. The equality on both sides of the equat
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">mx</span> <span style="color:#f92672">&gt;&gt;=</span> return <span style="color:#f92672">=</span> mx
 </code></pre></div><p>They are equal because of that monad law, but the left hand side has the bind, and the right hand side does not.</p>
 <p>The <code>&gt;&gt;=</code> is introduced by the <code>mapStateT</code> and the <code>return</code> by the <code>runStateT</code>. They should ideally cancel out, which is what happens on the right hand side.</p>
+<hr>
+<p><strong>MN</strong>:
+If i were looking to turn most of my monads into CPS-form, could i literally just throw the <code>Cont</code> monad on them and expect an improvement in performance?</p>
+<p><strong>JW</strong>:
+<code>Cont</code> is the wrong monad, you mean <code>Cod</code>. But in general, <code>Cod</code> can be a good strategy.</p>
+<p><strong>MN</strong>:
+Oh, i haven&rsquo;t learned about the codensity monad.</p>
+<p><strong>JW</strong>:
+It&rsquo;s like <code>Cont</code> but no <code>r</code>, which should feel familar.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">ContT</span> r m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">ContT</span> ((a <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> m r)
+
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Cod</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Cod</span> (forall r<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> m r)
+</code></pre></div><p><code>Cod</code> is the difference list for monads &ndash; it ensures that all <code>&gt;&gt;=</code> are right associated.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">Cod</span> (<span style="color:#66d9ef">StateT</span> s m) a <span style="color:#f92672">~=</span> <span style="color:#66d9ef">StateCPST</span> s m a
+</code></pre></div><p>but the right hand side is more efficient - you&rsquo;ll find it has no monad constraints just like yours don&rsquo;t.</p>
+<p><strong>MN</strong>:
+Why would one ever use the <code>ContT</code> monad if <code>Cod</code> exists &ndash; i&rsquo;m having difficulty understanding what one achieves over the other.</p>
+<p><strong>JW</strong>:
+They don&rsquo;t do the same thing. <code>ContT</code> makes progress towards a known <code>r</code>. You&rsquo;ll notice there is no <code>CodT</code> &ndash; <code>Cod</code> is intrinsically tied to another monad and has no <code>callCC</code> operation.</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
