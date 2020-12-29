@@ -35,7 +35,7 @@ Usually, if one is confused about something in the core, it is best to compare i
 regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="5281">
+<meta itemprop="wordCount" content="5639">
 
 
 
@@ -478,6 +478,37 @@ It starts with a trace, and ends in another monad that returns a trace, the whol
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">runTraceT</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">TraceCPST</span> m a <span style="color:#f92672">-&gt;</span> m (<span style="color:#66d9ef">Trace</span> a)
 </code></pre></div><p>is something you can do. The input trace is a little weird because that implies it is more of a state than a writer.</p>
 <p>It might be that <code>Trace</code> is used more like <code>State</code>, in which case <code>runTraceT :: TraceCPST m a -&gt; Trace a -&gt; m (Trace a)</code> is a more acceptable type.</p>
+<hr>
+<p><strong>MN</strong>:
+Could i double-check with you whether my translation of <code>mapStateT</code> to CPS is correct? i&rsquo;ve had to introduce a <code>Monad m, Monad n</code> constraint, which i&rsquo;m not sure is right:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">mapStateT</span> <span style="color:#f92672">::</span> (m (a, s) <span style="color:#f92672">-&gt;</span> n (b, s)) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">StateT</span> s m a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">StateT</span> s n b
+<span style="color:#a6e22e">mapStateT</span> f m <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> <span style="color:#f92672">$</span> f <span style="color:#f92672">.</span> runStateT m
+
+<span style="color:#a6e22e">mapStateT</span> <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Monad</span> m, <span style="color:#66d9ef">Monad</span> n) <span style="color:#f92672">=&gt;</span> (m (a, s) <span style="color:#f92672">-&gt;</span> n (b, s)) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">StateT</span> s m a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">StateT</span> s n b
+<span style="color:#a6e22e">mapStateT</span> f m <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (<span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">do</span> (b, s&#39;) <span style="color:#f92672">&lt;-</span> f <span style="color:#f92672">$</span> (runStateT m) s
+                                   k b s&#39; )
+</code></pre></div><p><strong>JW</strong>:
+Nothing intrinsically wrong with what you&rsquo;ve done I don&rsquo;t think.
+The Monad n constraint used to be in the &raquo;= , so it has to move somewhere. Both <code>m</code> and <code>n</code> have to be monads.</p>
+<p><strong>MN</strong>:
+This is interesting, i wonder if this has any performance impacts compared to the original <code>mapStateT</code>?</p>
+<p><strong>JW</strong>:
+Doubt it &ndash; it&rsquo;s all amortized because the <code>&gt;&gt;=</code> you&rsquo;ve introduced in <code>n</code> would have materialised somewhere else instead. You save binds in the CPS form, you don&rsquo;t introduce them, except in one specific case where it introduces 1 which is if you immediately run out <code>n</code> after this computation.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">runN</span> <span style="color:#f92672">.</span> runStateT s <span style="color:#f92672">.</span> mapStateT f <span style="color:#f92672">=</span> runN <span style="color:#f92672">.</span> f <span style="color:#f92672">.</span> runStateT s
+</code></pre></div><p>The left-hand side has 1 bind the right does not</p>
+<p><strong>MN</strong>:
+Is it important to keep <code>runStateT</code> out of intermediate computations then?</p>
+<p><strong>JW</strong>:
+It&rsquo;s not <code>runStateT</code>&rsquo;s fault, but yes, you should because it introduces redundant <code>return</code>s.</p>
+<p><strong>MN</strong>:
+I see, is this unavoidable in <code>mapStateT</code>?</p>
+<p><strong>JW</strong>:
+It is, but <code>return</code> is cheap. The equality on both sides of the equation:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">runN</span> <span style="color:#f92672">.</span> runStateT s <span style="color:#f92672">.</span> mapStateT f <span style="color:#f92672">=</span> runN <span style="color:#f92672">.</span> f <span style="color:#f92672">.</span> runStateT s
+</code></pre></div><p>by the way boils down to this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">mx</span> <span style="color:#f92672">&gt;&gt;=</span> return <span style="color:#f92672">=</span> mx
+</code></pre></div><p>They are equal because of that monad law, but the left hand side has the bind, and the right hand side does not.</p>
+<p>The <code>&gt;&gt;=</code> is introduced by the <code>mapStateT</code> and the <code>return</code> by the <code>runStateT</code>. They should ideally cancel out, which is what happens on the right hand side.</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
