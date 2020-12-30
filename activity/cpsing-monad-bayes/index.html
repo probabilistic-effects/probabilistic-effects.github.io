@@ -29,7 +29,7 @@
 <meta itemprop="description" content="Implemented and integrated CPS version of StateT monad into monad-bayes:  type State s = StateT s Identity {-# INLINE state #-} state :: Monad m =&gt; (s -&gt; (a, s)) -&gt; StateT s m a state f = StateT (\s k -&gt; uncurry k (f s)) {-# INLINE runState #-} runState :: State s a -&gt; s -&gt; (a, s) runState mx = runIdentity . runStateT mx {-# INLINE evalState #-} evalState :: State s a -&gt; s -&gt; a evalState mx = runIdentity .">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="651">
+<meta itemprop="wordCount" content="712">
 
 
 
@@ -135,6 +135,17 @@
 </code></pre></div><p>This resulted in a big performance gain of roughly 10s:</p>
 <p><img src="https://i.ibb.co/dcQjYGX/benchmark-13.png" alt="">
 <img src="https://i.ibb.co/TwnwPJH/prof-3.png" alt=""></p>
+<ul>
+<li>Swapped out <code>ListT</code> for <code>LogicT</code> (which is in CPS style):</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Population</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Population</span> (<span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">LogicT</span> m) a)
+  <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadIO</span>, <span style="color:#66d9ef">MonadSample</span>, <span style="color:#66d9ef">MonadCond</span>, <span style="color:#66d9ef">MonadInfer</span>)
+
+<span style="color:#a6e22e">nondetermistically</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> m [a] <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">LogicT</span> m a
+<span style="color:#a6e22e">nondetermistically</span> mx <span style="color:#f92672">=</span> lift mx <span style="color:#f92672">&gt;&gt;=</span> foldr (<span style="color:#f92672">&lt;|&gt;</span>) empty <span style="color:#f92672">.</span> map pure
+</code></pre></div><p>This resulted in a further performance gain of roughly 3.6s:</p>
+<p><img src="https://i.ibb.co/HgHt9hy/benchmark-14.png" alt="">
+<img src="https://i.ibb.co/92KWws0/prof-4.png" alt=""></p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
