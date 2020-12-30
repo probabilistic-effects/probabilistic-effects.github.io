@@ -35,7 +35,7 @@ Usually, if one is confused about something in the core, it is best to compare i
 regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="6270">
+<meta itemprop="wordCount" content="7575">
 
 
 
@@ -561,6 +561,127 @@ Let&rsquo;s start with this non mangled function:</p>
 <p>I think the key here is by putting the <code>pass</code> inside the continuation to <code>mx</code>, you make <code>pass</code>&rsquo;s effect happen to the <code>return</code>, which always applies <code>f</code> to the <code>mempty</code>.</p>
 <p>That&rsquo;s probably not what you wanted, so best to run out the entire computation first.
 I think <code>local</code> from <code>reader</code> is another annoying one. Though they use <code>mapStateT</code> for that.</p>
+<hr>
+<p><strong>JW</strong>:
+There&rsquo;s a couple of things at play with the CPS monads</p>
+<p>The first is that you&rsquo;re removing allocations of tuples and intermediate structures.The second is that you&rsquo;re reassociating the binds into what may be their optimised form (but at worst it isn&rsquo;t any more expensive).</p>
+<p>By the way, did you replace your TraceCPS by the State? Or is it a complement?</p>
+<p><strong>MN</strong>:
+I haven&rsquo;t, i just replaced the Control.Monad.Trans.State with the State</p>
+<p><strong>MN</strong>:
+by the way, im a bit confused, what you did with <code>StateT</code> was CPS right? Thy did you suggest using the Codensity monad yesterday</p>
+<p><strong>JW</strong>:
+I didn&rsquo;t, you mentioned <code>ContT</code> and I said that&rsquo;s the wrong abstraction. <code>Cod</code> accomplishes the second aim of the CPS &ndash; the reassociation into the optimised direction
+(which may or may not produce an improvement). But fully CPSing is how we can remove the allocations and get the best performance out because it physically changes the make up.</p>
+<p>Like:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">   <span style="color:#66d9ef">Cod</span> (<span style="color:#66d9ef">StateT</span> s m) a
+<span style="color:#f92672">~=</span> forall r<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">StateT</span> s m r) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">StateT</span> s m r
+<span style="color:#f92672">~=</span> forall r<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> s <span style="color:#f92672">-&gt;</span> m (r, s)) <span style="color:#f92672">-&gt;</span> s <span style="color:#f92672">-&gt;</span> m (r, s)
+</code></pre></div><p>You can see that&rsquo;s not the same as:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">forall</span> r<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> s <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> m r
+</code></pre></div><p>It&rsquo;s very close though.</p>
+<p><strong>MN</strong>:
+Ah, yep i see! So the <code>Cod</code> still requires the use of <code>StateT</code> in that.</p>
+<p><strong>JW</strong>:
+<code>Cod</code> is a cheap dirty CPS &ndash; good in a pinch, but doing it by hand will yield better results.</p>
+<p><strong>MN</strong>:
+I haven&rsquo;t learned about reassociation of binds and their optimisations before.</p>
+<p><strong>JW</strong>:
+It&rsquo;s clear from this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">(mx <span style="color:#f92672">&gt;&gt;=</span> f) <span style="color:#f92672">&gt;&gt;=</span> g <span style="color:#f92672">=</span> m <span style="color:#f92672">&gt;&gt;=</span> (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> f x <span style="color:#f92672">&gt;&gt;=</span> g)
+</code></pre></div><p>Now consider when <code>mx = Nothing</code>.</p>
+<p>The left hand side evaluates using two steps:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">  (<span style="color:#66d9ef">Nothing</span> <span style="color:#f92672">&gt;&gt;=</span> f) <span style="color:#f92672">&gt;&gt;=</span> g
+<span style="color:#f92672">=</span> <span style="color:#66d9ef">Nothing</span> <span style="color:#f92672">&gt;&gt;=</span> g
+<span style="color:#f92672">=</span> <span style="color:#66d9ef">Nothing</span>
+</code></pre></div><p>The right hand side evalutes using one step:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">  <span style="color:#66d9ef">Nothing</span> <span style="color:#f92672">&gt;&gt;=</span> (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> f x <span style="color:#f92672">&gt;&gt;=</span> g)
+<span style="color:#f92672">=</span> <span style="color:#66d9ef">Nothing</span>
+</code></pre></div><p>The left association of binds can cause an O(n^2) blowup, similar to how left associated <code>++</code> is problematic. This is talked about in <a href="../../papers/freer-monads/#27-performance-problem-of-freeer-monads">freer-monads</a>.</p>
+<p><code>Cod</code> is to monads as difference lists are to lists</p>
+<p><strong>MN</strong>:
+I understand, so a big build up in evaluation steps needed! Would you recommend CPS&rsquo;ing other common monads used, such as <code>Writer</code>, <code>Reader</code> (or maybe even <code>ListT</code> using <code>Fix</code>, if i figure out how thats done)?</p>
+<p><strong>JW</strong>:
+<code>Reader</code> is already in CPS</p>
+<p>I hope you&rsquo;re not using ListT m a = m [a] !</p>
+<ul>
+<li><strong>MN</strong>: Err, the <code>Control.Monad.Trans.List</code> one, so <code>newtype ListT m a = ListT {runListT :: m [a] }</code></li>
+<li><strong>JW</strong>: Ah yeah that&rsquo;s what I meant &ndash; it&rsquo;s technically problematic. But I think it&rsquo;s major shortcomings might be with IO, I&rsquo;m not sure. You should probably be using <code>LogicT</code>.</li>
+<li><strong>MN</strong>: Is <code>LogicT</code> a better alternative in terms of correctness, or performance?</li>
+<li><strong>JW</strong>: Correctness.</li>
+</ul>
+<p><strong>JW</strong>:
+I wouldn&rsquo;t recommend the CPS&rsquo;ing the <code>List</code> one anyway, you basically create a cascading tower of continuations. It&rsquo;s not pretty even if you get it working.</p>
+<p>CPS&rsquo;ing <code>Writer</code> on the other hand, is a good bet. However, just using <code>Cod</code> on <code>Writer</code> might help, or ensuring the monoid is optimised properly &ndash; i.e. using the Difference List monoid instead of lists, for instance.</p>
+<p><strong>MN</strong>:
+I haven&rsquo;t heard of difference lists before, i&rsquo;ll do some reading.</p>
+<p><strong>JW</strong>:
+It&rsquo;s a simple idea:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">DList</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">DList</span> ([a] <span style="color:#f92672">-&gt;</span> [a])
+
+<span style="color:#a6e22e">fromList</span> <span style="color:#f92672">::</span> [a] <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">DList</span> a
+<span style="color:#a6e22e">fromList</span> <span style="color:#f92672">=</span> (<span style="color:#f92672">++</span>)
+
+<span style="color:#a6e22e">toList</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">DList</span> a <span style="color:#f92672">-&gt;</span> [a]
+<span style="color:#a6e22e">toList</span> <span style="color:#f92672">=</span> (<span style="color:#f92672">$</span> <span style="color:#66d9ef">[]</span>)
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monoid</span> (<span style="color:#66d9ef">DList</span> a) <span style="color:#66d9ef">where</span>
+  mempty <span style="color:#f92672">=</span> <span style="color:#66d9ef">DList</span> id
+  <span style="color:#66d9ef">DList</span> xs <span style="color:#f92672">&lt;&gt;</span> <span style="color:#66d9ef">DList</span> ys <span style="color:#f92672">=</span> <span style="color:#66d9ef">DList</span> (xs <span style="color:#f92672">.</span> ys)
+
+<span style="color:#a6e22e">cons</span> <span style="color:#f92672">::</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">DList</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">DList</span> a
+<span style="color:#a6e22e">cons</span> x (<span style="color:#66d9ef">DList</span> xs) <span style="color:#f92672">=</span> <span style="color:#66d9ef">DList</span> ((x <span style="color:#66d9ef">:</span>) <span style="color:#f92672">.</span> xs)
+</code></pre></div><p>Then if you have:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">(fromList [<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>] <span style="color:#f92672">&lt;&gt;</span> fromList [<span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">5</span>, <span style="color:#ae81ff">6</span>]) <span style="color:#f92672">&lt;&gt;</span> fromList [<span style="color:#ae81ff">7</span>, <span style="color:#ae81ff">8</span>, <span style="color:#ae81ff">9</span>]
+</code></pre></div><p>Then this becomes right associated and optimal:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">  (([<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>] <span style="color:#f92672">++</span>) <span style="color:#f92672">.</span> ([<span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">5</span>, <span style="color:#ae81ff">6</span>] <span style="color:#f92672">++</span>)) <span style="color:#f92672">.</span> ([<span style="color:#ae81ff">7</span>, <span style="color:#ae81ff">8</span>, <span style="color:#ae81ff">9</span>] <span style="color:#f92672">++</span>)
+<span style="color:#f92672">=</span> ([<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>] <span style="color:#f92672">++</span>) <span style="color:#f92672">.</span> ([<span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">5</span>, <span style="color:#ae81ff">6</span>] <span style="color:#f92672">++</span>) <span style="color:#f92672">.</span> ([<span style="color:#ae81ff">7</span>, <span style="color:#ae81ff">8</span>, <span style="color:#ae81ff">9</span>] <span style="color:#f92672">++</span>)
+
+  toList (<span style="color:#66d9ef">DList</span> (([<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>] <span style="color:#f92672">++</span>) <span style="color:#f92672">.</span> ([<span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">5</span>, <span style="color:#ae81ff">6</span>] <span style="color:#f92672">++</span>) <span style="color:#f92672">.</span> ([<span style="color:#ae81ff">7</span>, <span style="color:#ae81ff">8</span>, <span style="color:#ae81ff">9</span>] <span style="color:#f92672">++</span>)))
+<span style="color:#f92672">=</span> (([<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>] <span style="color:#f92672">++</span>) <span style="color:#f92672">.</span> ([<span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">5</span>, <span style="color:#ae81ff">6</span>] <span style="color:#f92672">++</span>) <span style="color:#f92672">.</span> ([<span style="color:#ae81ff">7</span>, <span style="color:#ae81ff">8</span>, <span style="color:#ae81ff">9</span>] <span style="color:#f92672">++</span>))) <span style="color:#66d9ef">[]</span>
+<span style="color:#f92672">=</span> ([<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>] <span style="color:#f92672">++</span>) (([<span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">5</span>, <span style="color:#ae81ff">6</span>] <span style="color:#f92672">++</span>) (([<span style="color:#ae81ff">7</span>, <span style="color:#ae81ff">8</span>, <span style="color:#ae81ff">9</span>] <span style="color:#f92672">++</span>) <span style="color:#66d9ef">[]</span>))
+<span style="color:#f92672">=</span> [<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>] <span style="color:#f92672">++</span> ([<span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">5</span>, <span style="color:#ae81ff">6</span>] <span style="color:#f92672">++</span> ([<span style="color:#ae81ff">7</span>, <span style="color:#ae81ff">8</span>, <span style="color:#ae81ff">9</span>] <span style="color:#f92672">++</span> <span style="color:#66d9ef">[]</span>))
+</code></pre></div><p>You can see how it relates to <code>Cod</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">(<span style="color:#f92672">++</span>) <span style="color:#f92672">::</span> [a] <span style="color:#f92672">-&gt;</span> ([a] <span style="color:#f92672">-&gt;</span> [a])
+<span style="color:#66d9ef">DList</span> <span style="color:#f92672">=</span> [a] <span style="color:#f92672">-&gt;</span> [a]
+(<span style="color:#f92672">&gt;&gt;=</span>) <span style="color:#f92672">::</span> m a <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> m b) <span style="color:#f92672">-&gt;</span> m b
+<span style="color:#66d9ef">Cod</span> <span style="color:#f92672">=</span> forall b<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> m b) <span style="color:#f92672">-&gt;</span> m b
+</code></pre></div><p>It&rsquo;s just partially apply the operation to the first argument, and leave the rest as the function. It&rsquo;s a trick you can pull for basically anything.</p>
+<p>Here&rsquo;s something i&rsquo;ll bring your attention to:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Show</span> (<span style="color:#66d9ef">Fix</span> <span style="color:#66d9ef">Combinator</span> a) <span style="color:#66d9ef">where</span>
+  show <span style="color:#f92672">=</span> (<span style="color:#f92672">$</span> <span style="color:#e6db74">&#34;&#34;</span>) <span style="color:#f92672">.</span> getConst1 <span style="color:#f92672">.</span> cata (<span style="color:#66d9ef">Const1</span> <span style="color:#f92672">.</span> alg)
+    <span style="color:#66d9ef">where</span>
+      alg (<span style="color:#66d9ef">Pure</span> x)                                  <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;(pure &#34;</span> <span style="color:#f92672">.</span> shows x <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34;)&#34;</span>
+      alg (<span style="color:#66d9ef">Satisfy</span> f)                               <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;(satisfy &#34;</span> <span style="color:#f92672">.</span> shows f <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34;)&#34;</span>
+      alg (<span style="color:#66d9ef">Const1</span> pf <span style="color:#66d9ef">:&lt;*&gt;:</span> <span style="color:#66d9ef">Const1</span> px)               <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;(&#34;</span> <span style="color:#f92672">.</span> pf <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34; &lt;*&gt; &#34;</span> <span style="color:#f92672">.</span>  px <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34;)&#34;</span>
+      alg (<span style="color:#66d9ef">Const1</span> p <span style="color:#66d9ef">:*&gt;:</span> <span style="color:#66d9ef">Const1</span> q)                  <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;(&#34;</span> <span style="color:#f92672">.</span> p <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34; *&gt; &#34;</span> <span style="color:#f92672">.</span> q <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34;)&#34;</span>
+      alg (<span style="color:#66d9ef">Const1</span> p <span style="color:#66d9ef">:&lt;*:</span> <span style="color:#66d9ef">Const1</span> q)                  <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;(&#34;</span> <span style="color:#f92672">.</span> p <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34; &lt;* &#34;</span> <span style="color:#f92672">.</span> q <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34;)&#34;</span>
+      alg (<span style="color:#66d9ef">Const1</span> p <span style="color:#66d9ef">:&lt;|&gt;:</span> <span style="color:#66d9ef">Const1</span> q)                 <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;(&#34;</span> <span style="color:#f92672">.</span> p <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34; &lt;|&gt; &#34;</span> <span style="color:#f92672">.</span> q <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34;)&#34;</span>
+      alg <span style="color:#66d9ef">Empty</span>                                     <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;empty&#34;</span>
+      alg (<span style="color:#66d9ef">Try</span> (<span style="color:#66d9ef">Const1</span> p))                          <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;(try &#34;</span> <span style="color:#f92672">.</span> p <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34;)&#34;</span>
+      alg (<span style="color:#66d9ef">LookAhead</span> (<span style="color:#66d9ef">Const1</span> p))                    <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;(lookAhead &#34;</span> <span style="color:#f92672">.</span> p <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34;)&#34;</span>
+      alg (<span style="color:#66d9ef">Let</span> <span style="color:#66d9ef">False</span> v <span style="color:#66d9ef">_</span>)                           <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;(let-bound &#34;</span> <span style="color:#f92672">.</span> shows v <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34;)&#34;</span>
+      alg (<span style="color:#66d9ef">Let</span> <span style="color:#66d9ef">True</span> v <span style="color:#66d9ef">_</span>)                            <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;(rec &#34;</span> <span style="color:#f92672">.</span> shows v <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34;)&#34;</span>
+      alg (<span style="color:#66d9ef">NotFollowedBy</span> (<span style="color:#66d9ef">Const1</span> p))                <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;(notFollowedBy &#34;</span> <span style="color:#f92672">.</span> p <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34;)&#34;</span>
+      alg (<span style="color:#66d9ef">Branch</span> (<span style="color:#66d9ef">Const1</span> b) (<span style="color:#66d9ef">Const1</span> p) (<span style="color:#66d9ef">Const1</span> q)) <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;(branch &#34;</span> <span style="color:#f92672">.</span> b <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34; &#34;</span> <span style="color:#f92672">.</span> p <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34; &#34;</span> <span style="color:#f92672">.</span> q <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34;)&#34;</span>
+      alg (<span style="color:#66d9ef">Match</span> (<span style="color:#66d9ef">Const1</span> p) fs qs (<span style="color:#66d9ef">Const1</span> def))     <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;(match &#34;</span> <span style="color:#f92672">.</span> p <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34; &#34;</span> <span style="color:#f92672">.</span> shows fs <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34; [&#34;</span> <span style="color:#f92672">.</span> intercalateDiff (<span style="color:#e6db74">&#34;, &#34;</span>) (map getConst1 qs) <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34;] &#34;</span>  <span style="color:#f92672">.</span> def <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34;)&#34;</span>
+      alg (<span style="color:#66d9ef">ChainPre</span> (<span style="color:#66d9ef">Const1</span> op) (<span style="color:#66d9ef">Const1</span> p))         <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;(chainPre &#34;</span> <span style="color:#f92672">.</span> op <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34; &#34;</span> <span style="color:#f92672">.</span> p <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34;)&#34;</span>
+      alg (<span style="color:#66d9ef">ChainPost</span> (<span style="color:#66d9ef">Const1</span> p) (<span style="color:#66d9ef">Const1</span> op))        <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;(chainPost &#34;</span> <span style="color:#f92672">.</span> p <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34; &#34;</span> <span style="color:#f92672">.</span> op <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34;)&#34;</span>
+      alg (<span style="color:#66d9ef">MakeRegister</span> σ (<span style="color:#66d9ef">Const1</span> p) (<span style="color:#66d9ef">Const1</span> q))    <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;(make &#34;</span> <span style="color:#f92672">.</span> shows σ <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34; &#34;</span> <span style="color:#f92672">.</span> p <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34; &#34;</span> <span style="color:#f92672">.</span> q <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34;)&#34;</span>
+      alg (<span style="color:#66d9ef">GetRegister</span> σ)                           <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;(get &#34;</span> <span style="color:#f92672">.</span> shows σ <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34;)&#34;</span>
+      alg (<span style="color:#66d9ef">PutRegister</span> σ (<span style="color:#66d9ef">Const1</span> p))                <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;(put &#34;</span> <span style="color:#f92672">.</span> shows σ <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34; &#34;</span> <span style="color:#f92672">.</span> p <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34;)&#34;</span>
+      alg (<span style="color:#66d9ef">Debug</span> <span style="color:#66d9ef">_</span> (<span style="color:#66d9ef">Const1</span> p))                      <span style="color:#f92672">=</span> p
+      alg (<span style="color:#66d9ef">MetaCombinator</span> m (<span style="color:#66d9ef">Const1</span> p))             <span style="color:#f92672">=</span> p <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34; [&#34;</span> <span style="color:#f92672">.</span> shows m <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34;]
+</span></code></pre></div><p>I mean, this is magic, but same idea.</p>
+<p>I had a <code>show</code> function for my ASTs, and I got a massive massive speedup by switching out all the <code>(++)</code> for <code>(.)</code>.</p>
+<p>It&rsquo;s using overloaded strings:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">IsString</span> (<span style="color:#66d9ef">String</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">String</span>) <span style="color:#66d9ef">where</span>
+  fromString <span style="color:#f92672">=</span> showString
+</code></pre></div><p>where a string literal is actually the <code>showString</code> of that string literal.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">showString</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">String</span> <span style="color:#f92672">-&gt;</span> (<span style="color:#66d9ef">String</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">String</span>)
+<span style="color:#a6e22e">shows</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Show</span> a <span style="color:#f92672">=&gt;</span> a <span style="color:#f92672">-&gt;</span> (<span style="color:#66d9ef">String</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">String</span>)
+</code></pre></div><p>Overloaded strings lets me assign a new meaning for string literals &ndash; in this case, I give it the meaning of the difference list, because in this sort of instance, you can&rsquo;t control how the <code>(++)</code> associates; the left and the right branches of the AST will contain them.</p>
+<p>Using the difference list it transforms it into a fully linear sequence of them, reducing the <code>show</code> instance down to linear time.</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
