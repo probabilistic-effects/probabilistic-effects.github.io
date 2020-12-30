@@ -18,8 +18,8 @@
 </style>
 <meta property="og:title" content="Research Journal" />
 <meta property="og:description" content="Activity (MN) 28/12/2020 - 30/12/2020
- Trying to reimplement and integrate components of monad-bayes in CPS-form  Successfully integrated CPS version of StateT into branch MonadLibCPS of probabilistic-programming. Big performance gain!   More CPS conversation with JW.  Activity (MN) 22/12/2020 - 27/12/2020
- More analysis, inlining and benchmarking of monad-bayes. Wrote up conversation with JW on CPS&rsquo;ing data types in Haskell and some notes on continuations. Implementing and understanding CPS version of various monadic data types." />
+ Trying to reimplement and integrate components of monad-bayes in CPS-form  Successfully integrated CPS version of StateT into branch MonadLibCPS of probabilistic-programming. Big performance gain!   More CPS conversation with JW. Learned and integrated some alternatives to List and ListT: DList and LogicT.  Activity (MN) 22/12/2020 - 27/12/2020
+ More analysis, inlining and benchmarking of monad-bayes. Wrote up conversation with JW on CPS&rsquo;ing data types in Haskell and some notes on continuations." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://probabilistic-effects.github.io/research/research-journal/" />
 <meta property="article:published_time" content="2020-11-13T14:05:57+00:00" />
@@ -27,15 +27,15 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Research Journal"/>
 <meta name="twitter:description" content="Activity (MN) 28/12/2020 - 30/12/2020
- Trying to reimplement and integrate components of monad-bayes in CPS-form  Successfully integrated CPS version of StateT into branch MonadLibCPS of probabilistic-programming. Big performance gain!   More CPS conversation with JW.  Activity (MN) 22/12/2020 - 27/12/2020
- More analysis, inlining and benchmarking of monad-bayes. Wrote up conversation with JW on CPS&rsquo;ing data types in Haskell and some notes on continuations. Implementing and understanding CPS version of various monadic data types."/>
+ Trying to reimplement and integrate components of monad-bayes in CPS-form  Successfully integrated CPS version of StateT into branch MonadLibCPS of probabilistic-programming. Big performance gain!   More CPS conversation with JW. Learned and integrated some alternatives to List and ListT: DList and LogicT.  Activity (MN) 22/12/2020 - 27/12/2020
+ More analysis, inlining and benchmarking of monad-bayes. Wrote up conversation with JW on CPS&rsquo;ing data types in Haskell and some notes on continuations."/>
 <meta itemprop="name" content="Research Journal">
 <meta itemprop="description" content="Activity (MN) 28/12/2020 - 30/12/2020
- Trying to reimplement and integrate components of monad-bayes in CPS-form  Successfully integrated CPS version of StateT into branch MonadLibCPS of probabilistic-programming. Big performance gain!   More CPS conversation with JW.  Activity (MN) 22/12/2020 - 27/12/2020
- More analysis, inlining and benchmarking of monad-bayes. Wrote up conversation with JW on CPS&rsquo;ing data types in Haskell and some notes on continuations. Implementing and understanding CPS version of various monadic data types.">
+ Trying to reimplement and integrate components of monad-bayes in CPS-form  Successfully integrated CPS version of StateT into branch MonadLibCPS of probabilistic-programming. Big performance gain!   More CPS conversation with JW. Learned and integrated some alternatives to List and ListT: DList and LogicT.  Activity (MN) 22/12/2020 - 27/12/2020
+ More analysis, inlining and benchmarking of monad-bayes. Wrote up conversation with JW on CPS&rsquo;ing data types in Haskell and some notes on continuations.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:57+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:57+00:00" />
-<meta itemprop="wordCount" content="6950">
+<meta itemprop="wordCount" content="6962">
 
 
 
@@ -55,6 +55,7 @@
 </ul>
 </li>
 <li>More <a href="../parsley-case-study">CPS conversation</a> with JW.</li>
+<li>Learned and integrated some alternatives to <code>List</code> and <code>ListT</code>: <code>DList</code> and <code>LogicT</code>.</li>
 </ul>
 <p><strong>Activity (MN)</strong>     <em>22/12/2020</em> - <em>27/12/2020</em></p>
 <ul>
@@ -635,6 +636,18 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/background/">Background</a>
   
 <ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/background/staging/">Staging</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/smc-pmmh/">SMC and PMMH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/handrolling/">Handrolling Monad Transformer Stacks</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mtl/">MTL</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mcmc-mh/">MCMC and MH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/markov-chain/">Markov Chains</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/hidden-markov-model/">Hidden Markov Model</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/delimited-continuations/">Delimited Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/haskell-core/">Haskell Core</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
 </ul>
   
 </li>
