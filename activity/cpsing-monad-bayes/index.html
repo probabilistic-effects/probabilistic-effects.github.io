@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>CPSing Monad Bayes - Probabilistic Effects.  λθ</title>
+<meta name="generator" content="Hugo 0.78.2" />
+<link href="https://probabilistic-effects.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="https://probabilistic-effects.github.io/activity/cpsing-monad-bayes/">
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="https://probabilistic-effects.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="CPSing Monad Bayes" />
+<meta property="og:description" content="Implemented and integrated CPS version of StateT monad into monad-bayes:  type State s = StateT s Identity {-# INLINE state #-} state :: Monad m =&gt; (s -&gt; (a, s)) -&gt; StateT s m a state f = StateT (\s k -&gt; uncurry k (f s)) {-# INLINE runState #-} runState :: State s a -&gt; s -&gt; (a, s) runState mx = runIdentity . runStateT mx {-# INLINE evalState #-} evalState :: State s a -&gt; s -&gt; a evalState mx = runIdentity ." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://probabilistic-effects.github.io/activity/cpsing-monad-bayes/" />
+<meta property="article:published_time" content="2020-11-13T14:05:41+00:00" />
+<meta property="article:modified_time" content="2020-11-13T14:05:41+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="CPSing Monad Bayes"/>
+<meta name="twitter:description" content="Implemented and integrated CPS version of StateT monad into monad-bayes:  type State s = StateT s Identity {-# INLINE state #-} state :: Monad m =&gt; (s -&gt; (a, s)) -&gt; StateT s m a state f = StateT (\s k -&gt; uncurry k (f s)) {-# INLINE runState #-} runState :: State s a -&gt; s -&gt; (a, s) runState mx = runIdentity . runStateT mx {-# INLINE evalState #-} evalState :: State s a -&gt; s -&gt; a evalState mx = runIdentity ."/>
+<meta itemprop="name" content="CPSing Monad Bayes">
+<meta itemprop="description" content="Implemented and integrated CPS version of StateT monad into monad-bayes:  type State s = StateT s Identity {-# INLINE state #-} state :: Monad m =&gt; (s -&gt; (a, s)) -&gt; StateT s m a state f = StateT (\s k -&gt; uncurry k (f s)) {-# INLINE runState #-} runState :: State s a -&gt; s -&gt; (a, s) runState mx = runIdentity . runStateT mx {-# INLINE evalState #-} evalState :: State s a -&gt; s -&gt; a evalState mx = runIdentity .">
+<meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
+<meta itemprop="wordCount" content="651">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>Probabilistic Effects.  λθ</h1>
+</header>
+
+<div class="content-container">
+<main><h1>CPSing Monad Bayes</h1>
+<ul>
+<li>Implemented and integrated CPS version of <code>StateT</code> monad into monad-bayes:</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">type</span> <span style="color:#66d9ef">State</span> s <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> s <span style="color:#66d9ef">Identity</span>
+
+<span style="color:#75715e">{-# INLINE state #-}</span>
+<span style="color:#a6e22e">state</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> (s <span style="color:#f92672">-&gt;</span> (a, s)) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">StateT</span> s m a
+<span style="color:#a6e22e">state</span> f <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (<span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> uncurry k (f s))
+
+<span style="color:#75715e">{-# INLINE runState #-}</span>
+<span style="color:#a6e22e">runState</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">State</span> s a <span style="color:#f92672">-&gt;</span> s <span style="color:#f92672">-&gt;</span> (a, s)
+<span style="color:#a6e22e">runState</span> mx <span style="color:#f92672">=</span> runIdentity <span style="color:#f92672">.</span> runStateT mx
+
+<span style="color:#75715e">{-# INLINE evalState #-}</span>
+<span style="color:#a6e22e">evalState</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">State</span> s a <span style="color:#f92672">-&gt;</span> s <span style="color:#f92672">-&gt;</span> a
+<span style="color:#a6e22e">evalState</span> mx <span style="color:#f92672">=</span> runIdentity <span style="color:#f92672">.</span> evalStateT mx
+
+<span style="color:#75715e">{-# INLINE execState #-}</span>
+<span style="color:#a6e22e">execState</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">State</span> s a <span style="color:#f92672">-&gt;</span> s <span style="color:#f92672">-&gt;</span> s
+<span style="color:#a6e22e">execState</span> mx <span style="color:#f92672">=</span> runIdentity <span style="color:#f92672">.</span> execStateT mx
+
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">StateT</span> s m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> {unStateT <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> s <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> s <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> m r} <span style="color:#66d9ef">deriving</span> <span style="color:#66d9ef">Functor</span>
+
+<span style="color:#75715e">{-# INLINE runStateT #-}</span>
+<span style="color:#a6e22e">runStateT</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">StateT</span> s m a <span style="color:#f92672">-&gt;</span> s <span style="color:#f92672">-&gt;</span> m (a, s)
+<span style="color:#a6e22e">runStateT</span> (<span style="color:#66d9ef">StateT</span> f) s <span style="color:#f92672">=</span> f s (<span style="color:#a6e22e">\</span>x s&#39; <span style="color:#f92672">-&gt;</span> return (x, s&#39;))
+
+<span style="color:#75715e">{-# INLINE evalStateT #-}</span>
+<span style="color:#a6e22e">evalStateT</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">StateT</span> s m a <span style="color:#f92672">-&gt;</span> s <span style="color:#f92672">-&gt;</span> m a
+<span style="color:#a6e22e">evalStateT</span> (<span style="color:#66d9ef">StateT</span> f) s <span style="color:#f92672">=</span> f s (const <span style="color:#f92672">.</span> return)
+
+<span style="color:#75715e">{-# INLINE execStateT #-}</span>
+<span style="color:#a6e22e">execStateT</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">StateT</span> s m a <span style="color:#f92672">-&gt;</span> s <span style="color:#f92672">-&gt;</span> m s
+<span style="color:#a6e22e">execStateT</span> (<span style="color:#66d9ef">StateT</span> f) s <span style="color:#f92672">=</span> f s (const return)
+
+<span style="color:#75715e">{-# INLINE mapStateT #-}</span>
+<span style="color:#a6e22e">mapStateT</span> <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Monad</span> m, <span style="color:#66d9ef">Monad</span> n) <span style="color:#f92672">=&gt;</span> (m (a, s) <span style="color:#f92672">-&gt;</span> n (b, s)) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">StateT</span> s m a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">StateT</span> s n b
+<span style="color:#a6e22e">mapStateT</span> f m <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (<span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">do</span> (b, s&#39;) <span style="color:#f92672">&lt;-</span> f <span style="color:#f92672">$</span> (runStateT m) s
+                                   k b s&#39; )
+
+<span style="color:#75715e">{-# INLINE modify #-}</span>
+<span style="color:#a6e22e">modify</span> <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Monad</span> m) <span style="color:#f92672">=&gt;</span> (s <span style="color:#f92672">-&gt;</span> s) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">StateT</span> s m ()
+<span style="color:#a6e22e">modify</span> f <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> <span style="color:#f92672">$</span> <span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> k () (f s)
+
+<span style="color:#75715e">{-# INLINE liftListen #-}</span>
+<span style="color:#a6e22e">liftListen</span> <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Monad</span> m) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Listen</span> w m (a,s) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Listen</span> w (<span style="color:#66d9ef">StateT</span> s m) a
+<span style="color:#a6e22e">liftListen</span> listen m <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> <span style="color:#f92672">$</span> <span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">do</span>
+    <span style="color:#f92672">~</span>((a, s&#39;), w) <span style="color:#f92672">&lt;-</span> listen (runStateT m s)
+    k (a, w) s&#39;
+
+<span style="color:#75715e">{-# INLINE liftPass #-}</span>
+<span style="color:#a6e22e">liftPass</span> <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Monad</span> m) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Pass</span> w m (a,s) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Pass</span> w (<span style="color:#66d9ef">StateT</span> s m) a
+<span style="color:#a6e22e">liftPass</span> pass (<span style="color:#66d9ef">StateT</span> mx) <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> <span style="color:#f92672">$</span> <span style="color:#a6e22e">\</span> s k <span style="color:#f92672">-&gt;</span>
+    pass (mx s (<span style="color:#a6e22e">\</span>(x, f) s&#39; <span style="color:#f92672">-&gt;</span> return ((x, s&#39;), f))) <span style="color:#f92672">&gt;&gt;=</span> uncurry k
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Applicative</span> (<span style="color:#66d9ef">StateT</span> s m) <span style="color:#66d9ef">where</span>
+  <span style="color:#75715e">{-# INLINE pure #-}</span>
+  pure x <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (flip (<span style="color:#f92672">$</span> x))
+  <span style="color:#75715e">{-# INLINE liftA2 #-}</span>
+  liftA2 f (<span style="color:#66d9ef">StateT</span> mx) (<span style="color:#66d9ef">StateT</span> my) <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (<span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> mx s (<span style="color:#a6e22e">\</span>x s&#39; <span style="color:#f92672">-&gt;</span> my s&#39; (<span style="color:#a6e22e">\</span>y s&#39;&#39; <span style="color:#f92672">-&gt;</span> k (f x y) s&#39;&#39;)))
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">StateT</span> s m) <span style="color:#66d9ef">where</span>
+  <span style="color:#75715e">{-# INLINE return #-}</span>
+  return <span style="color:#f92672">=</span> pure
+  <span style="color:#75715e">{-# INLINE (&gt;&gt;=) #-}</span>
+  <span style="color:#66d9ef">StateT</span> mx <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (<span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> mx s (<span style="color:#a6e22e">\</span>x s&#39; <span style="color:#f92672">-&gt;</span> unStateT (f x) s&#39; k))
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">MonadFix</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">MonadFix</span> (<span style="color:#66d9ef">StateT</span> s m) <span style="color:#66d9ef">where</span>
+  <span style="color:#75715e">{-# INLINE mfix #-}</span>
+  mfix f <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (<span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> mfix (<span style="color:#a6e22e">\</span> <span style="color:#f92672">~</span>(x, <span style="color:#66d9ef">_</span>) <span style="color:#f92672">-&gt;</span> runStateT (f x) s) <span style="color:#f92672">&gt;&gt;=</span> uncurry k)
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">MonadTrans</span> (<span style="color:#66d9ef">StateT</span> s) <span style="color:#66d9ef">where</span>
+  <span style="color:#75715e">{-# INLINE lift #-}</span>
+  lift m <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (<span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> m <span style="color:#f92672">&gt;&gt;=</span> (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> k x s))
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">MonadIO</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">MonadIO</span> (<span style="color:#66d9ef">StateT</span> s m) <span style="color:#66d9ef">where</span> liftIO <span style="color:#f92672">=</span> lift <span style="color:#f92672">.</span> liftIO
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">MonadFail</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">MonadFail</span> (<span style="color:#66d9ef">StateT</span> s m) <span style="color:#66d9ef">where</span> fail msg <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Fail</span><span style="color:#f92672">.</span>fail msg)
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Alternative</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Alternative</span> (<span style="color:#66d9ef">StateT</span> s m) <span style="color:#66d9ef">where</span>
+  empty <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> empty)
+  <span style="color:#66d9ef">StateT</span> mx <span style="color:#f92672">&lt;|&gt;</span> <span style="color:#66d9ef">StateT</span> my <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (<span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> mx s k <span style="color:#f92672">&lt;|&gt;</span> my s k)
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">MonadState</span> s (<span style="color:#66d9ef">StateT</span> s m) <span style="color:#66d9ef">where</span>
+  get <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (<span style="color:#a6e22e">\</span>s k <span style="color:#f92672">-&gt;</span> k s s)
+  put s <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> k <span style="color:#f92672">-&gt;</span> k () s)
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">MonadWriter</span> w m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">MonadWriter</span> w (<span style="color:#66d9ef">StateT</span> s m) <span style="color:#66d9ef">where</span>
+    writer <span style="color:#f92672">=</span> lift <span style="color:#f92672">.</span> writer
+    tell   <span style="color:#f92672">=</span> lift <span style="color:#f92672">.</span> tell
+    listen <span style="color:#f92672">=</span> liftListen listen
+    pass   <span style="color:#f92672">=</span> liftPass pass
+</code></pre></div><p>This resulted in a big performance gain of roughly 10s:</p>
+<p><img src="https://i.ibb.co/dcQjYGX/benchmark-13.png" alt="">
+<img src="https://i.ibb.co/TwnwPJH/prof-3.png" alt=""></p>
+<div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/activity/" title="Activity"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Activity</a>
+<a class="nav nav-next" href="https://probabilistic-effects.github.io/activity/inlining-monad-bayes/" title="Inlining Monad Bayes">Next - Inlining Monad Bayes <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<nav class="open-menu">
+<ul>
+<li class=""><a href="https://probabilistic-effects.github.io/">Home</a></li>
+
+<li class="parent"><a href="https://probabilistic-effects.github.io/activity/">Activity</a>
+  
+<ul class="sub-menu">
+<li class="active"><a href="https://probabilistic-effects.github.io/activity/cpsing-monad-bayes/">CPSing Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/activity/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/papers/">Papers</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/papers/asymptotic-improvement/">Asymptotic Improvement of Computations over Free Monads</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/research/">Research</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/research/research-journal/">Research Journal</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/">Potential Approaches to Improving Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/literature-review/">Literature Review</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/parsley-case-study/">Case Study: Optimising Parsley</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/optimising-core/">Optimising Core</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/">Monad Bayes</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/inference-transformers/">Inference Transformers</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/pmmh-hmm/">Implementing HMM Simulation and Inference (using PMMH)</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/conditioning-scoring/">How Conditioning and Scoring Works</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/">Tooling</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/cabal/">Cabal Projects</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/">Benchmarking</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmark-log/">Benchmark Log</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmarking-profiling/">How to Benchmark and Profile</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/monad-bayes-components/">Relevant Components of Monad Bayes for Profiling</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/background/">Background</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/background/staging/">Staging</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/smc-pmmh/">SMC and PMMH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/handrolling/">Handrolling Monad Transformer Stacks</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mtl/">MTL</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mcmc-mh/">MCMC and MH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/markov-chain/">Markov Chains</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/hidden-markov-model/">Hidden Markov Model</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/delimited-continuations/">Delimited Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/haskell-core/">Haskell Core</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
+</ul>
+  
+</li>
+</ul>
+</nav>
+
+
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>

@@ -38,6 +38,15 @@
     </item>
     
     <item>
+      <title>CPSing Monad Bayes</title>
+      <link>https://probabilistic-effects.github.io/activity/cpsing-monad-bayes/</link>
+      <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/activity/cpsing-monad-bayes/</guid>
+      <description>Implemented and integrated CPS version of StateT monad into monad-bayes:  type State s = StateT s Identity {-# INLINE state #-} state :: Monad m =&amp;gt; (s -&amp;gt; (a, s)) -&amp;gt; StateT s m a state f = StateT (\s k -&amp;gt; uncurry k (f s)) {-# INLINE runState #-} runState :: State s a -&amp;gt; s -&amp;gt; (a, s) runState mx = runIdentity . runStateT mx {-# INLINE evalState #-} evalState :: State s a -&amp;gt; s -&amp;gt; a evalState mx = runIdentity .</description>
+    </item>
+    
+    <item>
       <title>Freer Monads, More Extensible Effects</title>
       <link>https://probabilistic-effects.github.io/papers/freer-monads/</link>
       <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
@@ -311,15 +320,6 @@ fac :: Integral a =&amp;gt; a -&amp;gt; a fac 0 = 1 fac n = n * fac (n - 1) Cont
 1. Dumping core &amp;amp; enabling optimisations   To inspect the core (in a coherent manner), we can add the following to either our package.yaml file (when using stack):
 ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (when using cabal):
 build-depends: dump-core ghc-options: -fplugin-DumpCore When we build our program (stack build or ghc), this creates a folder called dump-core containing html files.</description>
-    </item>
-    
-    <item>
-      <title></title>
-      <link>https://probabilistic-effects.github.io/activity/cps/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://probabilistic-effects.github.io/activity/cps/</guid>
-      <description></description>
     </item>
     
   </channel>

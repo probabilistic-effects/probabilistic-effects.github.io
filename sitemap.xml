@@ -23,6 +23,11 @@
   </url>
   
   <url>
+    <loc>https://probabilistic-effects.github.io/activity/cpsing-monad-bayes/</loc>
+    <lastmod>2020-11-13T14:05:41+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://probabilistic-effects.github.io/papers/freer-monads/</loc>
     <lastmod>2020-11-13T14:05:41+00:00</lastmod>
   </url>
@@ -185,10 +190,6 @@
   <url>
     <loc>https://probabilistic-effects.github.io/research/optimising-core/</loc>
     <lastmod>2020-11-13T13:40:41+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://probabilistic-effects.github.io/activity/cps/</loc>
   </url>
   
   <url>
