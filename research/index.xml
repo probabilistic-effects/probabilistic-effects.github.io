@@ -14,7 +14,7 @@
       
       <guid>https://probabilistic-effects.github.io/research/research-journal/</guid>
       <description>Activity (MN) 28/12/2020 - 03/01/2021
- Trying to reimplement and integrate components of monad-bayes in CPS-form  Successfully integrated CPS version of StateT into branch MonadLibCPS of probabilistic-programming. Big performance gain!   More CPS conversation with JW. Learned and integrated some alternatives to List and ListT: DList and LogicT. Successfully implemented and integrated a CPS version of the Trace data type of monad-bates, trying both TraceCPS and TraceTCPS &amp;ndash; neither versions showed an improvement in run-time.</description>
+ Trying to reimplement and integrate components of monad-bayes in CPS-form  Successfully integrated CPS version of StateT into branch MonadLibCPS of probabilistic-programming. Big performance gain!   More CPS conversation with JW. Learned and integrated some alternatives to List and ListT: DList and LogicT. Successfully implemented and integrated a CPS version of the Trace data type of monad-bayes, trying both TraceCPS and TraceTCPS &amp;ndash; neither versions showed an improvement in run-time.</description>
     </item>
     
     <item>
