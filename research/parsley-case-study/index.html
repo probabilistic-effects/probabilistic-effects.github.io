@@ -35,7 +35,7 @@ Usually, if one is confused about something in the core, it is best to compare i
 regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="8371">
+<meta itemprop="wordCount" content="9147">
 
 
 
@@ -762,6 +762,87 @@ Yeah, that&rsquo;s what fold do right. But the chain of <code>&lt;|&gt;</code>s 
 And that part doesn&rsquo;t actually happen until you choose to extract a result?</p>
 <p><strong>JW</strong>:
 Erm, well it happens when it happens. The choice doesn&rsquo;t really happen because it took all possible choices &ndash; they are all processed in parallel as far as I&rsquo;m concerned. It&rsquo;s a black box.</p>
+<hr>
+<p><strong>MN</strong>:
+Is it correct to be able to have a function like <code>State s a -&gt; StateT s m a</code>?</p>
+<p><strong>JW</strong>:
+I mean you <em>could</em>, but you&rsquo;re basically saying that the Stateful part of that computation is completely pure, in which case it&rsquo;s basically:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">promoteState</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">State</span> s a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">StateT</span> s m a
+<span style="color:#a6e22e">promoteState</span> mx <span style="color:#f92672">=</span> <span style="color:#66d9ef">StateT</span> (<span style="color:#a6e22e">\</span>s <span style="color:#f92672">-&gt;</span> return (runState mx s))
+</code></pre></div><p>and I&rsquo;m not sure that&rsquo;s particularly valuable. I suppose it allows you to avoid the overhead of performing computation in <code>m</code>, but in the CPS form that&rsquo;s not even a concern anyway because the stateful operations don&rsquo;t even touch the underlying monad.</p>
+<p>Also, see <code>state</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">promoteState</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">State</span> s a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">StateT</span> s m a
+<span style="color:#a6e22e">promoteState</span> <span style="color:#f92672">=</span> state <span style="color:#f92672">.</span> runState
+</code></pre></div><p>It&rsquo;s the inverse of <code>runState</code>, (assuming the <code>State s a</code> here is the non-CPS form).</p>
+<p><strong>MN</strong>:
+This is all stemming from the mess i&rsquo;m in that i&rsquo;ve got something like:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">MaybeT</span> m a 
+ which i need to turn into 
+<span style="color:#f92672">&gt;</span> m [<span style="color:#66d9ef">Maybe</span> a] 
+ which i need to turn into
+<span style="color:#f92672">&gt;</span> [<span style="color:#66d9ef">MaybeT</span> m a] 
+</code></pre></div><p><strong>JW</strong>:
+That transformation isn&rsquo;t possible, you can&rsquo;t go from a generic monadic context and invert it. The opposite direction is easy.</p>
+<p><strong>MN</strong>:
+My bad, I meant <code>m [MaybeT m a]</code>, so it looks vaguely like:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">let</span> mx&#39; <span style="color:#f92672">::</span> m ([<span style="color:#66d9ef">Maybe</span> a])
+    mx&#39; <span style="color:#f92672">=</span> fmap (<span style="color:#66d9ef">:[]</span>) <span style="color:#f92672">$</span> runMaybeT mx
+    foo <span style="color:#f92672">::</span> <span style="color:#66d9ef">MaybeT</span> m a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">MaybeT</span> m a
+    foo <span style="color:#f92672">=</span> <span style="color:#f92672">...</span>
+<span style="color:#66d9ef">in</span>  <span style="color:#66d9ef">do</span> 
+       (x <span style="color:#66d9ef">:</span> xs) <span style="color:#f92672">&lt;-</span> mx&#39; <span style="color:#f92672">::</span> m [<span style="color:#66d9ef">MaybeT</span> m a]
+       foo x<span style="color:#f92672">?</span>
+</code></pre></div><p><strong>JW</strong>:
+The function <code>m [Maybe a] -&gt; [MaybeT m a]</code> is not possible in general, not unless you know how to run out <code>m</code>. The following is fine: <code>m [Maybe a] -&gt; m [MaybeT m a]</code>, but you can&rsquo;t just exit <code>m</code> without knowing how.</p>
+<hr>
+<p><strong>MN</strong>:
+Hi! So I&rsquo;ve got this problem which i don&rsquo;t know is worth/possible solving or not.
+Currently, the monad bayes library has a number of modules which contain their own form of the <code>Traced</code> data type, commonly sharing the following structure (where <code>Trace</code> is a monad):</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Traced</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Traced</span> { <span style="color:#f92672">...</span> , 
+                           dist <span style="color:#f92672">::</span> m (<span style="color:#66d9ef">Trace</span> a) 
+                         }
+</code></pre></div><p>and each <code>Traced</code> data type has a corresponding hoist function:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">hoist</span> <span style="color:#f92672">::</span> (forall x<span style="color:#f92672">.</span> m x <span style="color:#f92672">-&gt;</span> m x) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Traced</span> m a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Traced</span> m a
+<span style="color:#a6e22e">hoist</span> f (<span style="color:#66d9ef">Traced</span> <span style="color:#f92672">..</span> dist) <span style="color:#f92672">=</span> <span style="color:#66d9ef">Traced</span> <span style="color:#f92672">..</span> (f dist)
+</code></pre></div><p>Instead, I&rsquo;d like to be able to use my own transformer version of <code>Trace</code> inside of <code>Traced</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Traced</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Traced</span> { <span style="color:#f92672">...</span> ,
+                           dist <span style="color:#f92672">::</span> <span style="color:#66d9ef">TraceT</span> m a,
+                         }
+</code></pre></div><p>However, now I&rsquo;m not sure how to redefine <code>hoist</code> or what type definition it should have. Do you have any thoughts on this?</p>
+<p><strong>JW</strong>:
+Well the <code>forall x. m x -&gt; m x</code> implies to me that the function never touches or knows about the trace.</p>
+<p><strong>MN</strong>:
+This is true.</p>
+<p><strong>JW</strong>:
+So that&rsquo;s ok. I suspect <code>lift :: m a -&gt; TraceT m a</code> will be a part of it, it depends on how <code>TraceT</code> is defined. If it&rsquo;s the non-CPS version it&rsquo;s easy:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">TraceT</span> mx <span style="color:#f92672">=</span> <span style="color:#66d9ef">TraceT</span> (f mx)
+</code></pre></div><p>Otherwise you just need to be a little more creative, but the general idea still applies. It doesn&rsquo;t matter that the monad is carrying around tracey data, because the function works forall x.</p>
+<p><strong>MN</strong>:
+Unfortunately it&rsquo;s the CPS version:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">TraceT</span> m a <span style="color:#f92672">=</span>
+  <span style="color:#66d9ef">TraceT</span> { unTraceT <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> ([<span style="color:#66d9ef">Double</span>] <span style="color:#f92672">-&gt;</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span> <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> m r}
+  <span style="color:#66d9ef">deriving</span> <span style="color:#66d9ef">Functor</span>
+</code></pre></div><p><strong>JW</strong>:
+Still easy.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">TraceT</span> k <span style="color:#f92672">=</span> <span style="color:#66d9ef">TraceT</span> (<span style="color:#a6e22e">\</span>ds x log <span style="color:#f92672">-&gt;</span> f (k ds x log))
+</code></pre></div><p><strong>MN</strong>:
+Ahhh, thank you! My previous (wrong) solution was</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">hoist</span> <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Monad</span> m) <span style="color:#f92672">=&gt;</span> (forall x<span style="color:#f92672">.</span> m x <span style="color:#f92672">-&gt;</span> m x) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">TraceT</span> m a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">TraceT</span> m a
+<span style="color:#a6e22e">hoist</span> f mx <span style="color:#f92672">=</span>
+  <span style="color:#66d9ef">TraceT</span> <span style="color:#f92672">$</span> (<span style="color:#a6e22e">\</span>k <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">do</span> (<span style="color:#66d9ef">Trace</span> mx&#39;) <span style="color:#f92672">&lt;-</span> f <span style="color:#f92672">$</span> (runTraceT mx)
+                     mx&#39; k)
+</code></pre></div><p>Even though it type-checks, it doesn&rsquo;t work.</p>
+<p><strong>JW</strong>:
+I&rsquo;m surprised that type checks &ndash; why does <code>mx'</code> take an argument? <code>TraceT</code> is the CPS form, the <code>Trace</code> that comes out of the <code>runTraceT</code> is not.</p>
+<p><strong>MN</strong>:
+Ooh, so mine is lol</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">runTraceTCPS</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">TraceTCPS</span> m a <span style="color:#f92672">-&gt;</span> m (<span style="color:#66d9ef">TraceCPS</span> a)
+</code></pre></div><p><strong>JW</strong>:
+Ok, I&rsquo;d make sure your <code>Trace</code> is non-CPS &ndash; <code>Trace</code> is a data structure, the <code>TraceT</code> is the monad.</p>
+<p><strong>MN</strong>:
+Got you, thanks. Do you never tend to turn non-transformer monads into CPS?</p>
+<p><strong>JW</strong>:
+Yes, but in this case <code>Trace</code> is a proper data structure. You can have an internal <code>TraceCPS</code> that gets concretised into <code>Trace</code>, but it wouldn&rsquo;t be useful. The CPS behaviour of <code>TraceT</code> does all the work for you, and also <code>TraceCPS = TraceT Identity</code>.</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
