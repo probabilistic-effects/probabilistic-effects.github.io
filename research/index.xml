@@ -13,8 +13,9 @@
       <pubDate>Fri, 13 Nov 2020 14:05:57 +0000</pubDate>
       
       <guid>https://probabilistic-effects.github.io/research/research-journal/</guid>
-      <description>Activity (MN) 28/12/2020 - 03/01/2021
- Trying to reimplement and integrate components of monad-bayes in CPS-form  Successfully integrated CPS version of StateT into branch MonadLibCPS of probabilistic-programming. Big performance gain!   More CPS conversation with JW. Learned and integrated some alternatives to List and ListT: DList and LogicT. Successfully implemented and integrated a CPS version of the Trace data type of monad-bayes, trying both TraceCPS and TraceTCPS &amp;ndash; neither versions showed an improvement in run-time.</description>
+      <description>Activity (MN) 04/01/2021
+ Due to just over 50% of the benchmark run-time for monad-bayes currently being spent by coroutines: I&amp;rsquo;ve been trying to understand coroutines in Haskell, and also exploring existing coroutine libraries (monad-coroutine, pipes, conduit, three-continuation-approach). Trying to reimplement the monad-coroutine library (which monad-bayes uses) in CPS.  Activity (MN) 28/12/2020 - 03/01/2021
+ Trying to reimplement and integrate components of monad-bayes in CPS-form  Successfully integrated CPS version of StateT into branch MonadLibCPS of probabilistic-programming.</description>
     </item>
     
     <item>

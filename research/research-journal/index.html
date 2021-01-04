@@ -17,22 +17,25 @@
 :root {}
 </style>
 <meta property="og:title" content="Research Journal" />
-<meta property="og:description" content="Activity (MN) 28/12/2020 - 03/01/2021
- Trying to reimplement and integrate components of monad-bayes in CPS-form  Successfully integrated CPS version of StateT into branch MonadLibCPS of probabilistic-programming. Big performance gain!   More CPS conversation with JW. Learned and integrated some alternatives to List and ListT: DList and LogicT. Successfully implemented and integrated a CPS version of the Trace data type of monad-bayes, trying both TraceCPS and TraceTCPS &ndash; neither versions showed an improvement in run-time." />
+<meta property="og:description" content="Activity (MN) 04/01/2021
+ Due to just over 50% of the benchmark run-time for monad-bayes currently being spent by coroutines: I&rsquo;ve been trying to understand coroutines in Haskell, and also exploring existing coroutine libraries (monad-coroutine, pipes, conduit, three-continuation-approach). Trying to reimplement the monad-coroutine library (which monad-bayes uses) in CPS.  Activity (MN) 28/12/2020 - 03/01/2021
+ Trying to reimplement and integrate components of monad-bayes in CPS-form  Successfully integrated CPS version of StateT into branch MonadLibCPS of probabilistic-programming." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://probabilistic-effects.github.io/research/research-journal/" />
 <meta property="article:published_time" content="2020-11-13T14:05:57+00:00" />
 <meta property="article:modified_time" content="2020-11-13T14:05:57+00:00" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Research Journal"/>
-<meta name="twitter:description" content="Activity (MN) 28/12/2020 - 03/01/2021
- Trying to reimplement and integrate components of monad-bayes in CPS-form  Successfully integrated CPS version of StateT into branch MonadLibCPS of probabilistic-programming. Big performance gain!   More CPS conversation with JW. Learned and integrated some alternatives to List and ListT: DList and LogicT. Successfully implemented and integrated a CPS version of the Trace data type of monad-bayes, trying both TraceCPS and TraceTCPS &ndash; neither versions showed an improvement in run-time."/>
+<meta name="twitter:description" content="Activity (MN) 04/01/2021
+ Due to just over 50% of the benchmark run-time for monad-bayes currently being spent by coroutines: I&rsquo;ve been trying to understand coroutines in Haskell, and also exploring existing coroutine libraries (monad-coroutine, pipes, conduit, three-continuation-approach). Trying to reimplement the monad-coroutine library (which monad-bayes uses) in CPS.  Activity (MN) 28/12/2020 - 03/01/2021
+ Trying to reimplement and integrate components of monad-bayes in CPS-form  Successfully integrated CPS version of StateT into branch MonadLibCPS of probabilistic-programming."/>
 <meta itemprop="name" content="Research Journal">
-<meta itemprop="description" content="Activity (MN) 28/12/2020 - 03/01/2021
- Trying to reimplement and integrate components of monad-bayes in CPS-form  Successfully integrated CPS version of StateT into branch MonadLibCPS of probabilistic-programming. Big performance gain!   More CPS conversation with JW. Learned and integrated some alternatives to List and ListT: DList and LogicT. Successfully implemented and integrated a CPS version of the Trace data type of monad-bayes, trying both TraceCPS and TraceTCPS &ndash; neither versions showed an improvement in run-time.">
+<meta itemprop="description" content="Activity (MN) 04/01/2021
+ Due to just over 50% of the benchmark run-time for monad-bayes currently being spent by coroutines: I&rsquo;ve been trying to understand coroutines in Haskell, and also exploring existing coroutine libraries (monad-coroutine, pipes, conduit, three-continuation-approach). Trying to reimplement the monad-coroutine library (which monad-bayes uses) in CPS.  Activity (MN) 28/12/2020 - 03/01/2021
+ Trying to reimplement and integrate components of monad-bayes in CPS-form  Successfully integrated CPS version of StateT into branch MonadLibCPS of probabilistic-programming.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:57+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:57+00:00" />
-<meta itemprop="wordCount" content="6989">
+<meta itemprop="wordCount" content="7037">
 
 
 
@@ -44,6 +47,13 @@
 
 <div class="content-container">
 <main><h1>Research Journal</h1>
+<p><strong>Activity (MN)</strong> <em>04/01/2021</em></p>
+<ul>
+<li>Due to just over 50% of the benchmark run-time for monad-bayes currently being spent by coroutines:
+<img src="https://i.ibb.co/71B0QYm/prof-5.png" alt="">
+I&rsquo;ve been trying to understand coroutines in Haskell, and also exploring existing coroutine libraries (<a href="https://hackage.haskell.org/package/monad-coroutine-0.9.0.4"><code>monad-coroutine</code></a>, <a href="https://hackage.haskell.org/package/pipes"><code>pipes</code></a>, <a href="https://hackage.haskell.org/package/conduit"><code>conduit</code></a>, <a href="https://rubenpieters.github.io/assets/papers/JFP20-pipes.pdf"><code>three-continuation-approach</code></a>).</li>
+<li>Trying to reimplement the <a href="https://hackage.haskell.org/package/monad-coroutine-0.9.0.4"><code>monad-coroutine</code></a> library (which monad-bayes uses) in CPS.</li>
+</ul>
 <p><strong>Activity (MN)</strong>     <em>28/12/2020</em> - <em>03/01/2021</em></p>
 <ul>
 <li>Trying to reimplement and integrate components of monad-bayes in CPS-form
@@ -625,9 +635,19 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/benchmarking/">Benchmarking</a>
   
 <ul class="sub-menu">
-<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmark-log/">Benchmark Log</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmarking-profiling/">How to Benchmark and Profile</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/monad-bayes-components/">Relevant Components of Monad Bayes for Profiling</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/staging/">Staging</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/smc-pmmh/">SMC and PMMH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/handrolling/">Handrolling Monad Transformer Stacks</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mtl/">MTL</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mcmc-mh/">MCMC and MH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/markov-chain/">Markov Chains</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/hidden-markov-model/">Hidden Markov Model</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/delimited-continuations/">Delimited Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/haskell-core/">Haskell Core</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/coroutines/">Coroutines</a></li>
 </ul>
   
 </li>
