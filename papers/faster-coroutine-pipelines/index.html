@@ -3,10 +3,10 @@
 <head><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Benchmarking - Probabilistic Effects.  λθ</title>
+<title>Faster Coroutine Pipelines - Probabilistic Effects.  λθ</title>
 <meta name="generator" content="Hugo 0.80.0" />
 <link href="https://probabilistic-effects.github.io//index.xml" rel="alternate" type="application/rss+xml">
-<link rel="canonical" href="https://probabilistic-effects.github.io/benchmarking/">
+<link rel="canonical" href="https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/">
 <link rel="stylesheet" href="https://probabilistic-effects.github.io/css/theme.min.css">
 <script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
 <link rel="stylesheet" href="https://probabilistic-effects.github.io/css/chroma.min.css">
@@ -16,33 +16,39 @@
 <script src="https://probabilistic-effects.github.io/js/bundle.js"></script><style>
 :root {}
 </style>
-<meta property="og:title" content="Benchmarking" />
+<meta property="og:title" content="Faster Coroutine Pipelines" />
 <meta property="og:description" content="" />
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://probabilistic-effects.github.io/benchmarking/" />
-<meta property="og:updated_time" content="2020-11-13T13:49:05+00:00" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/" />
+<meta property="article:published_time" content="2020-11-13T14:05:41+00:00" />
+<meta property="article:modified_time" content="2020-11-13T14:05:41+00:00" />
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="Benchmarking"/>
+<meta name="twitter:title" content="Faster Coroutine Pipelines"/>
 <meta name="twitter:description" content=""/>
-<meta itemprop="name" content="Benchmarking">
+<meta itemprop="name" content="Faster Coroutine Pipelines">
 <meta itemprop="description" content="">
+<meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
+<meta itemprop="wordCount" content="0">
+
+
+
+<meta itemprop="keywords" content="" />
 </head>
 <body><div class="container"><header>
 <h1>Probabilistic Effects.  λθ</h1>
 </header>
 
 <div class="content-container">
-<main><h1>Benchmarking</h1><p><a href="./monad-bayes-components">Components of Interest in Monad-Bayes</a></p>
-<p><a href="./benchmarking-profiling">How To Profile &amp; Benchmark</a></p>
-<p><a href="./benchmark-log">Benchmark Log</a></p>
+<main><h1>Faster Coroutine Pipelines</h1>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
 
 <br>
 Published on 13 Nov 2020
-<br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/tooling/cabal/" title="Cabal Projects"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Cabal Projects</a>
-<a class="nav nav-next" href="https://probabilistic-effects.github.io/benchmarking/benchmark-log/" title="Benchmark Log">Next - Benchmark Log <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+<br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/papers/asymptotic-improvement/" title="Asymptotic Improvement of Computations over Free Monads"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Asymptotic Improvement of Computations over Free Monads</a>
+<a class="nav nav-next" href="https://probabilistic-effects.github.io/papers/freer-monads/" title="Freer Monads, More Extensible Effects">Next - Freer Monads, More Extensible Effects <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
 </nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
 </footer>
 </main>
@@ -61,11 +67,11 @@ Published on 13 Nov 2020
   
 </li>
 
-<li class=""><a href="https://probabilistic-effects.github.io/papers/">Papers</a>
+<li class="parent"><a href="https://probabilistic-effects.github.io/papers/">Papers</a>
   
 <ul class="sub-menu">
 <li class=""><a href="https://probabilistic-effects.github.io/papers/asymptotic-improvement/">Asymptotic Improvement of Computations over Free Monads</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/">Faster Coroutine Pipelines</a></li>
+<li class="active"><a href="https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/">Faster Coroutine Pipelines</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>
 </ul>
@@ -103,7 +109,7 @@ Published on 13 Nov 2020
   
 </li>
 
-<li class="parent active"><a href="https://probabilistic-effects.github.io/benchmarking/">Benchmarking</a>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/">Benchmarking</a>
   
 <ul class="sub-menu">
 <li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmark-log/">Benchmark Log</a></li>

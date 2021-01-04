@@ -17,6 +17,15 @@
     </item>
     
     <item>
+      <title>Faster Coroutine Pipelines</title>
+      <link>https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/</link>
+      <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>Freer Monads, More Extensible Effects</title>
       <link>https://probabilistic-effects.github.io/papers/freer-monads/</link>
       <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>

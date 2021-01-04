@@ -135,5 +135,18 @@ The direct-style factorial fac takes a single argument.
 fac :: Integral a =&amp;gt; a -&amp;gt; a fac 0 = 1 fac n = n * fac (n - 1) Continuation-passing-style functions are suspended computations with general type a -&amp;gt; (b -&amp;gt; r) -&amp;gt; r, which represent direct-style functions with type a -&amp;gt; b.</description>
     </item>
     
+    <item>
+      <title>Coroutines</title>
+      <link>https://probabilistic-effects.github.io/background/coroutines/</link>
+      <pubDate>Fri, 13 Nov 2020 13:40:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/background/coroutines/</guid>
+      <description>Coroutines are the act of cooperatively passing control around.
+Monad-Coroutine Monads as Imperative Languages
+Haskell provides do notation which is syntactic sugar to facilitate imperative programming. The monad of a do block specifies the imperative language which is typically equipped with actions. Monad transformers are then language enhancers. They add additional actions to an underlying language.
+The Pause transformer
+The Pause monad transformer will augment the underlying language with one additional action: pause.</description>
+    </item>
+    
   </channel>
 </rss>

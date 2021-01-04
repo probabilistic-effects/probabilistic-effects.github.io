@@ -35,7 +35,7 @@ Usually, if one is confused about something in the core, it is best to compare i
 regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="9147">
+<meta itemprop="wordCount" content="9567">
 
 
 
@@ -843,6 +843,63 @@ Ok, I&rsquo;d make sure your <code>Trace</code> is non-CPS &ndash; <code>Trace</
 Got you, thanks. Do you never tend to turn non-transformer monads into CPS?</p>
 <p><strong>JW</strong>:
 Yes, but in this case <code>Trace</code> is a proper data structure. You can have an internal <code>TraceCPS</code> that gets concretised into <code>Trace</code>, but it wouldn&rsquo;t be useful. The CPS behaviour of <code>TraceT</code> does all the work for you, and also <code>TraceCPS = TraceT Identity</code>.</p>
+<hr>
+<p><strong>MN</strong>:
+I&rsquo;ve got the following code:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Coroutine</span> s m r <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> {
+   resume <span style="color:#f92672">::</span> m (<span style="color:#66d9ef">Either</span> (s (<span style="color:#66d9ef">Coroutine</span> s m r)) r)
+   }
+
+<span style="color:#66d9ef">instance</span> (<span style="color:#66d9ef">Functor</span> s, <span style="color:#66d9ef">Monad</span> m) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">Coroutine</span> s m) <span style="color:#66d9ef">where</span>
+  t <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> (resume t <span style="color:#f92672">&gt;&gt;=</span> apply f)
+    <span style="color:#66d9ef">where</span> <span style="color:#75715e">-- apply :: (a -&gt; Coroutine s m b)</span>
+          <span style="color:#75715e">--       -&gt; Either (s (Coroutine s m a)) a</span>
+          <span style="color:#75715e">--       -&gt; m (Either (s (Coroutine s m b)) b)</span>
+          apply fc (<span style="color:#66d9ef">Right</span> x) <span style="color:#f92672">=</span> resume (fc x)
+          apply fc (<span style="color:#66d9ef">Left</span> s)  <span style="color:#f92672">=</span> return (<span style="color:#66d9ef">Left</span> (fmap (<span style="color:#f92672">&gt;&gt;=</span> fc)) s))
+</code></pre></div><p>which i&rsquo;ve spent ages trying to define <code>&gt;&gt;=</code> using <code>EitherCPS</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">EitherCPS</span> e a
+  <span style="color:#f92672">=</span> <span style="color:#66d9ef">EitherCPS</span> { unEitherCPS <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> (e <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> r) <span style="color:#f92672">-&gt;</span> r }
+
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Coroutine</span> s m r <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> {
+   resume <span style="color:#f92672">::</span> m (<span style="color:#66d9ef">EitherCPS</span> (s (<span style="color:#66d9ef">Coroutine</span> s m r)) r)
+   }
+
+<span style="color:#66d9ef">instance</span> (<span style="color:#66d9ef">Functor</span> s, <span style="color:#66d9ef">Monad</span> m) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">Coroutine</span> s m) <span style="color:#66d9ef">where</span>
+  t <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> (resume t <span style="color:#f92672">&gt;&gt;=</span> apply f)
+    <span style="color:#66d9ef">where</span> apply fc (<span style="color:#66d9ef">EitherCPS</span> k) <span style="color:#f92672">=</span> <span style="color:#f92672">???</span>
+</code></pre></div><p>but i don&rsquo;t know if this is possible, could i check with you?</p>
+<p><strong>JW</strong>:
+Of course it is &ndash; think about the relation between the continuations and the pattern cases.</p>
+<p><strong>MN</strong>:
+I&rsquo;m having a massive problem handling the <code>resume</code> and <code>return</code>, it seems like i&rsquo;m getting close, but then i can&rsquo;t get the types to match.</p>
+<p>I&rsquo;ll show you an attempt:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">apply</span> fc (<span style="color:#66d9ef">EitherCPS</span> k) <span style="color:#f92672">=</span>
+    <span style="color:#66d9ef">EitherCPS</span> <span style="color:#f92672">$</span> <span style="color:#a6e22e">\</span>l r <span style="color:#f92672">-&gt;</span> k (l <span style="color:#f92672">.</span> (<span style="color:#a6e22e">\</span>s <span style="color:#f92672">-&gt;</span> (fmap (<span style="color:#f92672">&gt;&gt;=</span> fc) s)))
+                          (r <span style="color:#f92672">.</span> (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> (fc x)))
+</code></pre></div><p>but then i&rsquo;m not sure how to fit in <code>resume</code> and <code>return</code> from the original definition.</p>
+<p><strong>JW</strong>:
+Your issue is you haven&rsquo;t cps&rsquo;d <code>Coroutine</code> itself I believe, and when you do that you might as well inline <code>EitherCPS</code> straight into it.</p>
+<p><strong>MN</strong>:
+Ooh okay, i had no idea that was necessary, i&rsquo;ll try giving that a go right now, thanks!
+I&rsquo;m guessing it looks like:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Coroutine</span> s m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> { 
+  unCoroutine <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> 
+                 (m (<span style="color:#66d9ef">EitherCPS</span> (s (<span style="color:#66d9ef">Coroutine</span> s m a)) a) <span style="color:#f92672">-&gt;</span> r)
+              <span style="color:#f92672">-&gt;</span> r
+}
+</code></pre></div><p><strong>JW</strong>:
+I actually suspect it&rsquo;s <code>(EitherCPS s ... -&gt; m r) -&gt; m r</code></p>
+<p><strong>MN</strong>:
+Hm, this looks different from the normal translation i&rsquo;m used to</p>
+<p><strong>JW</strong>:
+Nope! When I CPS:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">IdentityT</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Identity</span> (m a)
+</code></pre></div><p>It becomes:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">IdentityT</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Identity</span> (forall r<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> m r)
+</code></pre></div><p>which is, hey presto, <code>Cod</code>.</p>
+<p><strong>MN</strong>:
+Ohh right! i forgot it was even a monad transformer.</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
@@ -873,6 +930,7 @@ Published on 13 Nov 2020
   
 <ul class="sub-menu">
 <li class=""><a href="https://probabilistic-effects.github.io/papers/asymptotic-improvement/">Asymptotic Improvement of Computations over Free Monads</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/">Faster Coroutine Pipelines</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>
 </ul>
@@ -935,6 +993,7 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/coroutines/">Coroutines</a></li>
 </ul>
   
 </li>
