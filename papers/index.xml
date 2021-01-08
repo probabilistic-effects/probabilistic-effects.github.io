@@ -45,5 +45,24 @@ data It i a = Pure a | Get (i -&amp;gt; It i a) The expression Pure e marks the 
 The syntax of primitive side-effect operations is captured in a signature functor. The free monad over this functor assembles the syntax for the individual operations into an abstract syntax tree for an effectful program.</description>
     </item>
     
+    <item>
+      <title>Introduction To Probabilistic Programming</title>
+      <link>https://probabilistic-effects.github.io/papers/probabilistic-programming/</link>
+      <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/papers/probabilistic-programming/</guid>
+      <description>1.1 Model-based Reasoning A model is an artifical construct designed to respond in the same way as the system we would like to understand. As computers have evolved, numerical models have come to the forefront and computer simulations have replaced physical models. Numerical models emulate stochasticity, i.e. they use pseudorandom number generators to simulate actually random phenomena and other uncertainties. Running a simulator with stochastic value generation leads to an explosion of possible simulation outcomes.</description>
+    </item>
+    
+    <item>
+      <title>Lightweight Implementations of Probabilistic Programming Languages</title>
+      <link>https://probabilistic-effects.github.io/papers/lightweight-implementations-prob-languages/</link>
+      <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/papers/lightweight-implementations-prob-languages/</guid>
+      <description>This describes a general method of transforming arbitrary programming languages into probabilistic programming languages with straight-forward MCMC inference engines. Random choices in the program are “named” with information about their position in an execution trace; these names are used in conjunction with a database holding values of random variables to implement MCMC inference in the space of execution traces.
+Probabilistic programming languages simplify the development of probabilistic models by allowing programmers to specify a stochastic (random) process using syntax resembling modern programming languages.</description>
+    </item>
+    
   </channel>
 </rss>

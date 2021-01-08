@@ -13,9 +13,9 @@
       <pubDate>Fri, 13 Nov 2020 14:05:57 +0000</pubDate>
       
       <guid>https://probabilistic-effects.github.io/research/research-journal/</guid>
-      <description>Activity (MN) 04/01/2021
- Due to just over 50% of the benchmark run-time for monad-bayes currently being spent by coroutines: I&amp;rsquo;ve been trying to understand coroutines in Haskell, and also exploring existing coroutine libraries (monad-coroutine, pipes, conduit, three-continuation-approach). Trying to reimplement the monad-coroutine library (which monad-bayes uses) in CPS.  Activity (MN) 28/12/2020 - 03/01/2021
- Trying to reimplement and integrate components of monad-bayes in CPS-form  Successfully integrated CPS version of StateT into branch MonadLibCPS of probabilistic-programming.</description>
+      <description>Meeting (MN + AZ) 05/01/2021
+ Understanding statistics, monad-bayes, trace mcmc etc.  Meeting (MN + MW + SF + WZ) 05/01/2021
+ Still trying to make monad bayes faster 27s - initial time 4.8s - new time achieved by: 1. Inlining and unboxing 2. Cont passing style for state monad 3. Switching to LogicT to reassociate binds to be better optimised M: where does Jamie get these ideas from Minh: probs from word of mouth passing down.</description>
     </item>
     
     <item>
@@ -87,6 +87,25 @@ It turns out that we should expect to see these definitions, however if we use o
     </item>
     
     <item>
+      <title>Introduction To Probabilistic Programming</title>
+      <link>https://probabilistic-effects.github.io/papers/probabilistic-programming/</link>
+      <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/papers/probabilistic-programming/</guid>
+      <description>1.1 Model-based Reasoning A model is an artifical construct designed to respond in the same way as the system we would like to understand. As computers have evolved, numerical models have come to the forefront and computer simulations have replaced physical models. Numerical models emulate stochasticity, i.e. they use pseudorandom number generators to simulate actually random phenomena and other uncertainties. Running a simulator with stochastic value generation leads to an explosion of possible simulation outcomes.</description>
+    </item>
+    
+    <item>
+      <title>Lightweight Implementations of Probabilistic Programming Languages</title>
+      <link>https://probabilistic-effects.github.io/papers/lightweight-implementations-prob-languages/</link>
+      <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/papers/lightweight-implementations-prob-languages/</guid>
+      <description>This describes a general method of transforming arbitrary programming languages into probabilistic programming languages with straight-forward MCMC inference engines. Random choices in the program are “named” with information about their position in an execution trace; these names are used in conjunction with a database holding values of random variables to implement MCMC inference in the space of execution traces.
+Probabilistic programming languages simplify the development of probabilistic models by allowing programmers to specify a stochastic (random) process using syntax resembling modern programming languages.</description>
+    </item>
+    
+    <item>
       <title>Potential Approaches to Improving Monad Bayes</title>
       <link>https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/</link>
       <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
@@ -113,7 +132,7 @@ Summary  Real world benchmarks make it difficult to isolate costs Microbenchmark
       
       <guid>https://probabilistic-effects.github.io/research/literature-review/</guid>
       <description>‣ Papers Probabilistic Programming
- Practical Probabilistic Programming with Monads - Ścibior, Adam, Zoubin Ghahramani, and Andrew D. Gordon. Proceedings of the 2015 ACM SIGPLAN Symposium on Haskell. 2015. Functional Programming for Modular Bayesian Inference - Ścibior, Adam, Ohad Kammar, and Zoubin Ghahramani. Proceedings of the ACM on Programming Languages 2. ICFP (2018): 1-29. Formally Justified and Modular Bayesian Inference for Probabilistic Programs - Ścibior, Adam Michał. Diss. University of Cambridge, 2019.</description>
+ An Introduction To Probabilistic Programming Lightweight Implementations of Probabilistic Programming Languages Via Transformational Compilation - David Wingate, Andreas Stuhlmüller, and Noah Goodman. 2011. Practical Probabilistic Programming with Monads - Ścibior, Adam, Zoubin Ghahramani, and Andrew D. Gordon. Proceedings of the 2015 ACM SIGPLAN Symposium on Haskell. 2015. Denotational Validation of Higher-Order Bayesian Inference - Ścibior, Adam. 2018. Functional Programming for Modular Bayesian Inference - Ścibior, Adam, Ohad Kammar, and Zoubin Ghahramani.</description>
     </item>
     
     <item>
@@ -134,6 +153,16 @@ Summary  Real world benchmarks make it difficult to isolate costs Microbenchmark
       <description>Simulating Data We aim to model a HMM and use it to generate data by simulating a sample path.
 First, for simplicity we consider our latent states xi to be integers, and the corresponding observed states yi to also be integers.
 data ObservedState = Obs { obs :: Int } deriving Show data LatentState = Lat { lat :: Int } deriving Show We then choose the parameters of the HMM (i.</description>
+    </item>
+    
+    <item>
+      <title>Documentation</title>
+      <link>https://probabilistic-effects.github.io/monad-bayes/documentation/</link>
+      <pubDate>Fri, 13 Nov 2020 14:04:44 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/monad-bayes/documentation/</guid>
+      <description>What Does Monad-Bayes Do?
+The general way of inferring a posterior distribution given a likelihood and a prior is an approximate inference technique called MCMC which are a whole class of methods to infer the posterior. A key point to note is that although we are inferring the posterior, we are also inferring an estimate of the likelihood as well using the data. Inference in general is the act of predicting the values of something which we don&amp;rsquo;t have access to directly, given some data.</description>
     </item>
     
     <item>

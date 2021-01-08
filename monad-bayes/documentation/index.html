@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Documentation - Probabilistic Effects.  λθ</title>
+<meta name="generator" content="Hugo 0.80.0" />
+<link href="https://probabilistic-effects.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="https://probabilistic-effects.github.io/monad-bayes/documentation/">
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="https://probabilistic-effects.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="Documentation" />
+<meta property="og:description" content="What Does Monad-Bayes Do?
+The general way of inferring a posterior distribution given a likelihood and a prior is an approximate inference technique called MCMC which are a whole class of methods to infer the posterior. A key point to note is that although we are inferring the posterior, we are also inferring an estimate of the likelihood as well using the data. Inference in general is the act of predicting the values of something which we don&rsquo;t have access to directly, given some data." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://probabilistic-effects.github.io/monad-bayes/documentation/" />
+<meta property="article:published_time" content="2020-11-13T14:04:44+00:00" />
+<meta property="article:modified_time" content="2020-11-13T14:04:44+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Documentation"/>
+<meta name="twitter:description" content="What Does Monad-Bayes Do?
+The general way of inferring a posterior distribution given a likelihood and a prior is an approximate inference technique called MCMC which are a whole class of methods to infer the posterior. A key point to note is that although we are inferring the posterior, we are also inferring an estimate of the likelihood as well using the data. Inference in general is the act of predicting the values of something which we don&rsquo;t have access to directly, given some data."/>
+<meta itemprop="name" content="Documentation">
+<meta itemprop="description" content="What Does Monad-Bayes Do?
+The general way of inferring a posterior distribution given a likelihood and a prior is an approximate inference technique called MCMC which are a whole class of methods to infer the posterior. A key point to note is that although we are inferring the posterior, we are also inferring an estimate of the likelihood as well using the data. Inference in general is the act of predicting the values of something which we don&rsquo;t have access to directly, given some data.">
+<meta itemprop="datePublished" content="2020-11-13T14:04:44+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T14:04:44+00:00" />
+<meta itemprop="wordCount" content="2207">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>Probabilistic Effects.  λθ</h1>
+</header>
+
+<div class="content-container">
+<main><h1>Documentation</h1>
+<p><strong>What Does Monad-Bayes Do?</strong></p>
+<p>The general way of inferring a posterior distribution given a likelihood and a prior is an approximate inference technique called MCMC which are a whole class of methods to infer the posterior. A key point to note is that although we are inferring the posterior, we are also inferring an estimate of the likelihood as well using the data. Inference in general is the act of predicting the values of something which we don&rsquo;t have access to directly, given some data. At the highest level, there is inference over the posterior distribution of the parameters.</p>
+<p>Monad Bayes uses a particle filter to infer the likelihood of a given model, and uses metropolis-hastings (or more specifically, the trace metropolis-hastings algorithm) to infer the posterior distribution over any desired given quantity. (A particle filter is only needed when we do not have an exact formulation of the likelihood). Monad Bayes offers the user a very generic version of trace metropolis-hastings, and a particle filter &ndash; in general, these two components can be combined to produce different algorithms (such as PMMH or SMC). In theory, one could extend this implementation with one&rsquo;s own altered version of metropolis-hastings. Particle filters and metropolis-hastings are just two possible base building blocks of a lot of statistical algorithms. In general, the idea of the library monad-bayes is very vague &ndash; at its core, it is an effectful, type-class approach to probalistic programming. Whilst monad-bayes has implementations of trace metropolis-hastings and particle filters within it, these are just building blocks of other algorithms and it is possible to use monad-bayes in many ways.</p>
+<p><strong>The Free Monad Transformer</strong></p>
+<p><code>FreeF</code> is the fixed point version of the free monad <code>Free</code>. By wrapping a functor within the free monad, this allows us to treat the functor (or technically <code>Free f</code>) as a monad, i.e. an effectful computation. By constructing values of type <code>Free f</code>, we are simply constructing a data type in the form of a syntax tree. The important thing to note is that this tree on its own has no computation associated with it &ndash; it exists as a data type. How we evaluate a free monad tree is determined by what interpreter functions we choose to define. This means that we have decoupled the syntax of our program from its semantics.</p>
+<p>When binding over a free monad, <code>(Free f a) -&gt; (a -&gt; Free f b) -&gt; Free f b</code>, this says: execute the effectful computation <code>Free f a</code>, extract the value <code>a</code> from this, and execute another effectful computation <code>Free f b</code>.</p>
+<p>Using normal free monads, we can build abstract syntax trees which let us abstract away the interpreter, however, sometimes we can&rsquo;t specify the syntax tree all at once. Often we want to interleave the syntax tree with some other monad to generate streaming or interactive computations. The free monad transformer <code>FreeT</code> solves this problem by allowing us to mix building steps of the abstract syntax tree with calling actions in some base monad.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">FreeF</span> f a x <span style="color:#f92672">=</span> <span style="color:#66d9ef">Pure</span> a <span style="color:#f92672">|</span> <span style="color:#66d9ef">Free</span> (f x)
+
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">FreeT</span> f m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">FreeT</span> {
+    runFreeT <span style="color:#f92672">::</span> m (<span style="color:#66d9ef">FreeF</span> f a (<span style="color:#66d9ef">FreeT</span> f m a)) }
+</code></pre></div><p>We can see that <code>FreeT</code> gives us something very similar to the normal free monad, but with a monad <code>m</code> on the outside, where <code>m</code> is the extra effect.  This creates a tree where we go through it and execute some effects, but these effects are executed with respect to some other effect; so every step of computation (the nodes of the tree) is wrapped in an effect itself.</p>
+<p>For example, let&rsquo;s say we want to write our own Python-style generator.</p>
+<p>Python generators are essentially coroutines. They are functions which when passed arguments, will run until encountering the <code>yield</code> keyword. Upon the <code>yield</code> keyword, it will return whatever value is &ldquo;yielded&rdquo;, and also save the state of the function at that point (under the name of the original function). Then, upon recalling the function, it will execute from immediately after the <em>yield</em>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">type</span> <span style="color:#66d9ef">Generator</span> a m r <span style="color:#f92672">=</span> <span style="color:#66d9ef">FreeT</span> ((,) a) m r
+</code></pre></div><p>The type <code>Generator</code> is the free monad transformer where the functor <code>f</code> is <code>((,) a)</code> (a partially applied tuple with the type <code>a</code> as its first argument), some arbitrary monad <code>m</code> as an effect, and produces a result of arbitrary type <code>r</code>. Our functor being <code>((,) a)</code> means that the first element of the tuple of type <code>a</code> is the value that can be yielded, and the second element of the tuple represents the rest of the computation to be run (i.e. the continuation). The free monad transformer tree is a recursive structure that sequentially composes
+zero or more operations of the given functor <code>((,) a)</code> embedded within the context of monad <code>m</code>. The leaves of this tree are given by <code>Pure</code> of type <code>a</code>, and the nodes are operations <code>Free</code> that are shaped by <code>((,) a)</code> where the first element can be a yielded value and the second element contains the rest of the computation which can be run. The result of <code>return x</code> is a leaf, and <code>(&gt;&gt;=)</code> grows the tree of operations at its leaves.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">yield</span> <span style="color:#f92672">::</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Generator</span> a m ()
+<span style="color:#a6e22e">yield</span> a <span style="color:#f92672">=</span> liftF (a, ())
+</code></pre></div><p>The function <code>yield</code> takes a value of type <code>a</code> that we want to yield, and lifts <code>(b, ())</code> into the free monad transformer type <code>FreeT ((,) a) m ()</code> &ndash; when we monadically extract the value from this, we get a tuple containing the yielded value <code>a</code> and a unit <code>()</code> representing the rest (or in this case, the end) of the computation.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">prompt</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Generator</span> <span style="color:#66d9ef">String</span> <span style="color:#66d9ef">IO</span> ()
+<span style="color:#a6e22e">prompt</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+    lift <span style="color:#f92672">$</span> putStrLn <span style="color:#e6db74">&#34;Enter a string:&#34;</span>
+    str <span style="color:#f92672">&lt;-</span> lift getLine
+    yield str
+</code></pre></div><p>The function <code>prompt</code> takes a free monad transformer tree where the nodes are shaped by the functor <code>((,) String</code> meaning each node contains a string and some arbitrary type <code>r</code> &ndash; however in this case, <code>r</code> will be <code>()</code>. It also sets the monadic context of our tree to be <code>IO</code>, allowing us to attach <code>IO</code> actions to the operations/nodes of the tree. We choose to attach the <code>IO</code> effect of printing <code>&quot;Enter a string:&quot;</code> to the terminal and then prompting a terminal input from the user &ndash; this input is then yielded.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">putStrLnAllTheThings</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Show</span> r <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">FreeT</span> ((,) <span style="color:#66d9ef">String</span>) <span style="color:#66d9ef">IO</span> r <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> r
+<span style="color:#a6e22e">putStrLnAllTheThings</span> gen <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+    x <span style="color:#f92672">&lt;-</span> runFreeT gen
+    <span style="color:#66d9ef">case</span> x <span style="color:#66d9ef">of</span>
+        <span style="color:#66d9ef">Pure</span> r   
+          <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">do</span> putStrLn <span style="color:#f92672">$</span> <span style="color:#e6db74">&#34;Result: &#34;</span> <span style="color:#f92672">++</span> show r
+                return r
+        <span style="color:#66d9ef">Free</span> (str, gen&#39; <span style="color:#f92672">::</span> <span style="color:#66d9ef">FreeT</span> ((,) <span style="color:#66d9ef">String</span>) <span style="color:#66d9ef">IO</span> r)
+          <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">do</span> putStrLn <span style="color:#f92672">$</span> <span style="color:#e6db74">&#34;User entered: &#34;</span> <span style="color:#f92672">++</span> str
+                putStrLnAllTheThings gen&#39;
+
+<span style="color:#a6e22e">main</span> <span style="color:#f92672">=</span> putStrLnAllTheThings prompt
+</code></pre></div><p>The function <code>putStrLnAllTheThings</code> takes a free monad transformer tree as an argument in the same form as <code>prompt</code> except allowing the result type <code>r</code> to be arbitrary (rather than fixed as <code>()</code>). Here is an example run of <code>main</code>:</p>
+<pre><code>Enter a string:
+hello
+User entered: hello
+Result: ()
+</code></pre><p>If we wanted to define <code>prompt</code> to run forever, we could write the following, where <code>forever</code> executes the operation it is passed, ignores its result, and then recurses on itself:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">prompt</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Generator</span> <span style="color:#66d9ef">String</span> <span style="color:#66d9ef">IO</span> r
+<span style="color:#a6e22e">prompt</span> <span style="color:#f92672">=</span> forever <span style="color:#f92672">$</span> <span style="color:#66d9ef">do</span>
+    lift <span style="color:#f92672">$</span> putStrLn <span style="color:#e6db74">&#34;Enter a string:&#34;</span>
+    str <span style="color:#f92672">&lt;-</span> lift getLine
+    yield str
+
+<span style="color:#a6e22e">putStrLnAllTheThings</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">FreeT</span> ((,) <span style="color:#66d9ef">String</span>) <span style="color:#66d9ef">IO</span> r <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> r
+<span style="color:#a6e22e">putStrLnAllTheThings</span> gen <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+    x <span style="color:#f92672">&lt;-</span> runFreeT gen
+    <span style="color:#66d9ef">case</span> x <span style="color:#66d9ef">of</span>
+        <span style="color:#66d9ef">Pure</span> r   
+          <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">do</span> return r
+        <span style="color:#66d9ef">Free</span> (str, gen&#39; <span style="color:#f92672">::</span> <span style="color:#66d9ef">FreeT</span> ((,) <span style="color:#66d9ef">String</span>) <span style="color:#66d9ef">IO</span> r)
+          <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">do</span> putStrLn <span style="color:#f92672">$</span> <span style="color:#e6db74">&#34;User entered: &#34;</span> <span style="color:#f92672">++</span> str
+                putStrLnAllTheThings gen&#39;
+
+<span style="color:#a6e22e">main</span> <span style="color:#f92672">=</span> putStrLnAllTheThings prompt
+</code></pre></div><p>The free monad transformer means that every step of the computation within the tree can be automatically embedded in an arbitrary monadic effect. This lets us be both abstract in the interpreter as well as the monadic effect we want to attach to the interpreter.</p>
+<p><strong>Bayes.Traced.Static</strong></p>
+<p>The following monad <code>Traced</code> is a tracing monad where only a subset of random choices are traced.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Traced</span> m a
+  <span style="color:#f92672">=</span> <span style="color:#66d9ef">Traced</span>
+      { model     <span style="color:#f92672">::</span> <span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">FreeSampler</span> m) a,
+        traceDist <span style="color:#f92672">::</span> m (<span style="color:#66d9ef">Trace</span> a)
+      }
+</code></pre></div><hr>
+<hr>
+<h4 id="freehs">Free.hs</h4>
+<p>Just as the free monad allows one to decompose a program into a tree of actions, <code>FreeSampler</code> decomposes a program into a tree representing where we sample randomly from, i.e. the program augmented with the random sampling locations.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">SamF</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Random</span> (<span style="color:#66d9ef">Double</span> <span style="color:#f92672">-&gt;</span> a)
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Functor</span> <span style="color:#66d9ef">SamF</span> <span style="color:#66d9ef">where</span>
+  fmap f (<span style="color:#66d9ef">Random</span> k) <span style="color:#f92672">=</span> <span style="color:#66d9ef">Random</span> (f <span style="color:#f92672">.</span> k)
+
+<span style="color:#75715e">-- | Free monad transformer over random sampling.</span>
+<span style="color:#75715e">--</span>
+<span style="color:#75715e">-- Uses the Church-encoded version of the free monad for efficiency.</span>
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">FreeSampler</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">FreeSampler</span> {runFreeSampler <span style="color:#f92672">::</span> <span style="color:#66d9ef">FT</span> <span style="color:#66d9ef">SamF</span> m a}
+  <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadTrans</span>)
+</code></pre></div><p>This uses the free monad transformer. Using normal free monads, we can build abstract syntax trees which let us abstract away the interpreter, however, sometimes we can&rsquo;t specify the syntax tree all at once. Often we want to interleave the syntax tree with some other monad to generate streaming or interactive computations. <code>FreeT</code> solves this problem by allowing us to mix building steps of the abstract syntax tree with calling actions in some base monad. This creates a tree where we go through it and execute some effects, but these effects are executed with respect to some other effect.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">FreeF</span> f a x <span style="color:#f92672">=</span> <span style="color:#66d9ef">Pure</span> a <span style="color:#f92672">|</span> <span style="color:#66d9ef">Free</span> (f x)
+
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">FreeT</span> f m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">FreeT</span> {
+    runFreeT <span style="color:#f92672">::</span> m (<span style="color:#66d9ef">FreeF</span> f a (<span style="color:#66d9ef">FreeT</span> f m a)) }
+</code></pre></div><p>We can see that <code>runFreeT</code> gives us something similar to the normal free monad, but with a monad <code>m</code> on the outside, where <code>m</code> is the extra effect.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">type</span> <span style="color:#66d9ef">Generator</span> b m r <span style="color:#f92672">=</span> <span style="color:#66d9ef">FreeT</span> ((,) b) m r
+<span style="color:#66d9ef">In</span> this <span style="color:#66d9ef">case</span>, our syntax tree is an ordinary list <span style="color:#66d9ef">where</span> we run the base monad to generate the next element<span style="color:#f92672">.</span> <span style="color:#66d9ef">We</span> can even duplicate <span style="color:#66d9ef">Python</span> syntax<span style="color:#66d9ef">:</span>
+<span style="color:#a6e22e">yield</span> <span style="color:#f92672">::</span> b <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Generator</span> b m ()
+<span style="color:#a6e22e">yield</span> b <span style="color:#f92672">=</span> liftF (b, ())
+<span style="color:#66d9ef">We</span> can set the base monad to <span style="color:#66d9ef">IO</span> <span style="color:#66d9ef">if</span> we want to prompt the user to enter each subsequent element <span style="color:#66d9ef">of</span> the list<span style="color:#66d9ef">:</span>
+<span style="color:#a6e22e">prompt</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Generator</span> <span style="color:#66d9ef">String</span> <span style="color:#66d9ef">IO</span> r
+<span style="color:#a6e22e">prompt</span> <span style="color:#f92672">=</span> forever <span style="color:#f92672">$</span> <span style="color:#66d9ef">do</span>
+    lift <span style="color:#f92672">$</span> putStrLn <span style="color:#e6db74">&#34;Enter a string:&#34;</span>
+    str <span style="color:#f92672">&lt;-</span> lift getLine
+    yield str
+</code></pre></div><hr>
+<h4 id="tracedstatichs">Traced.Static.hs</h4>
+<p>Given a prior and a likelihood function, normal metropolis-hastings is an algorithm for producing samples from the posterior distribution, and hence allows us to approximate the posterior without having the analytic formulation of the normalising constant.</p>
+<p>PMMH or PMCMC methods are normal MH/MCMC algorithms where we don&rsquo;t have the analytic formulation of the likelihood function, so it is instead replaced by a particle filter as an approximation to the likelihood function (we can run a particle filter, and at the end, we can extract an estimate of the likelihood function from this).</p>
+<p><em>Bayes.Inference.PMMH</em></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">pmmh</span> <span style="color:#f92672">::</span>
+  <span style="color:#66d9ef">MonadInfer</span> m <span style="color:#f92672">=&gt;</span>
+  <span style="color:#75715e">-- | number of Metropolis-Hastings steps</span>
+  <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span>
+  <span style="color:#75715e">-- | number of time steps</span>
+  <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span>
+  <span style="color:#75715e">-- | number of particles</span>
+  <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span>
+  <span style="color:#75715e">-- | model parameters prior</span>
+  <span style="color:#66d9ef">Traced</span> m b <span style="color:#f92672">-&gt;</span>
+  <span style="color:#75715e">-- | model</span>
+  (b <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Sequential</span> (<span style="color:#66d9ef">Population</span> m) a) <span style="color:#f92672">-&gt;</span>
+  m [[(a, <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)]]
+<span style="color:#a6e22e">pmmh</span> t k n param model <span style="color:#f92672">=</span>
+  mh t (param <span style="color:#f92672">&gt;&gt;=</span> runPopulation <span style="color:#f92672">.</span> pushEvidence <span style="color:#f92672">.</span> <span style="color:#66d9ef">Pop</span><span style="color:#f92672">.</span>hoist lift <span style="color:#f92672">.</span>
+        smcSystematic k n <span style="color:#f92672">.</span> model)
+</code></pre></div><p>We can imagine that PMMH as a function is something which runs metropolis-hastings (<code>mh</code>) given a prior (<code>params</code>) and a likelihood function (<code>runPopulation . pushEvidence . Pop.hoist lift . smcSystematic k n . model</code>).</p>
+<ul>
+<li><code>smcSystematic</code> - the particle filter (Sequential Monte Carlo) which uses systematic resampling at each timestep as a resampling method. Hence composing <code>smcSystematic</code> with <code>model</code> is running the particle filter on the model we give it. What we are doing with a particle filter is simulating a set of particles with their associated weights, and it turns out that summing these weights is an estimate of the likelihood.</li>
+<li><code>pushEvidence</code> - the step which allows us to get the likelihood function from the particle filter.</li>
+</ul>
+<hr>
+<p>The function <code>mh</code> represents the traced metropolis-hastings algorithm, (where metropolis-hastings is a markov chain monte carlo method for obtaining a sequence of random samples from a probability distribution).</p>
+<p><em>Bayes.Traced.Static</em></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">mh</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadSample</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Traced</span> m a <span style="color:#f92672">-&gt;</span> m [a]
+<span style="color:#a6e22e">mh</span> n (<span style="color:#66d9ef">Traced</span> m d) <span style="color:#f92672">=</span> fmap (map output) (f n)
+  <span style="color:#66d9ef">where</span>
+    f <span style="color:#ae81ff">0</span> <span style="color:#f92672">=</span> fmap (<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">[]</span>) d
+    f k <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+      <span style="color:#f92672">~</span>(x <span style="color:#66d9ef">:</span> xs) <span style="color:#f92672">&lt;-</span> f (k <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
+      y <span style="color:#f92672">&lt;-</span> mhTrans m x
+      return (y <span style="color:#66d9ef">:</span> x <span style="color:#66d9ef">:</span> xs)
+</code></pre></div><p>This essentially performs the <code>mhTrans</code> step n times, where <code>mhTrans</code> is a single metropolis-corrected transition of single-site trace MCMC.</p>
+<p><em>Bayes.Traced.Common</em></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- </span>
+<span style="color:#a6e22e">mhTrans</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadSample</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">FreeSampler</span> m) a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Trace</span> a <span style="color:#f92672">-&gt;</span> m (<span style="color:#66d9ef">Trace</span> a)
+<span style="color:#a6e22e">mhTrans</span> m t<span style="color:#f92672">@</span><span style="color:#66d9ef">Trace</span> {variables <span style="color:#f92672">=</span> us, density <span style="color:#f92672">=</span> p} <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+  <span style="color:#66d9ef">let</span> n <span style="color:#f92672">=</span> length us
+  us&#39; <span style="color:#f92672">&lt;-</span> <span style="color:#66d9ef">do</span> <span style="color:#75715e">-- :: m [Log Double]</span>
+    i <span style="color:#f92672">&lt;-</span> discrete <span style="color:#f92672">$</span> discreteUniformAB <span style="color:#ae81ff">0</span> (n <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
+    u&#39; <span style="color:#f92672">&lt;-</span> random
+    <span style="color:#66d9ef">let</span> (xs, <span style="color:#66d9ef">_</span> <span style="color:#66d9ef">:</span> ys) <span style="color:#f92672">=</span> splitAt i us
+    return <span style="color:#f92672">$</span> xs <span style="color:#f92672">++</span> (u&#39; <span style="color:#66d9ef">:</span> ys)
+  ((b, q), vs) <span style="color:#f92672">&lt;-</span> runWriterT <span style="color:#f92672">$</span> runWeighted <span style="color:#f92672">$</span> <span style="color:#66d9ef">Weighted</span><span style="color:#f92672">.</span>hoist (<span style="color:#66d9ef">WriterT</span> <span style="color:#f92672">.</span> withPartialRandomness us&#39;) m
+  <span style="color:#66d9ef">let</span> ratio <span style="color:#f92672">=</span> (exp <span style="color:#f92672">.</span> ln) <span style="color:#f92672">$</span> min <span style="color:#ae81ff">1</span> (q <span style="color:#f92672">*</span> fromIntegral n <span style="color:#f92672">/</span> (p <span style="color:#f92672">*</span> fromIntegral (length vs)))
+  accept <span style="color:#f92672">&lt;-</span> bernoulli ratio
+  return <span style="color:#f92672">$</span> <span style="color:#66d9ef">if</span> accept <span style="color:#66d9ef">then</span> <span style="color:#66d9ef">Trace</span> vs b q <span style="color:#66d9ef">else</span> t
+</code></pre></div><div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/monad-bayes/pmmh-hmm/" title="Implementing HMM Simulation and Inference (using PMMH)"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Implementing HMM Simulation and Inference (using PMMH)</a>
+<a class="nav nav-next" href="https://probabilistic-effects.github.io/monad-bayes/conditioning-scoring/" title="How Conditioning and Scoring Works">Next - How Conditioning and Scoring Works <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<nav class="open-menu">
+<ul>
+<li class=""><a href="https://probabilistic-effects.github.io/">Home</a></li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/activity/">Activity</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/activity/cpsing-monad-bayes/">CPSing Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/activity/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/papers/">Papers</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/papers/asymptotic-improvement/">Asymptotic Improvement of Computations over Free Monads</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/">Faster Coroutine Pipelines</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/probabilistic-programming/">Introduction To Probabilistic Programming</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/lightweight-implementations-prob-languages/">Lightweight Implementations of Probabilistic Programming Languages</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/research/">Research</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/research/research-journal/">Research Journal</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/">Potential Approaches to Improving Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/literature-review/">Literature Review</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/parsley-case-study/">Case Study: Optimising Parsley</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/optimising-core/">Optimising Core</a></li>
+</ul>
+  
+</li>
+
+<li class="parent"><a href="https://probabilistic-effects.github.io/monad-bayes/">Monad Bayes</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/inference-transformers/">Inference Transformers</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/pmmh-hmm/">Implementing HMM Simulation and Inference (using PMMH)</a></li>
+<li class="active"><a href="https://probabilistic-effects.github.io/monad-bayes/documentation/">Documentation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/conditioning-scoring/">How Conditioning and Scoring Works</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/">Tooling</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/cabal/">Cabal Projects</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/">Benchmarking</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmark-log/">Benchmark Log</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmarking-profiling/">How to Benchmark and Profile</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/monad-bayes-components/">Relevant Components of Monad Bayes for Profiling</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/background/">Background</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/background/staging/">Staging</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/smc-pmmh/">SMC and PMMH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/handrolling/">Handrolling Monad Transformer Stacks</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mtl/">MTL</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mcmc-mh/">MCMC and MH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/markov-chain/">Markov Chains</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/hidden-markov-model/">Hidden Markov Model</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/delimited-continuations/">Delimited Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/haskell-core/">Haskell Core</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/coroutines/">Coroutines</a></li>
+</ul>
+  
+</li>
+</ul>
+</nav>
+
+
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>

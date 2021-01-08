@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Lightweight Implementations of Probabilistic Programming Languages - Probabilistic Effects.  λθ</title>
+<meta name="generator" content="Hugo 0.80.0" />
+<link href="https://probabilistic-effects.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="https://probabilistic-effects.github.io/papers/lightweight-implementations-prob-languages/">
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="https://probabilistic-effects.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="Lightweight Implementations of Probabilistic Programming Languages" />
+<meta property="og:description" content="This describes a general method of transforming arbitrary programming languages into probabilistic programming languages with straight-forward MCMC inference engines. Random choices in the program are “named” with information about their position in an execution trace; these names are used in conjunction with a database holding values of random variables to implement MCMC inference in the space of execution traces.
+Probabilistic programming languages simplify the development of probabilistic models by allowing programmers to specify a stochastic (random) process using syntax resembling modern programming languages." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://probabilistic-effects.github.io/papers/lightweight-implementations-prob-languages/" />
+<meta property="article:published_time" content="2020-11-13T14:05:41+00:00" />
+<meta property="article:modified_time" content="2020-11-13T14:05:41+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Lightweight Implementations of Probabilistic Programming Languages"/>
+<meta name="twitter:description" content="This describes a general method of transforming arbitrary programming languages into probabilistic programming languages with straight-forward MCMC inference engines. Random choices in the program are “named” with information about their position in an execution trace; these names are used in conjunction with a database holding values of random variables to implement MCMC inference in the space of execution traces.
+Probabilistic programming languages simplify the development of probabilistic models by allowing programmers to specify a stochastic (random) process using syntax resembling modern programming languages."/>
+<meta itemprop="name" content="Lightweight Implementations of Probabilistic Programming Languages">
+<meta itemprop="description" content="This describes a general method of transforming arbitrary programming languages into probabilistic programming languages with straight-forward MCMC inference engines. Random choices in the program are “named” with information about their position in an execution trace; these names are used in conjunction with a database holding values of random variables to implement MCMC inference in the space of execution traces.
+Probabilistic programming languages simplify the development of probabilistic models by allowing programmers to specify a stochastic (random) process using syntax resembling modern programming languages.">
+<meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
+<meta itemprop="wordCount" content="1198">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>Probabilistic Effects.  λθ</h1>
+</header>
+
+<div class="content-container">
+<main><h1>Lightweight Implementations of Probabilistic Programming Languages</h1>
+<p>This describes a general method of transforming arbitrary programming languages into probabilistic programming languages with straight-forward MCMC inference engines. Random
+choices in the program are “named” with information about their position in an execution
+trace; these names are used in conjunction with a database holding values of random variables to implement MCMC inference in the space of execution traces.</p>
+<p>Probabilistic programming languages simplify the development of probabilistic models by allowing programmers to specify a stochastic (random) process using syntax resembling modern programming languages. The resulting programs define prior distributions: running the program forward many times results in a distribution over execution traces, with each trace generating a sample of data from the prior. The goal of inference in such programs is to reason about the posterior distribution over execution traces conditioned on a particular program output (i.e. determine the posterior distribution over execution traces given a program output).</p>
+<p>This paper presents a general technique for turning any programming language into a probabilistic programming language with an accompanying MCMC inference engine. The key idea is to give each random choice of a fixed program a unique &ldquo;name&rdquo; that depends on its position in a given execution trace. We then convert stochastic functions into deterministic ones which use these names to look up their return values in a database that stores the values of all random choices. By controlling the values in this database, we can control execution traces of the program, which allows us to construct the key operations needed for the metropolis-hastings algorithm.</p>
+<p>Different techniques for naming random choices result in different MCMC dynamics. This paper chooses to name random choices based on their structural position in the execution trace - this allows fine-grainedsharing of random choice values between subsequent MCMC states. The act of naming information can be provided by a side computation that is constructed by a source-to-source transformation at compile time: the original probabilistic program can be augmented with naming information to create a new program that makes the names available. The resulting new program can be executed at full speed, with only minimal overhead to track names and control the database.</p>
+<h4 id="2-overview-of-the-method">2. Overview Of The Method</h4>
+<p>We define an unconditioned probabilistic program to be a parameterless function <code>f</code> with a mix of stochastic and deterministic elements. The function must be self-contained with no external side-effects which would impact the execution of the function from one run to another.</p>
+<p>The stochastic elements of <code>f</code> must come from a set of known, fixed <em>elementary random primitives</em>, or ERPs. These may be functions such as <code>rand</code> (sample uniformly from [0,1]) or <code>randn</code> (sample from a standard normal distribution). Each ERP type <code>t</code> is a parametric family of distributions p(x|θ<!-- raw HTML omitted -->t<!-- raw HTML omitted -->), i.e. a collection of probability density functions on Rn indexed by the parameter space Θt.</p>
+<p>As the function <code>f</code> is executed, it encounters a series of ERPs. For example:</p>
+<pre><code>for i = 1:1000
+    if (rand &gt; 0.5)
+        X(i) = randn
+    else
+        X(i) = gammarnd
+    end
+end
+</code></pre><p>Here there are three syntactic ERPs: <code>rand</code>, <code>randn</code>, and <code>gammarnd</code>. During execution, depending on the return value of each call to <code>rand</code>, different paths will be taken through the program, and different ERPs will be encountered. We call this path an execution trace. A total of 2000 random choices will be made when executing this <code>f</code>.</p>
+<p>Let <code>f_k | x_1 .. x_{k - 1}</code> be the k&rsquo;th ERP encountered while executing <code>f</code>, and let <code>x_k</code> be the value it returns. Note that the parameters passed to the k&rsquo;th ERP may change depending on the previous <code>x_k</code>&rsquo;s. We denote by <code>x</code> all of the random choices which are made by <code>f</code>, meaning that <code>f</code> defines the probabilistic distribution <code>p(x)</code>. The probability of <code>x</code> is therefore the product of the probability of all the ERP choices made:</p>
+<p>p(x) = {K}∏{k=1} p(x_k | θ__tk, x__1, .., x__{k - 1})</p>
+<p>To simplify notation,</p>
+<ul>
+<li>By <code>f_k</code>, we mean <code>f_k | x_1 .. x_{k - 1}</code></li>
+<li>By <code>p(x_k | θ_tk)</code>, we mean <code>p(x_k | θ_tk, x_1, .. , x_{k - 1})</code></li>
+</ul>
+<p>Generative functions as described above are easy to write.</p>
+<p>A harder problem (and the goal of this paper) is to reason about the posterior conditional distribution <code>p(x\c | x_c)</code>, where <code>x_c</code> is a subset of random choices which we condition on, and <code>x\c</code> represents the remaining random choices. For example, we may condition our example program on the values of the <code>X(i)</code>&rsquo;s, and reason about the sequence of <code>rand</code>&rsquo;s most likely to generate the <code>X(i)</code>&rsquo;s.</p>
+<p>This paper proposes an approach to inference based on the following intuition: consider repeatedly running an unconditioned function <code>f</code> &ndash; every time an <code>f_k</code> is encountered (i.e. the k&rsquo;th ERP encountered while running <code>f</code>), the program samples an <code>x_k</code> (the value the k&rsquo;th ERP returns) and continues execution. Importantly, if two runs of <code>f</code> sample exactly the same values, their execution traces will be the same.</p>
+<p>This suggests the following procedure for controlling the execution of <em>f</em>:</p>
+<ul>
+<li>
+<ol>
+<li>Give each <code>f_k</code> (kth ERP encountered) in every possiblie execution trace a &ldquo;name&rdquo;. This name does not have to be unique, and can depend on previous <code>x_k</code>&rsquo;s or other information about the program state.</li>
+</ol>
+</li>
+<li>
+<ol start="2">
+<li>Rewrite the source code of <code>f</code> to generate <code>f'</code>, replacing random functions <code>f_k</code> with deterministic functions <code>f'_k_</code>. When encountered in the execution trace, these functions <code>f'_k</code> deterministically use their name to look up a current value <code>x_k</code> in a database and return it (if no value exists, they sample <code>x_k</code> from the appropriate ERP parametric family of distributions <em>p(.|θ__tk)</em>, store <code>x_k</code> in the data base, and then return it). Behind the scenes, these functions also accummulate the likelihood of each random choice.</li>
+</ol>
+</li>
+</ul>
+<p>Thus, the execution trace of <code>f'</code> can be controlled by manipulating the values in the database. This makes MCMC inference possible by enabling proposals, scoring, and the ability to accept or reject proposals. We make a proposal to an execution trace by picking an <code>x_k</code> in the database, modifying it according to a proposal distribution, and then re-executing <code>f'</code> and computing the likelihood of the new trace.</p>
+<h4 id="21-mcmc-in-trace-space">2.1 MCMC in Trace Space</h4>
+<p>This describes the MCMC algorithm used. Here we assume that some naming scheme has been defined, and that a mechanism for computing those names has been implemented.</p>
+<p>Let a database <em>D</em> be defined as a mapping <em>N → T × X × L × θ</em> where:</p>
+<ul>
+<li><em>N</em> is the name of a random choice</li>
+<li><em>T</em> is its ERP type</li>
+<li><em>X</em> is the random value</li>
+<li><em>L</em> is this random value&rsquo;s likelihood</li>
+<li><em>θ</em> is the ERP parameters</li>
+</ul>
+<p>We can control the execution of <code>f'</code> by controlling the values in the database <code>D</code>. When <code>f'</code> encounters an ERP <code>f'_k</code>, it computes its name <code>n ϵ N</code>, its parameters <code>θ_c</code> (meaning current parameters), and its current type <code>t_c ϵ T</code>. It then looks up <code>(t, x, l, θ_db) = D(n)</code>. If a value is found and the types match, we set the return value of <code>f_k</code> to be <code>x</code>. Otherwise, the value <code>x</code> is sampled from the appropriate ERP, its likelihood is computed, and the corresponding entry in the database is updated. We accumulate the log-probability of new randomness <code>ll_fresh</code> and the log-probability of randomness that is no longer used <code>ll_stale</code>.</p>
+<div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/papers/probabilistic-programming/" title="Introduction To Probabilistic Programming"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Introduction To Probabilistic Programming</a>
+<a class="nav nav-next" href="https://probabilistic-effects.github.io/research/" title="Research">Next - Research <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<nav class="open-menu">
+<ul>
+<li class=""><a href="https://probabilistic-effects.github.io/">Home</a></li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/activity/">Activity</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/activity/cpsing-monad-bayes/">CPSing Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/activity/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
+</ul>
+  
+</li>
+
+<li class="parent"><a href="https://probabilistic-effects.github.io/papers/">Papers</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/papers/asymptotic-improvement/">Asymptotic Improvement of Computations over Free Monads</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/">Faster Coroutine Pipelines</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/probabilistic-programming/">Introduction To Probabilistic Programming</a></li>
+<li class="active"><a href="https://probabilistic-effects.github.io/papers/lightweight-implementations-prob-languages/">Lightweight Implementations of Probabilistic Programming Languages</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/research/">Research</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/research/research-journal/">Research Journal</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/">Potential Approaches to Improving Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/literature-review/">Literature Review</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/parsley-case-study/">Case Study: Optimising Parsley</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/optimising-core/">Optimising Core</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/">Monad Bayes</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/inference-transformers/">Inference Transformers</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/pmmh-hmm/">Implementing HMM Simulation and Inference (using PMMH)</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/documentation/">Documentation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/conditioning-scoring/">How Conditioning and Scoring Works</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/">Tooling</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/cabal/">Cabal Projects</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/">Benchmarking</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmark-log/">Benchmark Log</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmarking-profiling/">How to Benchmark and Profile</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/monad-bayes-components/">Relevant Components of Monad Bayes for Profiling</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/background/">Background</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/background/staging/">Staging</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/smc-pmmh/">SMC and PMMH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/handrolling/">Handrolling Monad Transformer Stacks</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mtl/">MTL</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mcmc-mh/">MCMC and MH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/markov-chain/">Markov Chains</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/hidden-markov-model/">Hidden Markov Model</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/delimited-continuations/">Delimited Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/haskell-core/">Haskell Core</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/coroutines/">Coroutines</a></li>
+</ul>
+  
+</li>
+</ul>
+</nav>
+
+
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>

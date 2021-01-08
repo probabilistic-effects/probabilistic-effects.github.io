@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Introduction To Probabilistic Programming - Probabilistic Effects.  λθ</title>
+<meta name="generator" content="Hugo 0.80.0" />
+<link href="https://probabilistic-effects.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="https://probabilistic-effects.github.io/papers/probabilistic-programming/">
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="https://probabilistic-effects.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="Introduction To Probabilistic Programming" />
+<meta property="og:description" content="1.1 Model-based Reasoning A model is an artifical construct designed to respond in the same way as the system we would like to understand. As computers have evolved, numerical models have come to the forefront and computer simulations have replaced physical models. Numerical models emulate stochasticity, i.e. they use pseudorandom number generators to simulate actually random phenomena and other uncertainties. Running a simulator with stochastic value generation leads to an explosion of possible simulation outcomes." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://probabilistic-effects.github.io/papers/probabilistic-programming/" />
+<meta property="article:published_time" content="2020-11-13T14:05:41+00:00" />
+<meta property="article:modified_time" content="2020-11-13T14:05:41+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Introduction To Probabilistic Programming"/>
+<meta name="twitter:description" content="1.1 Model-based Reasoning A model is an artifical construct designed to respond in the same way as the system we would like to understand. As computers have evolved, numerical models have come to the forefront and computer simulations have replaced physical models. Numerical models emulate stochasticity, i.e. they use pseudorandom number generators to simulate actually random phenomena and other uncertainties. Running a simulator with stochastic value generation leads to an explosion of possible simulation outcomes."/>
+<meta itemprop="name" content="Introduction To Probabilistic Programming">
+<meta itemprop="description" content="1.1 Model-based Reasoning A model is an artifical construct designed to respond in the same way as the system we would like to understand. As computers have evolved, numerical models have come to the forefront and computer simulations have replaced physical models. Numerical models emulate stochasticity, i.e. they use pseudorandom number generators to simulate actually random phenomena and other uncertainties. Running a simulator with stochastic value generation leads to an explosion of possible simulation outcomes.">
+<meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
+<meta itemprop="wordCount" content="2074">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>Probabilistic Effects.  λθ</h1>
+</header>
+
+<div class="content-container">
+<main><h1>Introduction To Probabilistic Programming</h1>
+<h5 id="11-model-based-reasoning">1.1 Model-based Reasoning</h5>
+<p>A model is an artifical construct designed to respond in the same way as the system we would like to understand. As computers have evolved, numerical models have come to the forefront and computer simulations have replaced physical models. Numerical models emulate stochasticity, i.e. they use pseudorandom number generators to simulate actually random phenomena and other uncertainties. Running a simulator with stochastic value generation leads to an explosion of possible simulation outcomes. Effective stochastic modeling means writing a program that can produce all possible explosions, each corresponding to a particular set of random values. Stochastic numerical simulation aims to computationally encompass the complete distribution of possible outcomes.</p>
+<p>When we write &ldquo;model&rdquo;, we generally will mean stochastic simulator and the measurable values it produces. However this is not the only notion of model that one can adopt.</p>
+<p>Models produce values for things we can measure in the real world; we call such measured values <em>observations</em>. What counts as an observation is specific to the model, experiment, and query. Generally one does not observe every detail produced by a model, and sometimes one simply cannot.</p>
+<p>Models can be used in various ways. One way is to use them to falsify theories. For this, one needs to encode the theory as a model and then simulate from it many times &ndash; if the population distribution of observations generated by the model is not in agreement with observations generated by the real world process, then there is evidence that the theory can be falsified. Models can also be used to make decisions.</p>
+<p>All model types have parameters. Fitting these parameters, when few, can sometimes be performed manually, by intensive theory-based reasoning and a priori experimentation, by measuring conditional subcomponents of a simulator, or by simply fiddling with parameters to see which values produce the most realistic outputs.</p>
+<p>Automated model fitting describes the process of using algorithms to determine either point or distributional estimates for model parameters and structure.</p>
+<h6 id="111-model-denotation">1.1.1 Model Denotation</h6>
+<p>To elaborate on what is meant by model denotation, we first look at a simple statistical model and see how it is denoted. Statistical models are typically denoted mathematically, subsequently manipulated algebraically, and then &ldquo;solved&rdquo; computationally. By &ldquo;solved&rdquo;, we mean that an inference problem, involving conditioning on the values of a subset of the variables in the model, is answered.</p>
+<p>A simple model one could write down is a beta-Bernoulli model for generating a coin flip from a potentially biased coin. Such a model is typically denoted:</p>
+<p>x ~ Beta(α, β)
+y ~ Bernoulli(x)</p>
+<p>where α and β are parameters, x is a latent variable (the bias of the coin), and y is the value of the flipped coin.</p>
+<p>We can ascribe a meaning to the symbol <em>~</em> and the keywords Beta and Bernoulli.</p>
+<p>For example, <em>Beta(a, b)</em> means that given the value of arguments <em>a</em> and <em>b</em>, we can construct what is effectively an object with two methods.</p>
+<ul>
+<li>The first method is a probability density (or distribution) function that computes:
+<img src="https://i.ibb.co/L6LrP1f/pp-1.png" alt=""></li>
+<li>The second method is something which can draw exact samples from the said distribution.</li>
+</ul>
+<p>We can also intuit, not only that some variables in a model are to be observed (here for instance <em>y</em>), but that there is an inference objective, here for instance to characterize <code>p(x|y)</code>.</p>
+<p>We will generally focus on conditioning as the goal, namely the characterisation of some conditional distribution given a specification of a model in the form of a joint distribution. This involves the extensive use of Bayes rule:</p>
+<p><img src="https://i.ibb.co/M52z0s7/pp-2.png" alt=""></p>
+<p>Bayes rule tells us how to derive a conditional probability from a joint probability. Conditioning tells us how to rationally update our beliefs. Updating our beliefs is what learning and inference are all about.</p>
+<p>The constituents of Bayes rule are:</p>
+<ul>
+<li><em>p(Y|X)</em> - the likelihood</li>
+<li><em>p(X)</em> - the prior</li>
+<li><em>p(Y)</em> - the marginal likelihood (or evidence)</li>
+<li><em>p(X|Y)</em> - the posterior</li>
+</ul>
+<p>For our purposes, a model is the joint distribution <em>p(Y, X) = p(Y|X)p(X)</em> of the observations <em>Y</em> and the random choices made in the generative model <em>X</em>, known as the latent variables.</p>
+<p>An important thing to understand is that conditioning a joint distribution, i.e. the fundamental Bayesian update, describes a huge number of problems succinctly.</p>
+<p>We would build some intuition about the power of both programming languages for model denotation and automated conditioning, by considering the following table:</p>
+<p><img src="https://i.ibb.co/BBRHwTG/pp-3.png" alt=""></p>
+<p>In this table, we list a number of <em>X</em>, <em>Y</em> pairs where denoting the joint distribution of <em>P(X,Y)</em> is realistically only doable in a probabilistic programming language and the posterior distribution <em>P(X|Y)</em> is of interest.</p>
+<p>Consider the first row, &ldquo;scene description&rdquo; and &ldquo;image&rdquo;. Visualising what <em>P(X, Y)</em> is, is difficult. However, thinking about <em>P(X)</em> as a distribution over possible scene graphs is not too hard, for example as writing a simulator that only needs to stochastically generate reasonably plausible scene graphs. Given that <em>P(X, Y) = P(Y|X)P(X)</em>, all we need to do to get the joint distribution is a way to get from a scene graph to an observable image. There are many kinds of renderers that do this &ndash; although these are generally deterministic, this is fine when specifying a joint distribution because they map from some latent scene description to an observable pixel space, and with the addition of some image-level pixel noise, they form a perfectly valid likelihood.</p>
+<p>An example of this is considering the image <em>Y</em> to be a Captcha image and the scene description <em>X</em> to include the obscured string.  Let us consider alternative ways to solve a Captcha problem. A non-probabilistic programming approach would require gathering a very large number of Captchas, hand-labelling them all, and then designing and training a neural network to regress from the image to a text string. The probabilistic programming approach in contrast, merely requires one to write a program that generates Captchas that are stylistically similar to the type of Captchas one would like to break, i.e. writing a model of Captchas, in a probabilistic programming language. Conditioning such a model on its observable output, the Captcha image, will yield a posterior distribution over text strings. This kind of conditioning is what probabilistic programming evaluators do.</p>
+<p>The below figure shows a representation of the output of such a conditioning computation:</p>
+<p><img src="https://i.ibb.co/BBRHwTG/pp-3.png" alt=""></p>
+<p>Each captcha and bar-plot pair consists of a held-out Captcha image and a truncated marginal posterior distribution over unique string interpretations (marginal distribution meaning it gives the probabilities of various values of a subset of variables without reference to the values of the other variables). The middle of the bottow row expresses that the noise on the Captcha makes it difficult to distinguish whether the string is &ldquo;aG8BPY&rdquo; or &ldquo;aG8RPY&rdquo; - the posterior distribution <em>P(X|Y)</em> arrived at by conditioning reflects this uncertainty.</p>
+<p>This simple example aims to liberate the idea of what a model is (a joint distribution produced by adding stochastic choice to normal computer programs) and what the output of a conditioning computation can be like. What probabilistic programming languages do is to allow denotation of any such model. This tutorial covers how to develop inference algorithms that allow computational characterization of the posterior distribution of interest.</p>
+<h6 id="112-conditioning">1.1.2 Conditioning</h6>
+<p>We aim to demonstrate what the mathematical operations involved in conditioning are like, and why the problem of conditioning is generally hard. Consider the example of coin-flips and let us write out the joint probability density for the distribution of <em>X</em> and <em>Y</em>. Assume that the symbol <em>Y</em> denotes the observed outcome of the coin flip, where heads is encoded as 1 and tails is encoded as 0. We denote the bias of the coin, i.e. the probability it comes up as heads, using the symbol <em>x</em> and encode it using a real positive number between 0 and 1.</p>
+<p>Then using standard definitions for the distributions indicated by the joint denotation in:</p>
+<pre><code>x ~ Beta(α, β)
+y ~ Bernoulli(x)
+</code></pre>
+<p><img src="https://i.ibb.co/L6LrP1f/pp-1.png" alt=""></p>
+<p>we can write:</p>
+<p><img src="https://i.ibb.co/60hV114/pp-5.png" alt=""></p>
+<p>and use rules of algebra to simplify this expression to:</p>
+<p><img src="https://i.ibb.co/68QCTzv/pp-6.png" alt=""></p>
+<p>Our implicit objective here is not to compute the value of the joint probability of some variables, but to do conditioning instead, for example, to compute <em>p(x|y=&ldquo;heads&rdquo;)</em>. Using Bayes rule, this is theoretically easy to do. It is just:</p>
+<p><img src="https://i.ibb.co/fkRBZLw/pp-7.png" alt=""></p>
+<p>In this special case, the rules of algebra and semantics preserving transformations of integrals can be used to algebraically solve for an analytic form for this posterior distribution.</p>
+<p>However, the integral in the denominator is the complicating crux of Bayesian inference. This integral is in general intractable as it involves integrating over the entire space of latent variables. Consider the Captcha example: simply summing over the latent character sequence itself would require an exponential-time operation.</p>
+<p>This specific example distribution of coin-flipping has a special property called conjugacy, which means that this integral can be performed by inspection, by identifying that the integrand is the same as the non-constant part of the beta distribution.</p>
+<p>&hellip;</p>
+<p>The result of the conditioning operation is a <em>distribution</em> <em>p(x|y)</em> parameterized by the observed or given quantity. Unfortunately, this distribution will in general not have an analytic form, because we usually won&rsquo;t be so lucky that the normalizing integral as an algebraic analytic solution, nor that it will be easily calculable.</p>
+<p>However, remember that the <em>~</em> operator is overloaded to mean two things:</p>
+<ol>
+<li>Evaluation of a probability density (or distribution) function.</li>
+<li>A means of drawing exact sampling from the said distribution.</li>
+</ol>
+<p>Neither of these are possible in general. The latter can be approximated, often without being able to do the former. For this reason, our focus will be on sampling-based characterisations of conditional distributions in general.</p>
+<h6 id="113-query">1.1.3 Query</h6>
+<p>Having a handle on the resulting posterior distribution or a method for drawing samples from it, allows us to ask queries in general. These are best expressed in integral form as well. For instance, we could ask &ldquo;what is the probability that the bias of the coin is greater than 0.7, given that the coin came up heads?&rdquo;.</p>
+<p>This is mathematically denoted as:</p>
+<!-- raw HTML omitted -->
+<p><img src="https://i.ibb.co/52qFhL2/pp-8.png" alt=""></p>
+<p>Where <em>I()</em> is an indicator function which evaluates to 1 when its argument is true, and 0 otherwise &ndash; in this instance, this can be directly calculated using the cumulative distribution function of the beta distribution.</p>
+<p>Fortunately we can still answer queries when we only have the ability to sample from the posterior distribution, due to the Markov strong law of large numbers which states that for general distributions <em>p</em> and functions <em>f</em>:</p>
+<p><img src="https://i.ibb.co/TKjGfJn/pp-9.png" alt=""></p>
+<p>There are two things to note here:</p>
+<ul>
+<li>The distribution on the RHS is approximated by a set of <em>L</em> samples on the LHS.</li>
+<li>Different functions <em>f</em> can be evaluated at the same sample points chosen to represent the probability distribution <em>p</em> after the samples have been generated.</li>
+</ul>
+<h5 id="12-probabilistic-programming">1.2 Probabilistic Programming</h5>
+<p>One view of probabilistic programming is that it is about automating Bayesian inference. In this view, probabilistic programming concerns 1) the development of syntax and semantics for languages that denote conditional inference problems, and 2) the development of corresponding evaluators or solvers that computationally characterize the denoted conditional distribution.</p>
+<p><img src="https://i.ibb.co/2SmNWn5/pp-10.png" alt=""></p>
+<p>Computer science has largely been about finding ways to efficiently evaluate programs, given parameter values, to produce some output.</p>
+<p>The typical computer science programming pipeline is to write a program, specify the values of its arguments, then evaluate the program to produce an output. The typical statistical modeling approach is to start with the output (the observations or data <em>Y</em>), then specify a usually abstract generative model <em>p(X, Y)</em>, and finally use algebra and inference techniques to characterize the posterior distribution <em>p(X|Y)</em> of the unknown quantities in the model given the observed quantities. Probabilistic programming is about performing Bayesian inference using the tools of computer science - programming language for model denotation, and statistical inference algorithms for computing the conditional distribution of program inputs that could have given rise to the observed program output.</p>
+<p>For instance, reasoning about the bias of a coin flip is an example of the kind of inference that probabilistic programming systems can do. Our data is the outcome of a coin flip. Our model (specified in a forward direction) stipulates that a coin and its bias is generated according to the hand-specified model. The coin flip outcome is then observed and analysed under this model.</p>
+<p>When performing inference in probabilistic programming systems, what counts as observable are the outputs generated from the forward computation. The inference objective is to computationally characterize the posterior distribution of all of the random choices made during the forward execution of the program, given that the program produces a particular output.</p>
+<div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/papers/fusion-for-free/" title="Fusion for Free"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Fusion for Free</a>
+<a class="nav nav-next" href="https://probabilistic-effects.github.io/papers/lightweight-implementations-prob-languages/" title="Lightweight Implementations of Probabilistic Programming Languages">Next - Lightweight Implementations of Probabilistic Programming Languages <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<nav class="open-menu">
+<ul>
+<li class=""><a href="https://probabilistic-effects.github.io/">Home</a></li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/activity/">Activity</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/activity/cpsing-monad-bayes/">CPSing Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/activity/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
+</ul>
+  
+</li>
+
+<li class="parent"><a href="https://probabilistic-effects.github.io/papers/">Papers</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/papers/asymptotic-improvement/">Asymptotic Improvement of Computations over Free Monads</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/">Faster Coroutine Pipelines</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>
+<li class="active"><a href="https://probabilistic-effects.github.io/papers/probabilistic-programming/">Introduction To Probabilistic Programming</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/lightweight-implementations-prob-languages/">Lightweight Implementations of Probabilistic Programming Languages</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/research/">Research</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/research/research-journal/">Research Journal</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/">Potential Approaches to Improving Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/literature-review/">Literature Review</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/parsley-case-study/">Case Study: Optimising Parsley</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/optimising-core/">Optimising Core</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/">Monad Bayes</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/inference-transformers/">Inference Transformers</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/pmmh-hmm/">Implementing HMM Simulation and Inference (using PMMH)</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/documentation/">Documentation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/conditioning-scoring/">How Conditioning and Scoring Works</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/">Tooling</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/cabal/">Cabal Projects</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/">Benchmarking</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmark-log/">Benchmark Log</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmarking-profiling/">How to Benchmark and Profile</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/monad-bayes-components/">Relevant Components of Monad Bayes for Profiling</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/background/">Background</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/background/staging/">Staging</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/smc-pmmh/">SMC and PMMH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/handrolling/">Handrolling Monad Transformer Stacks</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mtl/">MTL</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mcmc-mh/">MCMC and MH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/markov-chain/">Markov Chains</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/hidden-markov-model/">Hidden Markov Model</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/delimited-continuations/">Delimited Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/haskell-core/">Haskell Core</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/coroutines/">Coroutines</a></li>
+</ul>
+  
+</li>
+</ul>
+</nav>
+
+
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>

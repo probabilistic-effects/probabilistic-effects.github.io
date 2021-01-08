@@ -13,9 +13,9 @@
       <pubDate>Fri, 13 Nov 2020 14:05:57 +0000</pubDate>
       
       <guid>https://probabilistic-effects.github.io/research/research-journal/</guid>
-      <description>Activity (MN) 04/01/2021
- Due to just over 50% of the benchmark run-time for monad-bayes currently being spent by coroutines: I&amp;rsquo;ve been trying to understand coroutines in Haskell, and also exploring existing coroutine libraries (monad-coroutine, pipes, conduit, three-continuation-approach). Trying to reimplement the monad-coroutine library (which monad-bayes uses) in CPS.  Activity (MN) 28/12/2020 - 03/01/2021
- Trying to reimplement and integrate components of monad-bayes in CPS-form  Successfully integrated CPS version of StateT into branch MonadLibCPS of probabilistic-programming.</description>
+      <description>Meeting (MN + AZ) 05/01/2021
+ Understanding statistics, monad-bayes, trace mcmc etc.  Meeting (MN + MW + SF + WZ) 05/01/2021
+ Still trying to make monad bayes faster 27s - initial time 4.8s - new time achieved by: 1. Inlining and unboxing 2. Cont passing style for state monad 3. Switching to LogicT to reassociate binds to be better optimised M: where does Jamie get these ideas from Minh: probs from word of mouth passing down.</description>
     </item>
     
     <item>
@@ -45,7 +45,7 @@ Summary  Real world benchmarks make it difficult to isolate costs Microbenchmark
       
       <guid>https://probabilistic-effects.github.io/research/literature-review/</guid>
       <description>‣ Papers Probabilistic Programming
- Practical Probabilistic Programming with Monads - Ścibior, Adam, Zoubin Ghahramani, and Andrew D. Gordon. Proceedings of the 2015 ACM SIGPLAN Symposium on Haskell. 2015. Functional Programming for Modular Bayesian Inference - Ścibior, Adam, Ohad Kammar, and Zoubin Ghahramani. Proceedings of the ACM on Programming Languages 2. ICFP (2018): 1-29. Formally Justified and Modular Bayesian Inference for Probabilistic Programs - Ścibior, Adam Michał. Diss. University of Cambridge, 2019.</description>
+ An Introduction To Probabilistic Programming Lightweight Implementations of Probabilistic Programming Languages Via Transformational Compilation - David Wingate, Andreas Stuhlmüller, and Noah Goodman. 2011. Practical Probabilistic Programming with Monads - Ścibior, Adam, Zoubin Ghahramani, and Andrew D. Gordon. Proceedings of the 2015 ACM SIGPLAN Symposium on Haskell. 2015. Denotational Validation of Higher-Order Bayesian Inference - Ścibior, Adam. 2018. Functional Programming for Modular Bayesian Inference - Ścibior, Adam, Ohad Kammar, and Zoubin Ghahramani.</description>
     </item>
     
     <item>

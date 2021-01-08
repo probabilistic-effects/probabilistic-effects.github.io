@@ -17,25 +17,25 @@
 :root {}
 </style>
 <meta property="og:title" content="Research Journal" />
-<meta property="og:description" content="Activity (MN) 04/01/2021
- Due to just over 50% of the benchmark run-time for monad-bayes currently being spent by coroutines: I&rsquo;ve been trying to understand coroutines in Haskell, and also exploring existing coroutine libraries (monad-coroutine, pipes, conduit, three-continuation-approach). Trying to reimplement the monad-coroutine library (which monad-bayes uses) in CPS.  Activity (MN) 28/12/2020 - 03/01/2021
- Trying to reimplement and integrate components of monad-bayes in CPS-form  Successfully integrated CPS version of StateT into branch MonadLibCPS of probabilistic-programming." />
+<meta property="og:description" content="Meeting (MN &#43; AZ) 05/01/2021
+ Understanding statistics, monad-bayes, trace mcmc etc.  Meeting (MN &#43; MW &#43; SF &#43; WZ) 05/01/2021
+ Still trying to make monad bayes faster 27s - initial time 4.8s - new time achieved by: 1. Inlining and unboxing 2. Cont passing style for state monad 3. Switching to LogicT to reassociate binds to be better optimised M: where does Jamie get these ideas from Minh: probs from word of mouth passing down." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://probabilistic-effects.github.io/research/research-journal/" />
 <meta property="article:published_time" content="2020-11-13T14:05:57+00:00" />
 <meta property="article:modified_time" content="2020-11-13T14:05:57+00:00" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Research Journal"/>
-<meta name="twitter:description" content="Activity (MN) 04/01/2021
- Due to just over 50% of the benchmark run-time for monad-bayes currently being spent by coroutines: I&rsquo;ve been trying to understand coroutines in Haskell, and also exploring existing coroutine libraries (monad-coroutine, pipes, conduit, three-continuation-approach). Trying to reimplement the monad-coroutine library (which monad-bayes uses) in CPS.  Activity (MN) 28/12/2020 - 03/01/2021
- Trying to reimplement and integrate components of monad-bayes in CPS-form  Successfully integrated CPS version of StateT into branch MonadLibCPS of probabilistic-programming."/>
+<meta name="twitter:description" content="Meeting (MN &#43; AZ) 05/01/2021
+ Understanding statistics, monad-bayes, trace mcmc etc.  Meeting (MN &#43; MW &#43; SF &#43; WZ) 05/01/2021
+ Still trying to make monad bayes faster 27s - initial time 4.8s - new time achieved by: 1. Inlining and unboxing 2. Cont passing style for state monad 3. Switching to LogicT to reassociate binds to be better optimised M: where does Jamie get these ideas from Minh: probs from word of mouth passing down."/>
 <meta itemprop="name" content="Research Journal">
-<meta itemprop="description" content="Activity (MN) 04/01/2021
- Due to just over 50% of the benchmark run-time for monad-bayes currently being spent by coroutines: I&rsquo;ve been trying to understand coroutines in Haskell, and also exploring existing coroutine libraries (monad-coroutine, pipes, conduit, three-continuation-approach). Trying to reimplement the monad-coroutine library (which monad-bayes uses) in CPS.  Activity (MN) 28/12/2020 - 03/01/2021
- Trying to reimplement and integrate components of monad-bayes in CPS-form  Successfully integrated CPS version of StateT into branch MonadLibCPS of probabilistic-programming.">
+<meta itemprop="description" content="Meeting (MN &#43; AZ) 05/01/2021
+ Understanding statistics, monad-bayes, trace mcmc etc.  Meeting (MN &#43; MW &#43; SF &#43; WZ) 05/01/2021
+ Still trying to make monad bayes faster 27s - initial time 4.8s - new time achieved by: 1. Inlining and unboxing 2. Cont passing style for state monad 3. Switching to LogicT to reassociate binds to be better optimised M: where does Jamie get these ideas from Minh: probs from word of mouth passing down.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:57+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:57+00:00" />
-<meta itemprop="wordCount" content="7037">
+<meta itemprop="wordCount" content="7417">
 
 
 
@@ -47,6 +47,38 @@
 
 <div class="content-container">
 <main><h1>Research Journal</h1>
+<p><strong>Meeting (MN + AZ)</strong> <em>05/01/2021</em></p>
+<ul>
+<li>Understanding statistics, monad-bayes, trace mcmc etc.</li>
+</ul>
+<p><strong>Meeting (MN + MW + SF + WZ)</strong> <em>05/01/2021</em></p>
+<ul>
+<li>Still trying to make monad bayes faster
+27s - initial time
+4.8s - new time
+achieved by:
+1. Inlining and unboxing
+2. Cont passing style for state monad
+3. Switching to LogicT to reassociate binds to be better optimised</li>
+<li>M: where does Jamie get these ideas from
+Minh: probs from word of mouth passing down. All word of mouth. Cont passing is used, but it is not a key word. mtl doesnt use it
+M: can we automate using cont passing style?
+Minh: yes
+M: what next?
+Minh: most of runtime (50%) is on coroutines, so will learn about that. They are like free monads. There are many libs that do this, maybe a different one is better. Maybe cont passing can be done there - there is a paper that does that
+Minh: most optimisations so far have been changing what monad bayes uses - changing the monads
+M: =&gt; that monad bayes is actually well designed, but they just use rubbish inputs. Maybe you can propose a modular approach to improving the performance of the lib by switching all these things. Use monad bayes as an example, spot the patterns e.g. the libs it uses and know how to improve each of them. When you have all these patterns and how to optimise them try the techniques out on a different lang.
+For now there are probs more patterns to find.
+Keep up the good work!
+If you find more of the same that is good confidence building; if you find new that also exciting!
+Minh: benchmarking = particle thing, markov chain - benchmark we made.
+M: dont forget to also eval the existing examples - they may not be as interesting as yours as yours probs uses everything cos its good for testing, but you can translate it to third party
+M: why this new example
+Minh: existing examples were too specific to certain components and they were not realistic. Out benchmark is the biggest use of monad bayes, as opposed to the existing toy examples
+M: how old is the paper
+Minh: 2018 (paper) / 2019 (thesis)
+M: trance references and see what others have done</li>
+</ul>
 <p><strong>Activity (MN)</strong> <em>04/01/2021</em></p>
 <ul>
 <li>Due to just over 50% of the benchmark run-time for monad-bayes currently being spent by coroutines:
@@ -597,6 +629,8 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/">Faster Coroutine Pipelines</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/probabilistic-programming/">Introduction To Probabilistic Programming</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/lightweight-implementations-prob-languages/">Lightweight Implementations of Probabilistic Programming Languages</a></li>
 </ul>
   
 </li>
@@ -619,6 +653,7 @@ Published on 13 Nov 2020
 <ul class="sub-menu">
 <li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/inference-transformers/">Inference Transformers</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/pmmh-hmm/">Implementing HMM Simulation and Inference (using PMMH)</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/documentation/">Documentation</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/conditioning-scoring/">How Conditioning and Scoring Works</a></li>
 </ul>
   
@@ -635,19 +670,9 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/benchmarking/">Benchmarking</a>
   
 <ul class="sub-menu">
-<li class=""><a href="https://probabilistic-effects.github.io/background/staging/">Staging</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/smc-pmmh/">SMC and PMMH</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/handrolling/">Handrolling Monad Transformer Stacks</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/mtl/">MTL</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/mcmc-mh/">MCMC and MH</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/markov-chain/">Markov Chains</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/hidden-markov-model/">Hidden Markov Model</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/delimited-continuations/">Delimited Continuations</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/haskell-core/">Haskell Core</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/coroutines/">Coroutines</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmark-log/">Benchmark Log</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmarking-profiling/">How to Benchmark and Profile</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/monad-bayes-components/">Relevant Components of Monad Bayes for Profiling</a></li>
 </ul>
   
 </li>
