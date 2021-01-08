@@ -33,8 +33,7 @@ data ObservedState = Obs { obs :: Int } deriving Show data LatentState = Lat { l
       <pubDate>Fri, 13 Nov 2020 14:04:44 +0000</pubDate>
       
       <guid>https://probabilistic-effects.github.io/monad-bayes/documentation/</guid>
-      <description>What Does Monad-Bayes Do?
-The general way of inferring a posterior distribution given a likelihood and a prior is an approximate inference technique called MCMC which are a whole class of methods to infer the posterior. A key point to note is that although we are inferring the posterior, we are also inferring an estimate of the likelihood as well using the data. Inference in general is the act of predicting the values of something which we don&amp;rsquo;t have access to directly, given some data.</description>
+      <description>1. What Does Monad-Bayes Do? The general way of inferring a posterior distribution given a likelihood and a prior is an approximate inference technique called MCMC which are a whole class of methods to infer the posterior. A key point to note is that although we are inferring the posterior, we are also inferring an estimate of the likelihood as well using the data. Inference in general is the act of predicting the values of something which we don&amp;rsquo;t have access to directly, given some data.</description>
     </item>
     
     <item>
