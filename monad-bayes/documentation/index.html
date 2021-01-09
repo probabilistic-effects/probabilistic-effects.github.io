@@ -29,7 +29,7 @@
 <meta itemprop="description" content="1. What Does Monad-Bayes Do? The general way of inferring a posterior distribution given a likelihood and a prior is an approximate inference technique called MCMC which are a whole class of methods to infer the posterior. A key point to note is that although we are inferring the posterior, we are also inferring an estimate of the likelihood as well using the data. Inference in general is the act of predicting the values of something which we don&rsquo;t have access to directly, given some data.">
 <meta itemprop="datePublished" content="2020-11-13T14:04:44+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:04:44+00:00" />
-<meta itemprop="wordCount" content="4536">
+<meta itemprop="wordCount" content="5799">
 
 
 
@@ -124,7 +124,7 @@ Result: ()
 <p>The reason this is important with respect to tracing in probabilistic programming, is that the way one performs inference over an execution trace requires one to modify the trace of the program, the trace being all the random decisions made. Hence, we don&rsquo;t make any changes to the syntax of the program, we only work with the random decisions performed during the program (by making random changes to these random decisions). The first thing we need is a way to decouple these two things, which is what the <code>Traced</code> datatype achieves by having two distinct fields:</p>
 <ul>
 <li>
-<p>The <code>model</code> field, which is a description of the suspended model as a syntax, separated from its random decisions. The model is the abstract interpreter which defines our program, augmented in this free monad transformer with where the random decisions to be made <em>would</em> be. One could imagine this as a tree of random decisions waiting for their source of randomness. The implementation of the model itself will most likely be associated with drawing from various distributions, which are themselves random decisions, but for such random actions to be performed, we first need to provide a source of randomness as a &ldquo;seed&rdquo;.</p>
+<p>The <code>model</code> field, which is a description of the suspended model as a syntax, separated from its random decisions. The model is the abstract interpreter which defines our program, augmented in this free monad transformer with where the random decisions to be made <em>would</em> be. One could imagine this as a tree of random decisions waiting for their source of randomness. This tree is generated from the model specification. The implementation of the model itself will most likely be associated with drawing from various distributions, which are themselves random decisions, but for such random actions to be performed, we first need to provide a source of randomness as a &ldquo;seed&rdquo;.</p>
 </li>
 <li>
 <p>The <code>traceDist</code> field, which provides the model with a source of randomness in order to realise the model as a stochastic process.</p>
@@ -252,7 +252,7 @@ Result: ()
     return <span style="color:#f92672">$</span> xs <span style="color:#f92672">++</span> (u&#39; <span style="color:#66d9ef">:</span> ys)
 </code></pre></div><p>So how does one recognise which random decisions in the program are actually important to the parameters of our model? This is a question that currently needs more looking in to.</p>
 <hr>
-<h4 id="5-pmmh-bayesinferencepmmh">5. PMMH (Bayes.Inference.PMMH)</h4>
+<h4 id="5-pmmh">5. PMMH</h4>
 <p>Given a prior and a likelihood function, normal metropolis-hastings is an algorithm for producing samples from the posterior distribution, and hence allows us to approximate the posterior without having the analytic formulation of the normalising constant.</p>
 <p>PMMH or PMCMC methods are normal MH/MCMC algorithms where we don&rsquo;t have the analytic formulation of the likelihood function, so it is instead replaced by a particle filter as an approximation to the likelihood function (we can run a particle filter, and at the end, we can extract an estimate of the likelihood function from this).</p>
 <p><em>Bayes.Inference.PMMH</em></p>
@@ -274,6 +274,9 @@ Result: ()
         smcSystematic k n <span style="color:#f92672">.</span> model)
 </code></pre></div><p>We can imagine that PMMH as a function is something which runs metropolis-hastings (<code>mh</code>) given a prior (<code>params</code>) and a likelihood function (<code>runPopulation . pushEvidence . Pop.hoist lift . smcSystematic k n . model</code>).</p>
 <ul>
+<li>
+<p><code>model</code> - our model</p>
+</li>
 <li>
 <p><code>smcSystematic</code> - the particle filter (Sequential Monte Carlo) which uses systematic resampling at each timestep as a resampling method. Hence composing <code>smcSystematic</code> with <code>model</code> is running the particle filter on the model we give it. What we are doing with a particle filter is simulating a set of particles with their associated weights, and it turns out that summing these weights is an estimate of the likelihood.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Sequential Monte Carlo with systematic resampling at each timestep.</span>
@@ -315,8 +318,107 @@ Result: ()
 <span style="color:#a6e22e">pushEvidence</span> <span style="color:#f92672">=</span> (hoist applyWeight) <span style="color:#f92672">.</span> extractEvidence
 <span style="color:#75715e">-- extractEvidence   :: Population m a -&gt; Population (Weighted m)</span>
 <span style="color:#75715e">-- hoist applyWeight :: Population (Weighted m a) -&gt; Population m a </span>
-</code></pre></div></li>
+</code></pre></div><p>Recall that a <code>Population</code> is a list of weighted samples, but these weights are implicit in the <code>Population</code> transformer,</p>
+</li>
 </ul>
+<hr>
+<h4 id="6-building-blocks-of-monad-bayes">6. Building Blocks of Monad Bayes</h4>
+<p><em>Bayes.Sampler</em></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | An &#39;ST&#39; based random sampler using the @mwc-random@ package.</span>
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">SamplerST</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">SamplerST</span> (forall s<span style="color:#f92672">.</span> <span style="color:#66d9ef">ReaderT</span> (<span style="color:#66d9ef">GenST</span> s) (<span style="color:#66d9ef">ST</span> s) a)
+</code></pre></div><p>A sampler is something which draws concrete values for random variables from a prior. This is constructed as the <code>ReaderT</code> monad, where:</p>
+<ul>
+<li>The read-only environment is a global pseudo-random <code>GenST s</code> where <code>s</code> is the state of the pseudo-random number generator.</li>
+<li>The monadic context is the state monad <code>ST s</code> that references the state <code>s</code> of the global pseudo-random number generator <code>GenST s</code>. Since the generator is mutable, we use the <code>ST</code> monad. A computation of type <code>ST s a</code> returns a value of type <code>a</code>, and execute in &ldquo;thread&rdquo; <code>s</code>. The universality of <code>s</code> keeps objects inside the <code>ST</code> monad from leaking to the outside of the <code>ST</code> monad.</li>
+</ul>
+<p>The <code>ReaderT</code> monad then allows us to read from the random number generator (as the environment).</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">runReaderT</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">ReaderT</span> r m a <span style="color:#f92672">-&gt;</span> r <span style="color:#f92672">-&gt;</span> m a
+<span style="color:#75715e">-- or in this specific case:</span>
+<span style="color:#a6e22e">runReaderT</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">ReaderT</span> (<span style="color:#66d9ef">GenST</span> s) (<span style="color:#66d9ef">ST</span> s) a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">GenST</span> s <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">ST</span> s a
+</code></pre></div><p><em>Bayes.Weighted</em></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Execute the program using the prior distribution, while accumulating likelihood.</span>
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Weighted</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">StateT</span> (<span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>) m a)
+  <span style="color:#75715e">-- StateT is more efficient than WriterT</span>
+  <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadIO</span>, <span style="color:#66d9ef">MonadTrans</span>, <span style="color:#66d9ef">MonadSample</span>)
+</code></pre></div><p>A type of <code>Weighted m a</code> represents a weighted sample or particle wrapped within some monadic context <code>m</code>; this is represented by the <code>StateT</code> monad where the state is some weight <code>Log Double</code>. Thereotically, the writer monad transformer can be used on its own (but the state monad transformer was apparently faster). Hence, calling <code>runWeighted</code> will return a tuple containing a sample/particle value <code>a</code> and its associated weight <code>Log Double</code>.</p>
+<p>Calling <code>runWeighted</code> then runs the <code>StateT</code> monad using 1 as the initial weight. This lets us obtain an <code>m</code>-computation returning pairs <code>(a, Log Double</code> of the result type <code>a</code> and its explicit, accumulated log-likelihood <code>Log Double</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Obtain an explicit value of the likelihood for a given value.</span>
+<span style="color:#a6e22e">runWeighted</span> <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Monad</span> m) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Weighted</span> m a <span style="color:#f92672">-&gt;</span> m (a, <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)
+<span style="color:#a6e22e">runWeighted</span> (<span style="color:#66d9ef">Weighted</span> m) <span style="color:#f92672">=</span> runStateT m <span style="color:#ae81ff">1</span>
+
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">MonadCond</span> (<span style="color:#66d9ef">Weighted</span> m) <span style="color:#66d9ef">where</span>
+  score w <span style="color:#f92672">=</span> <span style="color:#66d9ef">Weighted</span> (modify (<span style="color:#f92672">*</span> w))
+
+</code></pre></div><p>Weighting a representation <code>m</code> equips it with conditioning operation making <code>W m a</code> conditioning representation. If <code>m</code> was a sampling representation, its weighted version is also a sampling representation by lifting the sampling operation. Finally, the function <code>hoist</code> lifts inference transformations applicable to <code>m</code> and turns them into an inference transformations applicable to <code>T m</code>. When <code>m</code> is already a conditioning representation, we may use the conditioning available through the weighting transformer, or hoist <code>score r</code> to use the ambient conditioning of <code>m</code>.</p>
+<p>We can construct a simple inference algorithm by interpreting the model in <code>Weighted Sampler a</code>, which when run, lets us obtain a weighted sampler of type <code>Sampler (a, Log Double)</code>.</p>
+<p><em>Bayes.Population</em></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | A collection of weighted particles.</span>
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Population</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Population</span> (<span style="color:#66d9ef">Weighted</span> (<span style="color:#66d9ef">LogicT</span> m) a)
+
+<span style="color:#75715e">-- | Explicit representation of the weighted sample with weights in the log</span>
+<span style="color:#75715e">-- domain.</span>
+<span style="color:#a6e22e">runPopulation</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Population</span> m a <span style="color:#f92672">-&gt;</span> m [(a, <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)]
+<span style="color:#a6e22e">runPopulation</span> (<span style="color:#66d9ef">Population</span> m) <span style="color:#f92672">=</span> observeAllT <span style="color:#f92672">$</span> runWeighted m
+</code></pre></div><p>A population is a list of weighted particles, wrapped within some monadic context <code>m</code>. Hence, calling <code>runPopulation</code> will return a list of tuples containing particle values <code>a</code> and their associated weights <code>Log Double</code>. This is used during the particle filter.</p>
+<p>We use three inference transformations associated with <code>Population</code>:</p>
+<ul>
+<li>
+<p><strong><code>spawn</code></strong></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">spawn</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Population</span> m ()
+<span style="color:#a6e22e">spawn</span> n <span style="color:#f92672">=</span> fromWeightedList <span style="color:#f92672">$</span> pure <span style="color:#f92672">$</span> replicate n ((), <span style="color:#ae81ff">1</span> <span style="color:#f92672">/</span> fromIntegral n)
+</code></pre></div><p>This increases the sample size (number of particles in the population) by a given factor. The weights of the particles are adjusted such that their sum is preserved. It is therefore safe to use &lsquo;spawn&rsquo; in arbitrary places in the program without introducing bias.</p>
+</li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li>
+<p><strong><code>resample</code></strong></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">resampleSystematic</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadSample</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Population</span> m a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Population</span> m a
+</code></pre></div><p>This resamples the population using the underlying monad <code>m</code> and a systematic resampling scheme - i.e. it draws a new population with uniform weights from the current population (the total weight of the set of particles is preserved).Resampling’s purpose is to remedy situations when a single sample has a large weight compared to the other particles in the population and dominates the result making the other particles irrelevant.</p>
+</li>
+<li>
+<p><strong><code>pushEvidence</code></strong></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">pushEvidence</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadCond</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Population</span> m a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Population</span> m a
+<span style="color:#a6e22e">pushEvidence</span> <span style="color:#f92672">=</span> (hoist applyWeight) <span style="color:#f92672">.</span> extractEvidence
+</code></pre></div><p>This normalizes the weights in the population of particles, while at the same time incorporating the sum of the weights as a <code>score</code> in <code>m</code>, which is some monadic computation that can be conditioned.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Separate the sum of weights into the &#39;Weighted&#39; transformer.</span>
+<span style="color:#75715e">-- Weights are normalized after this operation.</span>
+<span style="color:#a6e22e">extractEvidence</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Population</span> m a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Population</span> (<span style="color:#66d9ef">Weighted</span> m) a
+<span style="color:#a6e22e">extractEvidence</span> m <span style="color:#f92672">=</span> fromWeightedList <span style="color:#f92672">$</span> <span style="color:#66d9ef">do</span>
+  pop <span style="color:#f92672">&lt;-</span> lift <span style="color:#f92672">$</span> runPopulation m
+  <span style="color:#66d9ef">let</span> (xs, ps) <span style="color:#f92672">=</span> unzip pop
+  <span style="color:#66d9ef">let</span> z <span style="color:#f92672">=</span> sum ps
+  <span style="color:#66d9ef">let</span> ws <span style="color:#f92672">=</span> map (<span style="color:#66d9ef">if</span> z <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span> <span style="color:#66d9ef">then</span> (<span style="color:#f92672">/</span> z) <span style="color:#66d9ef">else</span> const (<span style="color:#ae81ff">1</span> <span style="color:#f92672">/</span> fromIntegral (length ps))) ps
+  factor z
+  return <span style="color:#f92672">$</span> zip xs ws
+</code></pre></div><p>This function:</p>
+<ol>
+<li>Takes a population (a list of weighted particles)</li>
+<li>Sums up the weights of all the particles in <code>z = sum ps</code> (summing these weights is an estimate of the likelihood).</li>
+<li>Normalizes the weights of the particles, giving <code>ws</code>.</li>
+<li>Explicitly separates the sum of the weights of the population (the likelihood) into the <code>Weighted</code> transformer, by calling <code>factor z</code> (which I assume will always just multiply the initial weight 1 by z).</li>
+<li>Returns the set of particles and their normalized weights, where the likelihood <code>z</code> is separated and stored in the <code>Weighted m</code>.</li>
+</ol>
+<p>This results in a return type <code>Population (Weighted m) a</code>, which when run, will unwrap to become <code>m (Weighted (List (Weighted a)))</code> - i.e. the list of weighted particles and the likelihood.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Use the weight as a factor in the transformed monad.</span>
+<span style="color:#a6e22e">applyWeight</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadCond</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Weighted</span> m a <span style="color:#f92672">-&gt;</span> m a
+<span style="color:#a6e22e">applyWeight</span> m <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+  (x, w) <span style="color:#f92672">&lt;-</span> runWeighted m
+  factor w
+  return x
+</code></pre></div><p>This function, when hoisted to the type <code>Population (Weighted m) a -&gt; Population m a</code>, will incorporate the sum of the weights of the particles in the population (the likelihood stored in the <code>Weighted m</code>) as a score in the monad <code>m</code>. This then discards the likelihood, returning just <code>m a</code>.</p>
+</li>
+</ul>
+<p><em>Bayes.Sequential</em></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Represents a computation that can be suspended at certain points.</span>
+<span style="color:#75715e">-- The intermediate monadic effects can be extracted, which is particularly</span>
+<span style="color:#75715e">-- useful for implementation of particle filter related methods.</span>
+<span style="color:#75715e">-- All the probabilistic effects are lifted from the transformed monad, but</span>
+<span style="color:#75715e">-- also `suspend` is inserted after each `factor`/`score`.</span>
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Sequential</span> m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Sequential</span> {runSequential <span style="color:#f92672">::</span> <span style="color:#66d9ef">Coroutine</span> (<span style="color:#66d9ef">Await</span> ()) m a}
+  <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadTrans</span>, <span style="color:#66d9ef">MonadIO</span>)
+</code></pre></div><p>Many models exhibit a sequential structure where observations are interleaved with sampling. In those models a possible inference strategy is to consider a program up to a certain point, do inference on the partial posterior it defines, then run the program a little more, do more inference, and so on. To implement such algorithms we introduce the sequential transformer <code>Sequential</code> which introduces suspensions after each score in the program.</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
