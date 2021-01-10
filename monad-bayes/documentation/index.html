@@ -29,7 +29,7 @@
 <meta itemprop="description" content="1. What Does Monad-Bayes Do? The general way of inferring a posterior distribution given a likelihood and a prior is an approximate inference technique called MCMC which are a whole class of methods to infer the posterior. A key point to note is that although we are inferring the posterior, we are also inferring an estimate of the likelihood as well using the data. Inference in general is the act of predicting the values of something which we don&rsquo;t have access to directly, given some data.">
 <meta itemprop="datePublished" content="2020-11-13T14:04:44+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:04:44+00:00" />
-<meta itemprop="wordCount" content="6749">
+<meta itemprop="wordCount" content="7007">
 
 
 
@@ -487,6 +487,7 @@ Result: ()
 <h4 id="7-pmmh">7. PMMH</h4>
 <p>Given a prior and a likelihood function, normal metropolis-hastings is an algorithm for producing samples from the posterior distribution, and hence allows us to approximate the posterior without having the analytic formulation of the normalising constant.</p>
 <p>PMMH or PMCMC methods are normal MH/MCMC algorithms where we don&rsquo;t have the analytic formulation of the likelihood function, so it is instead replaced by a particle filter as an approximation to the likelihood function (we can run a particle filter, and at the end, we can extract an estimate of the likelihood function from this). This means that at the highest level, metropolis-hastings is run to draw samples from the posterior distribution. Each step of the metropolis-hastings algorithm produces a proposal sample &ndash; in order to correctly decide whether a proposal sample is &ldquo;representative enough&rdquo; of the posterior distribution, each proposed sample has its likelihood calculated (by using the particle filter). This likelihood is what determines whether we accept or reject proposals.</p>
+<p>Particle metropolis-hastings is implemented in the function <strong><code>pmmh</code></strong>:</p>
 <p><em>Bayes.Inference.PMMH</em></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">pmmh</span> <span style="color:#f92672">::</span>
   <span style="color:#66d9ef">MonadInfer</span> m <span style="color:#f92672">=&gt;</span>
@@ -502,15 +503,16 @@ Result: ()
   (b <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Sequential</span> (<span style="color:#66d9ef">Population</span> m) a) <span style="color:#f92672">-&gt;</span>
   m [[(a, <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)]]
 <span style="color:#a6e22e">pmmh</span> t k n param model <span style="color:#f92672">=</span>
-  mh t (param <span style="color:#f92672">&gt;&gt;=</span> runPopulation <span style="color:#f92672">.</span> pushEvidence <span style="color:#f92672">.</span> <span style="color:#66d9ef">Pop</span><span style="color:#f92672">.</span>hoist lift <span style="color:#f92672">.</span>
+  mh t (param <span style="color:#f92672">&gt;&gt;=</span> runPopulation <span style="color:#f92672">.</span> pushEvidence <span style="color:#f92672">.</span> <span style="color:#66d9ef">Pop</span><span style="color:#f92672">.</span>hoist <span style="color:#66d9ef">Traced</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Static</span><span style="color:#f92672">.</span>lift <span style="color:#f92672">.</span>
         smcSystematic k n <span style="color:#f92672">.</span> model)
 </code></pre></div><p>We can imagine that PMMH as a function is something which runs metropolis-hastings (<code>mh</code>) given a prior (<code>params</code>) and a likelihood function (<code>runPopulation . pushEvidence . Pop.hoist lift . smcSystematic k n . model</code>).</p>
+<p>Below, we elaborate on the different components of this function&rsquo;s definition.</p>
 <ul>
 <li>
-<p><code>model</code> - our model</p>
+<p><strong><code>model</code></strong> - our model of type <code>b -&gt; Sequential (Population m) a</code> where <code>b</code> represents the initial parameters given to our model, <code>a</code> will represent the type of sample we draw from our posterior distribution (which will most likely be the parameters of the model we&rsquo;re trying to infer), and <code>Sequential (Population m) a</code> represents the particle filter computation.</p>
 </li>
 <li>
-<p><code>smcSystematic</code> - the particle filter (Sequential Monte Carlo) which uses systematic resampling at each timestep as a resampling method. Hence composing <code>smcSystematic</code> with <code>model</code> is running the particle filter on the model we give it. What we are doing with a particle filter is simulating a set of particles with their associated weights, and it turns out that summing these weights is an estimate of the likelihood (of the sequence of random values sampled during the program&rsquo;s execution giving yield to the program&rsquo;s output).</p>
+<p><strong><code>smcSystematic</code></strong> - the particle filter (Sequential Monte Carlo) which uses systematic resampling at each timestep as a resampling method. Hence composing <code>smcSystematic</code> with <code>model</code> is running the particle filter on the model we give it.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Sequential Monte Carlo with systematic resampling at each timestep.</span>
 <span style="color:#75715e">-- Weights are not normalized.</span>
 <span style="color:#a6e22e">smcSystematic</span> <span style="color:#f92672">::</span>
@@ -523,12 +525,13 @@ Result: ()
   <span style="color:#66d9ef">Sequential</span> (<span style="color:#66d9ef">Population</span> m) a <span style="color:#f92672">-&gt;</span>
   <span style="color:#66d9ef">Population</span> m a
 <span style="color:#a6e22e">smcSystematic</span> <span style="color:#f92672">=</span> sir resampleSystematic
-</code></pre></div></li>
+</code></pre></div><p>What we are doing with a particle filter is simulating a set of particles with their associated weights, and it turns out that summing these weights is an estimate of the likelihood (of the sequence of random values sampled during the program&rsquo;s execution giving yield to the program&rsquo;s output).</p>
+</li>
 </ul>
 <!-- raw HTML omitted -->
 <ul>
 <li>
-<p><code>Pop.hoist lift</code> has type <code>Population m a -&gt; Population n a</code> &ndash; specifically in this case, it will have type <code>Population m a -&gt; Population (Traced m) a</code>, i think, because <code>lift</code> will be from the <code>MonadTrans</code> instance of <code>Traced</code>.</p>
+<p><strong><code>Pop.hoist lift</code></strong> has type <code>Population m a -&gt; Population n a</code> &ndash; specifically in this case, it will have type <code>Population m a -&gt; Population (Traced m) a</code>, i think, because <code>lift</code> will be from the <code>MonadTrans</code> instance of <code>Traced</code>.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">hoist</span> <span style="color:#f92672">::</span>
   (<span style="color:#66d9ef">Monad</span> m, <span style="color:#66d9ef">Monad</span> n) <span style="color:#f92672">=&gt;</span>
   (forall x<span style="color:#f92672">.</span> m x <span style="color:#f92672">-&gt;</span> n x) <span style="color:#f92672">-&gt;</span>
@@ -540,17 +543,48 @@ Result: ()
 <!-- raw HTML omitted -->
 <ul>
 <li>
-<p><code>pushEvidence</code> - the step which allows us to get the likelihood function from the particle filter.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Push the evidence estimator as a score to the transformed monad.</span>
+<p><strong><code>pushEvidence</code></strong></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">  <span style="color:#75715e">-- | Push the evidence estimator as a score to the transformed monad.</span>
 <span style="color:#75715e">-- Weights are normalized after this operation.</span>
 <span style="color:#a6e22e">pushEvidence</span> <span style="color:#f92672">::</span>
   <span style="color:#66d9ef">MonadCond</span> m <span style="color:#f92672">=&gt;</span>
   <span style="color:#66d9ef">Population</span> m a <span style="color:#f92672">-&gt;</span>
   <span style="color:#66d9ef">Population</span> m a
 <span style="color:#a6e22e">pushEvidence</span> <span style="color:#f92672">=</span> (hoist applyWeight) <span style="color:#f92672">.</span> extractEvidence
-<span style="color:#75715e">-- extractEvidence   :: Population m a -&gt; Population (Weighted m)</span>
-<span style="color:#75715e">-- hoist applyWeight :: Population (Weighted m a) -&gt; Population m a </span>
-</code></pre></div><p>Recall that a <code>Population</code> is a list of weighted samples, but these weights are implicit in the <code>Population</code> transformer,</p>
+</code></pre></div><p>This will:</p>
+<ol>
+<li>
+<p>Use <strong><code>extractEvidence</code></strong> to get the likelihood from the particle filter (as the sum of the weights of all the particles) and makes this likelihood explicit in the type <code>Weighted m</code> of <code>Population (Weighted m) a</code>. Recall that a <code>Population</code> is a list of weighted samples, but these weights are implicit in the <code>Population</code> transformer.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">extractEvidence</span>   <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Population</span> m a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Population</span> (<span style="color:#66d9ef">Weighted</span> m) a
+</code></pre></div></li>
+<li>
+<p>Use <strong><code>hoist applyWeight</code></strong> to factor this likelihood as a score in the transformed monad <code>m</code>, which is possible due to <code>m</code> being an instance of <code>MonadCond</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">hoist</span> applyWeight <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadCond</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Population</span> (<span style="color:#66d9ef">Weighted</span> m a) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Population</span> m a 
+</code></pre></div></li>
+</ol>
+</li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li>
+<p><strong><code>runPopulation</code></strong></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">runPopulation</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Population</span> m a <span style="color:#f92672">-&gt;</span> m [(a, <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)]
+<span style="color:#a6e22e">runPopulation</span> (<span style="color:#66d9ef">Population</span> m) <span style="color:#f92672">=</span> runListT <span style="color:#f92672">$</span> runWeighted m
+</code></pre></div><p>Calling <code>runPopulation</code> will then extract an explicit representation of the weighted particles.</p>
+</li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li>
+<p><strong><code>param &gt;&gt;= ... . model</code></strong></p>
+<p>In this code snippet, the prior distribution of our parameters, <code>param</code>, is represented in the form <code>Traced m b</code> where the <code>b</code> represents the prior parameters &ndash; this <code>b</code> is monadically extracted and then passed to our <code>model :: b -&gt; Sequential (Population m) a</code> .</p>
+</li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li>
+<p><strong><code>mh t ...</code></strong></p>
+<p>The metropolis hastings function <code>mh</code> is run for <code>t</code> amount of metropolis-hastings steps, using <code>(param &gt;&gt;= runPopulation . pushEvidence . Pop.hoist Traced.Static.lift . smcSystematic k n . model)</code> as a likelihood function to draw samples from the posterior distribution which are representative enough of the posterior.</p>
 </li>
 </ul>
 <div class="edit-meta">
