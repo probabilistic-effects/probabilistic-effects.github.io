@@ -29,7 +29,7 @@
 <meta itemprop="description" content="Implemented and integrated CPS version of StateT monad into monad-bayes:  type State s = StateT s Identity {-# INLINE state #-} state :: Monad m =&gt; (s -&gt; (a, s)) -&gt; StateT s m a state f = StateT (\s k -&gt; uncurry k (f s)) {-# INLINE runState #-} runState :: State s a -&gt; s -&gt; (a, s) runState mx = runIdentity . runStateT mx {-# INLINE evalState #-} evalState :: State s a -&gt; s -&gt; a evalState mx = runIdentity .">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="1335">
+<meta itemprop="wordCount" content="1390">
 
 
 
@@ -266,6 +266,11 @@
 </code></pre></div><p>Overall, these changes to <code>Trace</code> did not result in any runtime improvement.</p>
 <p><img src="https://i.ibb.co/W3Fqqnq/benchmark-15.png" alt="">
 <img src="https://i.ibb.co/71B0QYm/prof-5.png" alt=""></p>
+<ul>
+<li>CPS&rsquo;d the <code>Monad.Coroutine</code> library. When <em>rerunning</em> against the most optimal current branch <code>MonadLibCPS</code> (now yielding 5.26s, which was previously recorded at 4.82s), the CPS&rsquo;d coroutine version actually resulted in a slightly better run-time (5.17s), but this difference is so modest that it isn&rsquo;t clear which one is better. Interestingly enough, the profiling report changes completely.</li>
+</ul>
+<p><img src="https://i.ibb.co/Zc2ff93/benchmark-16.png" alt="">
+<img src="https://i.ibb.co/0nYc5kN/prof-6.png" alt=""></p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
@@ -350,19 +355,6 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/background/">Background</a>
   
 <ul class="sub-menu">
-<li class=""><a href="https://probabilistic-effects.github.io/background/staging/">Staging</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/smc-pmmh/">SMC and PMMH</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/handrolling/">Handrolling Monad Transformer Stacks</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/mtl/">MTL</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/mcmc-mh/">MCMC and MH</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/markov-chain/">Markov Chains</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/hidden-markov-model/">Hidden Markov Model</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/delimited-continuations/">Delimited Continuations</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/haskell-core/">Haskell Core</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/coroutines/">Coroutines</a></li>
 </ul>
   
 </li>
