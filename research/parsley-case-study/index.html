@@ -35,7 +35,7 @@ Usually, if one is confused about something in the core, it is best to compare i
 regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="9567">
+<meta itemprop="wordCount" content="10348">
 
 
 
@@ -900,6 +900,82 @@ Nope! When I CPS:</p>
 </code></pre></div><p>which is, hey presto, <code>Cod</code>.</p>
 <p><strong>MN</strong>:
 Ohh right! i forgot it was even a monad transformer.</p>
+<hr>
+<p><strong>MN</strong>:
+Hiya! I&rsquo;m converting a lot of the <code>Coroutine</code> library to CPS, where:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- Original Coroutine:</span>
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Coroutine</span> s m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> { resume <span style="color:#f92672">::</span> m (<span style="color:#66d9ef">Either</span> (s (<span style="color:#66d9ef">Coroutine</span> s m a)) a) }
+<span style="color:#75715e">-- CPS&#39;d Coroutine:</span>
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Coroutine&#39;</span> s m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine&#39;</span> { resume&#39; <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> (s (<span style="color:#66d9ef">Coroutine&#39;</span> s m a) <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> m r }
+<span style="color:#a6e22e">runCoroutine&#39;</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Coroutine&#39;</span> s m a <span style="color:#f92672">-&gt;</span> m (<span style="color:#66d9ef">Either</span> (s (<span style="color:#66d9ef">Coroutine&#39;</span> s m a)) a)
+</code></pre></div><p>But I&rsquo;m finding that in a lot of functions i&rsquo;m converting which involve monadic computation with <code>m</code>, such as:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">f</span> <span style="color:#f92672">::</span> m (<span style="color:#66d9ef">Either</span> (s (<span style="color:#66d9ef">Coroutine</span> s m a)) a) 
+  <span style="color:#f92672">-&gt;</span> m (<span style="color:#66d9ef">Either</span> (s (<span style="color:#66d9ef">Coroutine</span> s m b)) b)
+<span style="color:#a6e22e">foo</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Coroutine</span> s m a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m b 
+<span style="color:#a6e22e">foo</span> cort <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> { f ( resume cort ) }
+</code></pre></div><p>The CPS version i write always tends to involve me calling <code>runCoroutine'</code> and having to pattern match on <code>Either</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">foo</span> cort <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine&#39;</span> (<span style="color:#a6e22e">\</span>l r <span style="color:#f92672">-&gt;</span> x <span style="color:#f92672">&lt;-</span> f (runCoroutine&#39; cort)
+                               <span style="color:#66d9ef">case</span> x <span style="color:#66d9ef">of</span>
+                                  <span style="color:#66d9ef">Right</span> rv <span style="color:#f92672">-&gt;</span> r rv
+                                  <span style="color:#66d9ef">Left</span>  lv <span style="color:#f92672">-&gt;</span> l lv )
+</code></pre></div><p>Am i doing it wrong?</p>
+<p><strong>JW</strong>:
+What is <code>foo</code>?</p>
+<p><strong>MN</strong>:
+Some function that just applies <code>f</code> to the <code>m (Either (s (Coroutine s m a)) a)</code> inside of <code>Coroutine</code>.</p>
+<p><strong>JW</strong>:
+Right but it must have a &ldquo;normal&rdquo; name.</p>
+<p><strong>MN</strong>:
+Shall i give you a more concrete example?</p>
+<p><strong>JW</strong>:
+Yes.</p>
+<p><strong>MN</strong>:
+Original non-CPS&rsquo;d version of <code>liftBinder</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Coroutine</span> s m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> { resume <span style="color:#f92672">::</span> m (<span style="color:#66d9ef">Either</span> (s (<span style="color:#66d9ef">Coroutine</span> s m a)) a) }
+
+<span style="color:#66d9ef">type</span> <span style="color:#66d9ef">PairBinder</span> m <span style="color:#f92672">=</span> forall x y r<span style="color:#f92672">.</span> (x <span style="color:#f92672">-&gt;</span> y <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> m x <span style="color:#f92672">-&gt;</span> m y <span style="color:#f92672">-&gt;</span> m r
+
+<span style="color:#a6e22e">liftBinder</span> <span style="color:#f92672">::</span> forall s m<span style="color:#f92672">.</span> (<span style="color:#66d9ef">Functor</span> s, <span style="color:#66d9ef">Monad</span> m) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">PairBinder</span> m <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">PairBinder</span> (<span style="color:#66d9ef">Coroutine</span> s m)
+<span style="color:#a6e22e">liftBinder</span> binder f t1 t2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> (binder combine (resume t1) (resume t2)) 
+  <span style="color:#66d9ef">where</span>
+   combine (<span style="color:#66d9ef">Right</span> x) (<span style="color:#66d9ef">Right</span> y) <span style="color:#f92672">=</span> resume (f x y)
+   combine (<span style="color:#66d9ef">Left</span> s) (<span style="color:#66d9ef">Right</span> y)  <span style="color:#f92672">=</span> return <span style="color:#f92672">$</span> <span style="color:#66d9ef">Left</span> (fmap (flip f y <span style="color:#f92672">=&lt;&lt;</span>) s)
+   combine (<span style="color:#66d9ef">Right</span> x) (<span style="color:#66d9ef">Left</span> s)  <span style="color:#f92672">=</span> return <span style="color:#f92672">$</span> <span style="color:#66d9ef">Left</span> (fmap (f x <span style="color:#f92672">=&lt;&lt;</span>) s)
+   combine (<span style="color:#66d9ef">Left</span> s1) (<span style="color:#66d9ef">Left</span> s2) <span style="color:#f92672">=</span> return <span style="color:#f92672">$</span> <span style="color:#66d9ef">Left</span> (fmap (liftBinder binder f <span style="color:#f92672">$</span> suspend s1) s2)
+</code></pre></div><p>CPS&rsquo;d version of <code>liftBinder</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Coroutine&#39;</span> s m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine&#39;</span> { resume&#39; <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> (s (<span style="color:#66d9ef">Coroutine&#39;</span> s m a) <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> m r }
+
+<span style="color:#a6e22e">runCoroutine&#39;</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Coroutine&#39;</span> s m a <span style="color:#f92672">-&gt;</span> m (<span style="color:#66d9ef">Either</span> (s (<span style="color:#66d9ef">Coroutine&#39;</span> s m a)) a)
+
+<span style="color:#66d9ef">type</span> <span style="color:#66d9ef">PairBinder</span> m <span style="color:#f92672">=</span> forall x y r<span style="color:#f92672">.</span> (x <span style="color:#f92672">-&gt;</span> y <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> m x <span style="color:#f92672">-&gt;</span> m y <span style="color:#f92672">-&gt;</span> m r
+
+<span style="color:#a6e22e">liftBinder</span> <span style="color:#f92672">::</span> forall s m<span style="color:#f92672">.</span> (<span style="color:#66d9ef">Functor</span> s, <span style="color:#66d9ef">Monad</span> m) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">PairBinder</span> m <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">PairBinder</span> (<span style="color:#66d9ef">Coroutine&#39;</span> s m)
+<span style="color:#a6e22e">liftBinder</span> binder f t1 t2 <span style="color:#f92672">=</span>
+   <span style="color:#66d9ef">Coroutine</span> (<span style="color:#a6e22e">\</span>l r <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">do</span> x <span style="color:#f92672">&lt;-</span> binder combine (runCoroutine&#39; t1) (runCoroutine&#39; t2)
+                         <span style="color:#66d9ef">case</span> x <span style="color:#66d9ef">of</span> <span style="color:#66d9ef">Right</span> rv <span style="color:#f92672">-&gt;</span> r rv
+                                   <span style="color:#66d9ef">Left</span>  lv <span style="color:#f92672">-&gt;</span> l lv)
+   <span style="color:#66d9ef">where</span>
+    combine (<span style="color:#66d9ef">Right</span> x) (<span style="color:#66d9ef">Right</span> y) <span style="color:#f92672">=</span> runCoroutine&#39; (f x y)
+    combine (<span style="color:#66d9ef">Left</span> s) (<span style="color:#66d9ef">Right</span> y)  <span style="color:#f92672">=</span> return <span style="color:#f92672">$</span> <span style="color:#66d9ef">Left</span> (fmap (flip f y <span style="color:#f92672">=&lt;&lt;</span>) s)
+    combine (<span style="color:#66d9ef">Right</span> x) (<span style="color:#66d9ef">Left</span> s)  <span style="color:#f92672">=</span> return <span style="color:#f92672">$</span> <span style="color:#66d9ef">Left</span> (fmap (f x <span style="color:#f92672">=&lt;&lt;</span>) s)
+    combine (<span style="color:#66d9ef">Left</span> s1) (<span style="color:#66d9ef">Left</span> s2) <span style="color:#f92672">=</span> return <span style="color:#f92672">$</span> <span style="color:#66d9ef">Left</span> (fmap (liftBinder binder f <span style="color:#f92672">$</span> suspend s1) s2)
+</code></pre></div><p><strong>JW</strong>:
+I think I see how to do this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">resume&#39;</span> t1 (<span style="color:#a6e22e">\</span>s1 <span style="color:#f92672">-&gt;</span> resume&#39; t2 (<span style="color:#a6e22e">\</span>s2 <span style="color:#f92672">-&gt;</span> return (<span style="color:#66d9ef">Left</span> (fmap (liftBinder <span style="color:#f92672">...</span>)) (<span style="color:#a6e22e">\</span>y <span style="color:#f92672">-&gt;</span> return (<span style="color:#66d9ef">Left</span> (fmap (flip<span style="color:#f92672">...</span>)))))
+           (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> resume&#39; t2 (<span style="color:#a6e22e">\</span>s <span style="color:#f92672">-&gt;</span> return (<span style="color:#66d9ef">Left</span> (fmap (f x <span style="color:#f92672">=&lt;&lt;</span> <span style="color:#f92672">...</span>))) (<span style="color:#a6e22e">\</span>y <span style="color:#f92672">-&gt;</span> runCoroutine&#39; (f x y)))
+</code></pre></div><p>Think about the four cases in terms of how each continuation can reach it &ndash; whenever you match on <code>Either</code>, you just use the continuations instead. P.S. there is no way that expression is well-bracketed, but you should get the picture.</p>
+<p><strong>MN</strong>:
+Oh wow, so, we don&rsquo;t even have to use <code>binder</code>?</p>
+<p><strong>JW</strong>:
+You do. I just didn&rsquo;t put it in there, it either stays on the outside, or it goes on the inside of each one. I&rsquo;m not sure which, I just translated the <code>combine</code> application. It&rsquo;s possible <code>binder</code> needs a different type.</p>
+<p><strong>MN</strong>:
+Oh right! So that&rsquo;s <code>combine t1 t2</code>.</p>
+<p><strong>JW</strong>:
+Yeah</p>
+<p><strong>MN</strong>:
+That&rsquo;s so awesome, i was thinking about that approach but i wasn&rsquo;t sure how the cases translated to branching of continuations, thanks loads! I&rsquo;ll have a try at fitting the rest in.</p>
+<p><strong>JW</strong>:
+I would probably not try and translate what I did, but use the principal. Really, you should implement a parser combinator library, it helps with this sort of thing. It&rsquo;s basically 100% juggling these dual continuation structures (or in Parsecs case quad-continuation).</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
