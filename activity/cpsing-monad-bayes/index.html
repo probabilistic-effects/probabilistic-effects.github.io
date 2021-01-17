@@ -29,7 +29,7 @@
 <meta itemprop="description" content="Implemented and integrated CPS version of StateT monad into monad-bayes:  type State s = StateT s Identity {-# INLINE state #-} state :: Monad m =&gt; (s -&gt; (a, s)) -&gt; StateT s m a state f = StateT (\s k -&gt; uncurry k (f s)) {-# INLINE runState #-} runState :: State s a -&gt; s -&gt; (a, s) runState mx = runIdentity . runStateT mx {-# INLINE evalState #-} evalState :: State s a -&gt; s -&gt; a evalState mx = runIdentity .">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="1390">
+<meta itemprop="wordCount" content="2670">
 
 
 
@@ -269,8 +269,167 @@
 <ul>
 <li>CPS&rsquo;d the <code>Monad.Coroutine</code> library. When <em>rerunning</em> against the most optimal current branch <code>MonadLibCPS</code> (now yielding 5.26s, which was previously recorded at 4.82s), the CPS&rsquo;d coroutine version actually resulted in a slightly better run-time (5.17s), but this difference is so modest that it isn&rsquo;t clear which one is better. Interestingly enough, the profiling report changes completely.</li>
 </ul>
-<p><img src="https://i.ibb.co/Zc2ff93/benchmark-16.png" alt="">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Original version</span>
+
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Coroutine</span> s m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> {
+   resume <span style="color:#f92672">::</span> m (<span style="color:#66d9ef">Either</span> (s (<span style="color:#66d9ef">Coroutine</span> s m a)) a)
+}
+
+<span style="color:#66d9ef">instance</span> (<span style="color:#66d9ef">Functor</span> s, <span style="color:#66d9ef">Functor</span> m) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Functor</span> (<span style="color:#66d9ef">Coroutine</span> s m) <span style="color:#66d9ef">where</span>
+   fmap f t <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> (fmap (apply f) (resume t))
+      <span style="color:#66d9ef">where</span> apply fc (<span style="color:#66d9ef">Right</span> x) <span style="color:#f92672">=</span> <span style="color:#66d9ef">Right</span> (fc x)
+            apply fc (<span style="color:#66d9ef">Left</span> s) <span style="color:#f92672">=</span> <span style="color:#66d9ef">Left</span> (fmap (fmap fc) s)
+
+<span style="color:#66d9ef">instance</span> (<span style="color:#66d9ef">Functor</span> s, <span style="color:#66d9ef">Functor</span> m, <span style="color:#66d9ef">Monad</span> m) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Applicative</span> (<span style="color:#66d9ef">Coroutine</span> s m) <span style="color:#66d9ef">where</span>
+   pure <span style="color:#f92672">=</span> return
+   (<span style="color:#f92672">&lt;*&gt;</span>) <span style="color:#f92672">=</span> ap
+
+<span style="color:#66d9ef">instance</span> (<span style="color:#66d9ef">Functor</span> s, <span style="color:#66d9ef">Monad</span> m) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">Coroutine</span> s m) <span style="color:#66d9ef">where</span>
+   return x <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> (return (<span style="color:#66d9ef">Right</span> x))
+   t <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> (resume t <span style="color:#f92672">&gt;&gt;=</span> apply f)
+      <span style="color:#66d9ef">where</span> apply fc (<span style="color:#66d9ef">Right</span> x) <span style="color:#f92672">=</span> resume (fc x)
+            apply fc (<span style="color:#66d9ef">Left</span> s) <span style="color:#f92672">=</span> return (<span style="color:#66d9ef">Left</span> (fmap (<span style="color:#f92672">&gt;&gt;=</span> fc) s))
+   t <span style="color:#f92672">&gt;&gt;</span> f <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> (resume t <span style="color:#f92672">&gt;&gt;=</span> apply f)
+      <span style="color:#66d9ef">where</span> apply fc (<span style="color:#66d9ef">Right</span> <span style="color:#66d9ef">_</span>) <span style="color:#f92672">=</span> resume fc
+            apply fc (<span style="color:#66d9ef">Left</span> s) <span style="color:#f92672">=</span> return (<span style="color:#66d9ef">Left</span> (fmap (<span style="color:#f92672">&gt;&gt;</span> fc) s))
+
+<span style="color:#a6e22e">mapMonad</span> <span style="color:#f92672">::</span> forall s m m&#39; x<span style="color:#f92672">.</span> (<span style="color:#66d9ef">Functor</span> s, <span style="color:#66d9ef">Monad</span> m, <span style="color:#66d9ef">Monad</span> m&#39;) <span style="color:#f92672">=&gt;</span>
+            (forall y<span style="color:#f92672">.</span> m y <span style="color:#f92672">-&gt;</span> m&#39; y) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m x <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m&#39; x
+<span style="color:#a6e22e">mapMonad</span> f cort <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> {resume<span style="color:#f92672">=</span> liftM map&#39; (f <span style="color:#f92672">$</span> resume cort)}
+   <span style="color:#66d9ef">where</span> map&#39; (<span style="color:#66d9ef">Right</span> r) <span style="color:#f92672">=</span> <span style="color:#66d9ef">Right</span> r
+         map&#39; (<span style="color:#66d9ef">Left</span> s) <span style="color:#f92672">=</span> <span style="color:#66d9ef">Left</span> (fmap (mapMonad f) s)
+
+<span style="color:#a6e22e">bounce</span> <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Monad</span> m, <span style="color:#66d9ef">Functor</span> s) <span style="color:#f92672">=&gt;</span> (s (<span style="color:#66d9ef">Coroutine</span> s m x) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m x) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m x <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m x
+<span style="color:#a6e22e">bounce</span> spring c <span style="color:#f92672">=</span> lift (resume c) <span style="color:#f92672">&gt;&gt;=</span> either spring return
+
+<span style="color:#a6e22e">pogoStick</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> (s (<span style="color:#66d9ef">Coroutine</span> s m x) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m x) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m x <span style="color:#f92672">-&gt;</span> m x
+<span style="color:#a6e22e">pogoStick</span> spring <span style="color:#f92672">=</span> loop
+   <span style="color:#66d9ef">where</span> loop c <span style="color:#f92672">=</span> resume c <span style="color:#f92672">&gt;&gt;=</span> either (loop <span style="color:#f92672">.</span> spring) return
+
+<span style="color:#a6e22e">await</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Coroutine</span> (<span style="color:#66d9ef">Await</span> x) m x
+<span style="color:#a6e22e">await</span> <span style="color:#f92672">=</span> suspend (<span style="color:#66d9ef">Await</span> return)
+
+<span style="color:#a6e22e">suspend</span> <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Monad</span> m, <span style="color:#66d9ef">Functor</span> s) <span style="color:#f92672">=&gt;</span> s (<span style="color:#66d9ef">Coroutine</span> s m x) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m x
+<span style="color:#a6e22e">suspend</span> s <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> (return (<span style="color:#66d9ef">Left</span> s))
+
+<span style="color:#a6e22e">liftBinder</span> <span style="color:#f92672">::</span> forall s m<span style="color:#f92672">.</span> (<span style="color:#66d9ef">Functor</span> s, <span style="color:#66d9ef">Monad</span> m) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">PairBinder</span> m <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">PairBinder</span> (<span style="color:#66d9ef">Coroutine</span> s m)
+<span style="color:#a6e22e">liftBinder</span> binder f t1 t2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> (binder combine (resume t1) (resume t2)) <span style="color:#66d9ef">where</span>
+   combine (<span style="color:#66d9ef">Right</span> x) (<span style="color:#66d9ef">Right</span> y) <span style="color:#f92672">=</span> resume (f x y)
+   combine (<span style="color:#66d9ef">Left</span> s) (<span style="color:#66d9ef">Right</span> y) <span style="color:#f92672">=</span> return <span style="color:#f92672">$</span> <span style="color:#66d9ef">Left</span> (fmap (flip f y <span style="color:#f92672">=&lt;&lt;</span>) s)
+   combine (<span style="color:#66d9ef">Right</span> x) (<span style="color:#66d9ef">Left</span> s) <span style="color:#f92672">=</span> return <span style="color:#f92672">$</span> <span style="color:#66d9ef">Left</span> (fmap (f x <span style="color:#f92672">=&lt;&lt;</span>) s)
+   combine (<span style="color:#66d9ef">Left</span> s1) (<span style="color:#66d9ef">Left</span> s2) <span style="color:#f92672">=</span> return <span style="color:#f92672">$</span> <span style="color:#66d9ef">Left</span> (fmap (liftBinder binder f <span style="color:#f92672">$</span> suspend s1) s2)
+
+<span style="color:#75715e">-- | CPS&#39;d version</span>
+
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Coroutine</span> s m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> {
+   resume <span style="color:#f92672">::</span> forall r<span style="color:#f92672">.</span> (s (<span style="color:#66d9ef">Coroutine</span> s m a) <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> (a <span style="color:#f92672">-&gt;</span> m r) <span style="color:#f92672">-&gt;</span> m r
+}
+
+<span style="color:#a6e22e">runCoroutine&#39;</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m a <span style="color:#f92672">-&gt;</span> m (<span style="color:#66d9ef">Either</span> (s (<span style="color:#66d9ef">Coroutine</span> s m a)) a)
+<span style="color:#a6e22e">runCoroutine&#39;</span> (<span style="color:#66d9ef">Coroutine</span> f) <span style="color:#f92672">=</span> f (return <span style="color:#f92672">.</span> <span style="color:#66d9ef">Left</span>) (return <span style="color:#f92672">.</span> <span style="color:#66d9ef">Right</span>)
+
+<span style="color:#66d9ef">instance</span> (<span style="color:#66d9ef">Functor</span> s, <span style="color:#66d9ef">Functor</span> m) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Functor</span> (<span style="color:#66d9ef">Coroutine</span> s m) <span style="color:#66d9ef">where</span>
+   fmap f (t) <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> (<span style="color:#a6e22e">\</span>l r <span style="color:#f92672">-&gt;</span>
+                             (resume t (l <span style="color:#f92672">.</span> (<span style="color:#a6e22e">\</span>s <span style="color:#f92672">-&gt;</span> fmap (fmap f) s)) (r <span style="color:#f92672">.</span> (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> f x))))
+
+<span style="color:#66d9ef">instance</span> (<span style="color:#66d9ef">Functor</span> s, <span style="color:#66d9ef">Functor</span> m, <span style="color:#66d9ef">Monad</span> m) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Applicative</span> (<span style="color:#66d9ef">Coroutine</span> s m) <span style="color:#66d9ef">where</span>
+   pure <span style="color:#f92672">=</span> return
+   (<span style="color:#f92672">&lt;*&gt;</span>) <span style="color:#f92672">=</span> ap
+
+<span style="color:#66d9ef">instance</span> (<span style="color:#66d9ef">Functor</span> s, <span style="color:#66d9ef">Monad</span> m) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">Coroutine</span> s m) <span style="color:#66d9ef">where</span>
+   return x <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> (<span style="color:#a6e22e">\</span>l r <span style="color:#f92672">-&gt;</span> r x)
+   <span style="color:#75715e">{-# INLINABLE (&gt;&gt;=) #-}</span>
+   t <span style="color:#f92672">&gt;&gt;=</span> f <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> (<span style="color:#a6e22e">\</span>l r <span style="color:#f92672">-&gt;</span> 
+                           resume t (<span style="color:#a6e22e">\</span>s <span style="color:#f92672">-&gt;</span> l (fmap (<span style="color:#f92672">&gt;&gt;=</span> f) s))
+                                    (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> resume (f x) l r) 
+                        )
+   <span style="color:#75715e">{-# INLINABLE (&gt;&gt;) #-}</span>
+   t <span style="color:#f92672">&gt;&gt;</span> f <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span>  (<span style="color:#a6e22e">\</span>l r <span style="color:#f92672">-&gt;</span>
+                           resume t (<span style="color:#a6e22e">\</span>s <span style="color:#f92672">-&gt;</span> l (fmap (<span style="color:#f92672">&gt;&gt;</span> f) s))
+                                    (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> (resume f) l r )
+                        )
+
+<span style="color:#a6e22e">mapMonad</span> <span style="color:#f92672">::</span> forall s m m&#39; x<span style="color:#f92672">.</span> (<span style="color:#66d9ef">Functor</span> s, <span style="color:#66d9ef">Monad</span> m, <span style="color:#66d9ef">Monad</span> m&#39;) <span style="color:#f92672">=&gt;</span>
+            (forall y<span style="color:#f92672">.</span> m y <span style="color:#f92672">-&gt;</span> m&#39; y) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m x <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m&#39; x
+<span style="color:#a6e22e">mapMonad</span> f cort <span style="color:#f92672">=</span> 
+   <span style="color:#66d9ef">Coroutine</span> (<span style="color:#a6e22e">\</span>l r <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">do</span> x <span style="color:#f92672">&lt;-</span> f (runCoroutine&#39; cort)
+                         <span style="color:#66d9ef">case</span> x <span style="color:#66d9ef">of</span> <span style="color:#66d9ef">Left</span> s  <span style="color:#f92672">-&gt;</span> l (fmap (mapMonad f) s)
+                                   <span style="color:#66d9ef">Right</span> a <span style="color:#f92672">-&gt;</span> r a )
+
+<span style="color:#a6e22e">bounce</span> <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Monad</span> m, <span style="color:#66d9ef">Functor</span> s) <span style="color:#f92672">=&gt;</span>
+          (s (<span style="color:#66d9ef">Coroutine</span> s m a) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m a) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m a
+<span style="color:#a6e22e">bounce</span> spring c <span style="color:#f92672">=</span> lift (runCoroutine&#39; c) <span style="color:#f92672">&gt;&gt;=</span> either spring return
+
+<span style="color:#a6e22e">pogoStick</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> (s (<span style="color:#66d9ef">Coroutine</span> s m x) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m x) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m x <span style="color:#f92672">-&gt;</span> m x
+<span style="color:#a6e22e">pogoStick</span> spring <span style="color:#f92672">=</span> loop
+   <span style="color:#66d9ef">where</span> loop c <span style="color:#f92672">=</span> runCoroutine&#39; c <span style="color:#f92672">&gt;&gt;=</span> either (loop <span style="color:#f92672">.</span> spring) return
+
+<span style="color:#a6e22e">await</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Coroutine</span> (<span style="color:#66d9ef">Await</span> x) m x
+<span style="color:#a6e22e">await</span> <span style="color:#f92672">=</span> suspend (<span style="color:#66d9ef">Await</span> return)
+
+<span style="color:#a6e22e">suspend</span> <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Monad</span> m, <span style="color:#66d9ef">Functor</span> s) <span style="color:#f92672">=&gt;</span> s (<span style="color:#66d9ef">Coroutine</span> s m x) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m x
+<span style="color:#a6e22e">suspend</span> s <span style="color:#f92672">=</span> <span style="color:#66d9ef">Coroutine</span> (<span style="color:#a6e22e">\</span>l r <span style="color:#f92672">-&gt;</span> l s)
+
+<span style="color:#75715e">-- | Lifting a &#39;PairBinder&#39; onto a &#39;Coroutine&#39; monad transformer.</span>
+<span style="color:#a6e22e">liftBinder</span> <span style="color:#f92672">::</span> forall s m<span style="color:#f92672">.</span> (<span style="color:#66d9ef">Functor</span> s, <span style="color:#66d9ef">Monad</span> m) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">PairBinder</span> m <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">PairBinder</span> (<span style="color:#66d9ef">Coroutine</span> s m)
+<span style="color:#a6e22e">liftBinder</span> binder f t1 t2 <span style="color:#f92672">=</span>
+   <span style="color:#66d9ef">Coroutine</span> (<span style="color:#a6e22e">\</span>l r <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">do</span> x <span style="color:#f92672">&lt;-</span> binder combine (runCoroutine&#39; t1) (runCoroutine&#39; t2)
+                         <span style="color:#66d9ef">case</span> x <span style="color:#66d9ef">of</span> <span style="color:#66d9ef">Right</span> rv <span style="color:#f92672">-&gt;</span> r rv
+                                   <span style="color:#66d9ef">Left</span>  lv <span style="color:#f92672">-&gt;</span> l lv)
+   <span style="color:#66d9ef">where</span>
+   combine (<span style="color:#66d9ef">Right</span> x) (<span style="color:#66d9ef">Right</span> y) <span style="color:#f92672">=</span> runCoroutine&#39; (f x y)
+   combine (<span style="color:#66d9ef">Left</span> s) (<span style="color:#66d9ef">Right</span> y)  <span style="color:#f92672">=</span> return <span style="color:#f92672">$</span> <span style="color:#66d9ef">Left</span> (fmap (flip f y <span style="color:#f92672">=&lt;&lt;</span>) s)
+   combine (<span style="color:#66d9ef">Right</span> x) (<span style="color:#66d9ef">Left</span> s)  <span style="color:#f92672">=</span> return <span style="color:#f92672">$</span> <span style="color:#66d9ef">Left</span> (fmap (f x <span style="color:#f92672">=&lt;&lt;</span>) s)
+   combine (<span style="color:#66d9ef">Left</span> s1) (<span style="color:#66d9ef">Left</span> s2) <span style="color:#f92672">=</span> return <span style="color:#f92672">$</span> <span style="color:#66d9ef">Left</span> (fmap (liftBinder binder f <span style="color:#f92672">$</span> suspend s1) s2)
+</code></pre></div><p><img src="https://i.ibb.co/Zc2ff93/benchmark-16.png" alt="">
 <img src="https://i.ibb.co/0nYc5kN/prof-6.png" alt=""></p>
+<ul>
+<li>Improved the CPS&rsquo;ing definitions in <code>Monad.Coroutine</code> library to use less of the <code>runCoroutine'</code> function.</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- Previous CPS&#39;d version</span>
+<span style="color:#a6e22e">bounce</span> <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Monad</span> m, <span style="color:#66d9ef">Functor</span> s) <span style="color:#f92672">=&gt;</span>
+          (s (<span style="color:#66d9ef">Coroutine</span> s m a) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m a) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m a
+<span style="color:#a6e22e">bounce</span> spring c <span style="color:#f92672">=</span> lift (runCoroutine&#39; c) <span style="color:#f92672">&gt;&gt;=</span> either spring return
+
+<span style="color:#a6e22e">pogoStick</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> (s (<span style="color:#66d9ef">Coroutine</span> s m x) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m x) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m x <span style="color:#f92672">-&gt;</span> m x
+<span style="color:#a6e22e">pogoStick</span> spring <span style="color:#f92672">=</span> loop
+   <span style="color:#66d9ef">where</span> loop c <span style="color:#f92672">=</span> runCoroutine&#39; c <span style="color:#f92672">&gt;&gt;=</span> either (loop <span style="color:#f92672">.</span> spring) return
+
+<span style="color:#a6e22e">liftBinder</span> <span style="color:#f92672">::</span> forall s m<span style="color:#f92672">.</span> (<span style="color:#66d9ef">Functor</span> s, <span style="color:#66d9ef">Monad</span> m) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">PairBinder</span> m <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">PairBinder</span> (<span style="color:#66d9ef">Coroutine</span> s m)
+<span style="color:#a6e22e">liftBinder</span> binder f t1 t2 <span style="color:#f92672">=</span>
+   <span style="color:#66d9ef">Coroutine</span> (<span style="color:#a6e22e">\</span>l r <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">do</span> x <span style="color:#f92672">&lt;-</span> binder combine (runCoroutine&#39; t1) (runCoroutine&#39; t2)
+                         <span style="color:#66d9ef">case</span> x <span style="color:#66d9ef">of</span> <span style="color:#66d9ef">Right</span> rv <span style="color:#f92672">-&gt;</span> r rv
+                                   <span style="color:#66d9ef">Left</span>  lv <span style="color:#f92672">-&gt;</span> l lv)
+   <span style="color:#66d9ef">where</span>
+   combine (<span style="color:#66d9ef">Right</span> x) (<span style="color:#66d9ef">Right</span> y) <span style="color:#f92672">=</span> runCoroutine&#39; (f x y)
+   combine (<span style="color:#66d9ef">Left</span> s) (<span style="color:#66d9ef">Right</span> y)  <span style="color:#f92672">=</span> return <span style="color:#f92672">$</span> <span style="color:#66d9ef">Left</span> (fmap (flip f y <span style="color:#f92672">=&lt;&lt;</span>) s)
+   combine (<span style="color:#66d9ef">Right</span> x) (<span style="color:#66d9ef">Left</span> s)  <span style="color:#f92672">=</span> return <span style="color:#f92672">$</span> <span style="color:#66d9ef">Left</span> (fmap (f x <span style="color:#f92672">=&lt;&lt;</span>) s)
+   combine (<span style="color:#66d9ef">Left</span> s1) (<span style="color:#66d9ef">Left</span> s2) <span style="color:#f92672">=</span> return <span style="color:#f92672">$</span> <span style="color:#66d9ef">Left</span> (fmap (liftBinder binder f <span style="color:#f92672">$</span> suspend s1) s2)
+
+<span style="color:#75715e">-- CPS&#39;d version</span>
+<span style="color:#a6e22e">bounce</span> <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Monad</span> m, <span style="color:#66d9ef">Functor</span> s) <span style="color:#f92672">=&gt;</span>
+          (s (<span style="color:#66d9ef">Coroutine</span> s m a) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m a) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m a
+<span style="color:#a6e22e">bounce</span> spring c <span style="color:#f92672">=</span>
+      <span style="color:#66d9ef">Coroutine</span> (<span style="color:#a6e22e">\</span>l r <span style="color:#f92672">-&gt;</span> resume c (<span style="color:#a6e22e">\</span>s <span style="color:#f92672">-&gt;</span> resume (spring s) l r) r ) 
+
+<span style="color:#a6e22e">pogoStick</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Monad</span> m <span style="color:#f92672">=&gt;</span> (s (<span style="color:#66d9ef">Coroutine</span> s m x) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m x) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Coroutine</span> s m x <span style="color:#f92672">-&gt;</span> m x
+<span style="color:#a6e22e">pogoStick</span> spring <span style="color:#f92672">=</span> loop
+  <span style="color:#66d9ef">where</span> loop c <span style="color:#f92672">=</span> resume c (loop <span style="color:#f92672">.</span> spring) (return)
+
+<span style="color:#a6e22e">liftBinder</span> <span style="color:#f92672">::</span> forall s m<span style="color:#f92672">.</span> (<span style="color:#66d9ef">Functor</span> s, <span style="color:#66d9ef">Monad</span> m) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">PairBinder</span> (<span style="color:#66d9ef">Coroutine</span> s m)
+<span style="color:#a6e22e">liftBinder</span> f t1 t2 <span style="color:#f92672">=</span>
+     <span style="color:#66d9ef">Coroutine</span>
+      (<span style="color:#a6e22e">\</span>l r <span style="color:#f92672">-&gt;</span>
+         resume t1 (<span style="color:#a6e22e">\</span>s1 <span style="color:#f92672">-&gt;</span> resume t2 (l <span style="color:#f92672">.</span> (<span style="color:#a6e22e">\</span>s2 <span style="color:#f92672">-&gt;</span> (fmap (liftBinder f <span style="color:#f92672">$</span> suspend s1) s2)))
+                                     (l <span style="color:#f92672">.</span> (<span style="color:#a6e22e">\</span>y <span style="color:#f92672">-&gt;</span> (fmap (flip f y <span style="color:#f92672">=&lt;&lt;</span>) s1)))
+                   )
+                   (<span style="color:#a6e22e">\</span>x  <span style="color:#f92672">-&gt;</span> resume t2 (l <span style="color:#f92672">.</span> (<span style="color:#a6e22e">\</span>s <span style="color:#f92672">-&gt;</span> (fmap (f x <span style="color:#f92672">=&lt;&lt;</span>) s)))
+                                     (<span style="color:#a6e22e">\</span>y <span style="color:#f92672">-&gt;</span> resume (f x y) l r)
+                   )
+      )
+</code></pre></div><p>This gives the following benchmarks and profiling report:</p>
+<p><img src="https://i.ibb.co/YTrdD6x/benchmark-17.png" alt="">
+<img src="https://i.ibb.co/v4qmbVt/prof-7.png" alt=""></p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
