@@ -29,7 +29,7 @@
 <meta itemprop="description" content="Implemented and integrated CPS version of StateT monad into monad-bayes:  type State s = StateT s Identity {-# INLINE state #-} state :: Monad m =&gt; (s -&gt; (a, s)) -&gt; StateT s m a state f = StateT (\s k -&gt; uncurry k (f s)) {-# INLINE runState #-} runState :: State s a -&gt; s -&gt; (a, s) runState mx = runIdentity . runStateT mx {-# INLINE evalState #-} evalState :: State s a -&gt; s -&gt; a evalState mx = runIdentity .">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="2670">
+<meta itemprop="wordCount" content="2684">
 
 
 
@@ -430,6 +430,14 @@
 </code></pre></div><p>This gives the following benchmarks and profiling report:</p>
 <p><img src="https://i.ibb.co/YTrdD6x/benchmark-17.png" alt="">
 <img src="https://i.ibb.co/v4qmbVt/prof-7.png" alt=""></p>
+<ul>
+<li>Put an <code>INLINABLE</code> pragma on <code>proper</code> from <code>Bayes.Population</code>.</li>
+</ul>
+<p><img src="https://i.ibb.co/6FL3xTm/benchmark-18.png" alt=""></p>
+<ul>
+<li>Added <code>-O2</code>, <code>-funfolding-use-threshold=16</code>, and <code>-fexcess-precision</code> flags.</li>
+</ul>
+<p><img src="https://i.ibb.co/SsFwVrk/benchmark-19.png" alt=""></p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
@@ -527,6 +535,7 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/coroutines/">Coroutines</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/monad-transformers/"></a></li>
 </ul>
   
 </li>

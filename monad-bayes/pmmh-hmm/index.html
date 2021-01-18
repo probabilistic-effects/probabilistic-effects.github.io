@@ -35,7 +35,7 @@ First, for simplicity we consider our latent states xi to be integers, and the c
 data ObservedState = Obs { obs :: Int } deriving Show data LatentState = Lat { lat :: Int } deriving Show We then choose the parameters of the HMM (i.">
 <meta itemprop="datePublished" content="2020-11-13T14:04:50+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:04:50+00:00" />
-<meta itemprop="wordCount" content="1652">
+<meta itemprop="wordCount" content="1801">
 
 
 
@@ -170,22 +170,23 @@ data ObservedState = Obs { obs :: Int } deriving Show data LatentState = Lat { l
 <p>The return type <code>m [[(a, Log Double)]]</code> represents a distribution over all possible parameters for our model. The type <code>a</code> represents parameters and <code>Log Double</code> represents the corresponding likelihood of those parameters for our model. More precisely, it returns the history of all the particles and their associated probabilities/weightings for each step during Metropolis-Hastings.</p>
 </li>
 </ol>
-<p><strong>Finally</strong>, we can put all this together to create a function <code>testInference</code> which uses <code>pmmh</code> on our HMM.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">testInference</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> [[(<span style="color:#66d9ef">Params</span>, <span style="color:#66d9ef">Numeric</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Log</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)]]
-<span style="color:#a6e22e">testInference</span> nsteps nparticles <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+<p><strong>Finally</strong>, we can put all this together to create a function <code>inferModel </code> which uses <code>pmmh</code> on our HMM.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">inferModel</span>  <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> [[(<span style="color:#66d9ef">Params</span>, <span style="color:#66d9ef">Numeric</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Log</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)]]
+<span style="color:#a6e22e">inferModel</span> n_mhsteps n_timesteps n_particles <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
     ys <span style="color:#f92672">&lt;-</span> parseFromFile dataParser <span style="color:#e6db74">&#34;data/datafile&#34;</span>
     <span style="color:#66d9ef">case</span> ys <span style="color:#66d9ef">of</span>
       (<span style="color:#66d9ef">Left</span> <span style="color:#66d9ef">_</span>)    <span style="color:#f92672">-&gt;</span> <span style="color:#a6e22e">error</span> <span style="color:#e6db74">&#34;naughty&#34;</span>
       (<span style="color:#66d9ef">Right</span> obsData) <span style="color:#f92672">-&gt;</span> sampleIO <span style="color:#f92672">$</span> <span style="color:#66d9ef">do</span>
-              pmmhRes <span style="color:#f92672">&lt;-</span> prior <span style="color:#f92672">$</span> pmmh nsteps <span style="color:#ae81ff">14</span> nparticles paramsPrior
+              pmmhRes <span style="color:#f92672">&lt;-</span> prior <span style="color:#f92672">$</span> pmmh n_mhsteps n_timesteps n_particles  paramsPrior
                                       (scoreModel obsData initialLatState)
               return pmmhRes
 </code></pre></div><ol>
 <li>
 <p>Running <code>pmmh</code> on our HMM returns a value of type:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">pmmh</span> nsteps <span style="color:#ae81ff">14</span> nparticles paramsPrior (scoreModel obsData initialLatState)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">pmmh</span> n_mhsteps n_timesteps n_particles paramsPrior (scoreModel obsData initialLatState)
    <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadInfer</span> m <span style="color:#f92672">=&gt;</span> m [[(<span style="color:#66d9ef">Params</span>, <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)]]
-</code></pre></div></li>
+</code></pre></div><p>The number of metropolis-hastings steps is how long we run the Markov chain for, which is as long as you want. Running it for longer just gives you a better estimate, tending towards the true value. Similarly, the number of particles is the population size we want to use in our particle filter - as the particle filter is a means of estimating the likelihood, increasing the number of particles increases the likelihood estimate accuracy, so the number of particles can be anything we choose. The number of time steps is the amount of particle filter steps to run during each call to the particle filter - this is the same as the amount of data points we provide it in our <code>datafile</code>. Each data point in this file corresponds to the true values of each time step, which the particle filter will weight the simulated particles against.</p>
+</li>
 <li>
 <p>Applying the monad-bayes function <code>prior</code> to an inference representation will execute the program (with <code>runStateT</code>) and return us a value from the distribution over values of type <code>a</code>. (This could be imagined as turning the inference representation into a prior distribution from which we can sample parameters from.)</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Compute the sample and discard the weight.</span>
@@ -307,6 +308,7 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/coroutines/">Coroutines</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/monad-transformers/"></a></li>
 </ul>
   
 </li>
