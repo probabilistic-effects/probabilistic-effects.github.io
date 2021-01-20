@@ -22,9 +22,7 @@
       <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
       
       <guid>https://probabilistic-effects.github.io/activity/inlining-monad-bayes/</guid>
-      <description>Original profiling report for PMMH inference on a HMM:
-  Analysing the dumped core of Population.hs and Weighted.hs of monad-bayes:
-It turns out that we should expect to see these definitions, however if we use optimization:2, then we should also expect them to not actually be used. This is because GHC generates a lot of garbage that it doesn&amp;rsquo;t seem to want to remove, but when we go to places where they would have been used, we should be able to find that they aren&amp;rsquo;t actually there.</description>
+      <description>Original benchmark, using a data file containing 500 data points:  scoreModel :: MonadInfer m =&amp;gt; LatentState -&amp;gt; [ObservedState] -&amp;gt; Params -&amp;gt; m Params scoreModel latentState observedStates params = do let observe n p y = score (binomialPdf n p y) go [] x = return x go (y:ys) x = do x&amp;#39; &amp;lt;- transitionModel params x observe (getLat x&amp;#39;) ((fromIntegral $ getLat x&amp;#39;) * (observation_p params)) y go ys x&amp;#39; (go $!</description>
     </item>
     
   </channel>

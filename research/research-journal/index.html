@@ -18,7 +18,7 @@
 </style>
 <meta property="og:title" content="Research Journal" />
 <meta property="og:description" content="Activity (MN) 18/01/2021
- To do:  Check if all of the naive optimisation options have been exhausted:  Inlining CPS&rsquo;ing Unboxed types Strictness annotations Strength reduction Compile-time flags Modules: Using explicit export lists   Implement a version of trace mcmc in c&#43;&#43; / r to compare against, just because there’s no point comparing to mcmc without tracing. Learn about eff and implement monad-bayes in eff    Meeting (MN &#43; AZ) 05/01/2021 - 17/01/2021" />
+ Checking if all of the naive optimisation options have been exhausted:  Inlining (x) CPS&rsquo;ing (x) Compile-time flags (x) Modules &ndash; using explicit export lists (x) The following have been partially applied, but is typically time-consuming and yield small improvements:  Unboxed types (?) Strictness annotations (?) Strength reduction (?)     To do:  Implement a version of trace mcmc in c&#43;&#43; / r to compare against, just because there’s no point comparing to mcmc without tracing." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://probabilistic-effects.github.io/research/research-journal/" />
 <meta property="article:published_time" content="2020-11-13T14:05:57+00:00" />
@@ -26,13 +26,13 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Research Journal"/>
 <meta name="twitter:description" content="Activity (MN) 18/01/2021
- To do:  Check if all of the naive optimisation options have been exhausted:  Inlining CPS&rsquo;ing Unboxed types Strictness annotations Strength reduction Compile-time flags Modules: Using explicit export lists   Implement a version of trace mcmc in c&#43;&#43; / r to compare against, just because there’s no point comparing to mcmc without tracing. Learn about eff and implement monad-bayes in eff    Meeting (MN &#43; AZ) 05/01/2021 - 17/01/2021"/>
+ Checking if all of the naive optimisation options have been exhausted:  Inlining (x) CPS&rsquo;ing (x) Compile-time flags (x) Modules &ndash; using explicit export lists (x) The following have been partially applied, but is typically time-consuming and yield small improvements:  Unboxed types (?) Strictness annotations (?) Strength reduction (?)     To do:  Implement a version of trace mcmc in c&#43;&#43; / r to compare against, just because there’s no point comparing to mcmc without tracing."/>
 <meta itemprop="name" content="Research Journal">
 <meta itemprop="description" content="Activity (MN) 18/01/2021
- To do:  Check if all of the naive optimisation options have been exhausted:  Inlining CPS&rsquo;ing Unboxed types Strictness annotations Strength reduction Compile-time flags Modules: Using explicit export lists   Implement a version of trace mcmc in c&#43;&#43; / r to compare against, just because there’s no point comparing to mcmc without tracing. Learn about eff and implement monad-bayes in eff    Meeting (MN &#43; AZ) 05/01/2021 - 17/01/2021">
+ Checking if all of the naive optimisation options have been exhausted:  Inlining (x) CPS&rsquo;ing (x) Compile-time flags (x) Modules &ndash; using explicit export lists (x) The following have been partially applied, but is typically time-consuming and yield small improvements:  Unboxed types (?) Strictness annotations (?) Strength reduction (?)     To do:  Implement a version of trace mcmc in c&#43;&#43; / r to compare against, just because there’s no point comparing to mcmc without tracing.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:57+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:57+00:00" />
-<meta itemprop="wordCount" content="7490">
+<meta itemprop="wordCount" content="7574">
 
 
 
@@ -46,21 +46,33 @@
 <main><h1>Research Journal</h1>
 <p><strong>Activity (MN)</strong> <em>18/01/2021</em></p>
 <ul>
-<li>To do:
+<li>Checking if all of the naive optimisation options have been exhausted:
 <ul>
-<li>Check if all of the naive optimisation options have been exhausted:
+<li>Inlining (x)</li>
+<li>CPS&rsquo;ing (x)</li>
+<li>Compile-time flags (x)</li>
+<li>Modules &ndash; using explicit export lists (x)</li>
+<li>The following have been partially applied, but is typically time-consuming and yield small improvements:
 <ul>
-<li>Inlining</li>
-<li>CPS&rsquo;ing</li>
-<li>Unboxed types</li>
-<li>Strictness annotations</li>
-<li>Strength reduction</li>
-<li>Compile-time flags</li>
-<li>Modules: Using explicit export lists</li>
+<li>Unboxed types (?)</li>
+<li>Strictness annotations (?)</li>
+<li>Strength reduction (?)</li>
 </ul>
 </li>
+</ul>
+</li>
+<li>To do:
+<ul>
 <li>Implement a version of trace mcmc in c++ / r to compare against, just because there’s no point comparing to mcmc without tracing.</li>
 <li>Learn about eff and implement monad-bayes in eff</li>
+</ul>
+</li>
+<li>Started using larger arguments to the benchmark program to increase the base run-time, so that optimisations yielding improved run-times are more noticeable.</li>
+<li>Reading &ldquo;Freer monads, more extensible effects&rdquo; in order to understand and use <code>freer-simple</code>.</li>
+<li>Discovered a number of resources on compiling with continuations (automating/algorithmically generating CPS code from direct-style code)
+<ul>
+<li><a href="http://matt.might.net/articles/cps-conversion/">How to compile with continuations</a></li>
+<li><a href="https://www.cs.purdue.edu/homes/rompf/papers/cong-icfp19.pdf">Compiling with Continuations, or without? Whatever</a>.</li>
 </ul>
 </li>
 </ul>

@@ -29,7 +29,7 @@
 <meta itemprop="description" content="1.1 Model-based Reasoning A model is an artifical construct designed to respond in the same way as the system we would like to understand. As computers have evolved, numerical models have come to the forefront and computer simulations have replaced physical models. Numerical models emulate stochasticity, i.e. they use pseudorandom number generators to simulate actually random phenomena and other uncertainties. Running a simulator with stochastic value generation leads to an explosion of possible simulation outcomes.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="2074">
+<meta itemprop="wordCount" content="6888">
 
 
 
@@ -126,7 +126,473 @@ y ~ Bernoulli(x)
 <p>Computer science has largely been about finding ways to efficiently evaluate programs, given parameter values, to produce some output.</p>
 <p>The typical computer science programming pipeline is to write a program, specify the values of its arguments, then evaluate the program to produce an output. The typical statistical modeling approach is to start with the output (the observations or data <em>Y</em>), then specify a usually abstract generative model <em>p(X, Y)</em>, and finally use algebra and inference techniques to characterize the posterior distribution <em>p(X|Y)</em> of the unknown quantities in the model given the observed quantities. Probabilistic programming is about performing Bayesian inference using the tools of computer science - programming language for model denotation, and statistical inference algorithms for computing the conditional distribution of program inputs that could have given rise to the observed program output.</p>
 <p>For instance, reasoning about the bias of a coin flip is an example of the kind of inference that probabilistic programming systems can do. Our data is the outcome of a coin flip. Our model (specified in a forward direction) stipulates that a coin and its bias is generated according to the hand-specified model. The coin flip outcome is then observed and analysed under this model.</p>
-<p>When performing inference in probabilistic programming systems, what counts as observable are the outputs generated from the forward computation. The inference objective is to computationally characterize the posterior distribution of all of the random choices made during the forward execution of the program, given that the program produces a particular output.</p>
+<ul>
+<li>One challenge, the writing of the model, is a major focus of statistics research where useful models are painstakingly designed for every new important problem.</li>
+<li>The other challenge is computational, and is what Bayes rule gives us a theoretical framework in which to calculate: to computationally characterize the posterior distribution of the latent quantities (bias of a coin) given the observed quantity (heads or tails)</li>
+</ul>
+<p>When performing inference in probabilistic programming systems, what counts as <em>observable</em> are the outputs generated from the forward computation. The inference objective is to computationally characterize the posterior distribution of all of the latent quantities random choices made during the forward execution of the program, given that the program produces a particular output.</p>
+<p>Probabilistic programs are usual functional or imperative programs with two added constructs:</p>
+<ol>
+<li>The ability to draw values at random from distributions.</li>
+<li>The ability to <em>condition</em> values of variables in a program via observations.</li>
+</ol>
+<p>The meaning of a probabilistic program is that it simultaneously denotes a joint and conditional distribution, the latter by syntactically indicating where conditioning will occur (what we condition on &ndash; i.e. which random variable values will be observed).</p>
+<p>Almost all languages have pseudo-random value generators or packages; what they lack in comparison to probabilistic programming languages is syntactic constructs for conditioning and evaluators that implement conditioning. Languages that include these constructs are called probabilistic programming languages. Languages that do not include these constructs, but are used for forward modeling, are called stochastic simulation languages, or more simply, programming languages.</p>
+<p>There are many libraries for constructing graphical models and performing inference (graphical models are probabilistic models for which a graph expresses the conditional dependence structure between random variables); this software works by programmatically constructing a data structure which represents a model, and then given observations, runs graphical model inference. What distinguishes between this kind of approach and probabilistic programming is that a program is used to explicitly construct a model as a data structure, rather than considering the &ldquo;model&rdquo; that arises implicitly from direct evaluation of the program itself.</p>
+<p>In probabilistic programming systems, a model data structure is either:</p>
+<ol>
+<li>Constructed explicitly via a non-standard interpretation of the probabilistic program itself (in which case inference is performed by compiling the model data structure to a probability density function).</li>
+<li>A general Markov model whose state is the evolving evaluation environment generated by the probabilistic programming language evaluator (in which case inference is performed by employing methods that are fundamentally generative).</li>
+</ol>
+<p>(<em>Difference between density function and distribution</em>: so the distribution is the shape,
+the density is the function. If you have the density you have the distribution, but the density may not have an analytical form i.e. it may not be a computable function, so you may want to approximate the distribution. I&rsquo;d say the density refers to the mathematical function, whereas the distribution is the shape. You can in theory replace one with the other and things should make sense.)</p>
+<h4 id="2-a-probabilistic-programming-language-without-recursion">2. A Probabilistic Programming Language Without Recursion</h4>
+<p>We present the key ideas of probabilistic programming using a first-order probabilistic programming language (FOPPL).</p>
+<p>The restrictions that we impose are that:</p>
+<ul>
+<li>Functions must be first-order, i.e. functions cannot take other functions as arguments.</li>
+<li>Functions cannot be recursive.</li>
+</ul>
+<p>These two restrictions result in a language where models describe distributions over a finite number of random variables.</p>
+<p>We can compile any program in the FOPPL to a data structure that represents the corresponding graphical model - this is a very useful property when reasoning about inference, as it allows us to make use of existing theories and algorithms for inference in graphical models. This property then gives rise to the ability to completely determine the computation graph of any FOPPL program in advance. While in a FOPPL program, conditional branching might dictate that not all of the nodes of its computation graph are active in the sense of being on the control-flow path, it <em>is</em> the case that all FOPPL programs can be unrolled to computation graphs where all possible control-flow paths are explicitly and completely enumerated at compile time. FOPPL programs hence have static computation graphs.</p>
+<h5 id="21-syntax">2.1 Syntax</h5>
+<p>We define the FOPPL in terms of two sets of production rules: one for expressions <code>e</code> and another for programs <code>q</code>.</p>
+<pre><code>v ::= variable
+c ::= constant value or primitive operation
+f ::= procedure
+e ::= c | v | (let [v e1] e2) | (if e1 e2 e3) 
+    | (f e1 ... en) | (c e1 ... en)
+    | (sample e) | (observe e1 e2)
+q ::= e | (defn f [v1 ... vn] e) q 
+</code></pre><p>The two forms of expressions &ldquo;sample&rdquo; and &ldquo;observe&rdquo; are what make the FOPPL a probabilistic programming language.</p>
+<ul>
+<li>A sample form <code>(sample e)</code> represents an unobserved random variable. It accepts a single expression <code>e</code> (which must evaluate to a &ldquo;distribution object&rdquo;), and returns a value that is a sample from this distribution. Distributions are constructed using primitives provided by the FOPPL &ndash; for example, <code>normal 0.0 1.0</code> evaluates to a standard normal distribution.</li>
+<li>An observe form <code>(observe e1 e2)</code> represents an observed random variable. It accepts an argument <code>e1</code> which must evaluate to a distribution, and conditions the distribution on the next argument <code>e2</code>, which is the value of the random variable.</li>
+</ul>
+<!-- raw HTML omitted -->
+<p>Let&rsquo;s now illustrate what a program in the FOPPL looks like. Below shows a simple univariate Bayesian linear regression model.</p>
+<pre><code>(defn observe-data [slope intercept x y]
+  (let [fx (+ (* slope x) intercept)]
+    (observe (normal fx 1.0) y )  
+  )
+)
+
+(let [ slope ( sample ( normal 0.0 10.0))]
+  (let [ intercept ( sample ( normal 0.0 10.0))]
+    (let [ y1 ( observe-data slope intercept 1.0 2.1)]
+      (let [ y2 ( observe-data slope intercept 2.0 3.9)]
+        (let [ y3 ( observe-data slope intercept 3.0 5.3)]
+          (let [ y4 ( observe-data slope intercept 4.0 7.7)]
+            (let [ y5 ( observe-data slope intercept 5.0 10.2)]
+              [ slope intercept ])
+          )
+        )
+      )
+    )
+  )
+)
+</code></pre><p>The function <code>observe-data</code> conditions the generative model given a pair <code>(x, y)</code>, by observing the value <code>y</code> from a normal distribution with mean <code>((slope * x) + intercept)</code>. The function returns the observed value, which is ignored in our case &ndash; the reason for this is that we are not interested in the returned values; we are using <code>observe-data</code> in order to score/condition our distribution, which is a <em>side-effect</em> of the function call.</p>
+<p>The program defines a prior on the <code>slope</code> and <code>intercept</code>, using the function <code>normal</code> for creating an object for normal distribution.</p>
+<p>After conditioning this prior with 5 observed data points, the program returns a pair <code>[slope intercept]</code> which is a sample from the posterior distribution where we have conditioned on the 5 observed values.</p>
+<h5 id="22-syntactic-sugar">2.2 Syntactic Sugar</h5>
+<p><strong>foreach</strong></p>
+<p>The <code>foreach</code> construct has the following syntax:</p>
+<pre><code>(foreach c
+  [v_1 e_1 ... v_n e_n]
+  e_1' ... e_k'
+)
+</code></pre><p>This desugars into a vector containing c <code>let</code> constructs:</p>
+<pre><code>(vector
+  (let [ v_1 (get e_1 0)
+         ...
+         v_n (get e_n 0) 
+       ]
+       e_1' ... e_k'
+  )
+  ...
+  (let [ v_1 (get e_1 (c - 1))
+         ...
+         v_n (get e_n (c - 1))
+       ]
+       e_1' ... e_k'
+  )
+)
+</code></pre><p>The <code>foreach</code> form associates each variable <code>v_i</code> with a sequence <code>e_i</code>, and then maps over the values in this sequence for a total of <code>c</code> steps, returning a vector of results. If the length of any of the bound sequences is less than <code>c</code>, then this will result in a runtime error.</p>
+<p>Using the <code>foreach</code> form, we can write our linear regression model without having to make use of the function <code>observe-data</code>.</p>
+<p><em>Old code:</em></p>
+<pre><code>(defn observe-data [slope intercept x y]
+  (let [fx (+ (* slope x) intercept)]
+    (observe (normal fx 1.0) y )  
+  )
+)
+
+(let [ slope ( sample ( normal 0.0 10.0))]
+  (let [ intercept ( sample ( normal 0.0 10.0))]
+    (let [ y1 ( observe-data slope intercept 1.0 2.1)]
+      (let [ y2 ( observe-data slope intercept 2.0 3.9)]
+        (let [ y3 ( observe-data slope intercept 3.0 5.3)]
+          (let [ y4 ( observe-data slope intercept 4.0 7.7)]
+            (let [ y5 ( observe-data slope intercept 5.0 10.2)]
+              [ slope intercept ])
+          )
+        )
+      )
+    )
+  )
+)
+</code></pre><p><em>New code</em></p>
+<pre><code>(let [ y-values  [2.1 3.9 5.3 7.7 10.2]
+       slope     (sample (normal 0.0 10.0))
+       intercept (sample (normal 0.0 10.0))
+     ]
+     (foreach 5
+        [ x (range 1 6)
+          y y-values
+        ]
+        (let [fx ((slope * x) + intercept)]
+             (observe (normal fx 1.0) y)
+        ) 
+     )
+)
+</code></pre><p>The reason we use a constant <code>c</code> for the number of loop iterations is so that we can guarantee that the number of iterations is known at compile time.</p>
+<p><strong>loop</strong></p>
+<p>The <code>loop</code> construct has the following syntax:</p>
+<pre><code>(loop c e f e_1 ... e_n)
+</code></pre><p>Here, <code>c</code> must be an non-negative integer constant, and <code>f</code> a function. Desugaring this yields the following, where <code>v_0, ..., v_(c-1)</code> and <code>a_0, ..., a_n</code> are fresh variables:</p>
+<pre><code>(let [ a_1 e_1
+       a_2 e_2
+       ...
+       a_n e_n 
+     ]
+     (let [ v_0 (f 0 e a_1 ... a_n) ]
+          (let [ v_1 (f 1 v_0 a_1 ... a_n) ]
+               (let [ v_2 (f 2 v_1 a_1 ... a_n)]
+                    ...
+                       (let [ v_(c-1) (f (c-1) v_(c-2) a_1 ... a_n) ]
+                            v_(c-1)
+                       )
+               )
+          )
+     )
+)
+</code></pre><pre><code>let a_1 = e_1
+    a_2 = e_2
+    ...
+    a_n = e_n 
+in  (let v_0 = (f 0 e a_1 ... a_n) 
+     in  (let v_1 = (f 1 v_0 a_1 ... a_n)
+          in  (let v_2 = (f 2 v_1 a_1 ... a_n)
+               in  ...
+                   (let v_(c-1) = (f (c-1) v_(c-2) a_1 ... a_n)
+                    in  v_(c-1)   
+                   )
+               )
+          )
+     )
+)
+</code></pre><p>We can see that the <code>a</code>s are bound to each of the expressions in the sequence <code>e_1, ..., e_n</code> and all of these are repeatedly passed to function <code>f</code> in each loop iteration. The variables <code>v</code> are bound to the return value of <code>f</code> and then used as the next value passed to the parameter <code>e</code> of function <code>f</code>; they hence represent recursive accumulated computations.</p>
+<p>To demonstrate <code>loop</code>, we show a new variant of the linear regression example:</p>
+<pre><code>(defn regr-step [ n r2 xs ys slope intercept ]
+  (let [ x  (get xn n)
+         y  (get ys n)
+         fx ((slope * x ) + intercept )
+         r  (y - fx)
+        ]
+       ( observe ( normal fx 1.0) y )
+       ( r2 + (r * r) )
+  )
+)
+
+(let [ xs [1.0 2.0 3.0 4.0 5.0]
+       ys [2.1 3.9 5.3 7.7 10.2]
+       slope ( sample ( normal 0.0 10.0) )
+       bias ( sample ( normal 0.0 10.0) )
+       r2 ( loop 5 0.0 regr-step xs ys slope bias )
+     ]
+     [ slope bias r2 ]
+)
+</code></pre><pre><code>(defn regr-step [ n r2 xs ys slope intercept ]
+  (do let x  = get xn n
+          y  = get ys n
+          fx = (slope * x ) + intercept
+          r  = (y - fx)
+   observe (normal fx 1.0) y
+   return $ r2 + (r * r)
+  )
+)
+
+(let xs     = [1.0 2.0 3.0 4.0 5.0]
+     ys     = [2.1 3.9 5.3 7.7 10.2]
+     slope  = sample ( normal 0.0 10.0)
+     bias   = sample ( normal 0.0 10.0)
+     r2     = loop 5 0.0 regr-step xs ys slope bias
+ in  [ slope bias r2 ]
+)
+</code></pre><p>In this version of the program, we not only observe a sequence of values <code>y_n</code> according to the normal distribution centered around <code>f(x_n)</code>, but we also compute the sum of the squared residuals: <code>r^2=Σ(y_n - f(x_n))^2</code>. To do this, we define a function <code>regr-step</code> which accepts an argument <code>n</code> (the index of the loop iteration) and an argument <code>r2</code> which represents the sum of squares for the preceding data points. The value of the entire loop is the value of the final call to <code>regr-step</code> which is the sum of all the squared residuals.</p>
+<p>The difference between <code>loop</code> and <code>foreach</code> is that:</p>
+<ul>
+<li><code>loop</code> can be used to accumulate a result over the course of iterations.</li>
+<li><code>foreach</code> provides a much more specific loop type that evaluates a single expression repeatedly with different values for its variables.</li>
+</ul>
+<p>From a statistical perspective, we can think of them as:</p>
+<ul>
+<li><code>loop</code> defines a sequence of dependent variables</li>
+<li><code>foreach</code> creates conditionally independent variables</li>
+</ul>
+<h5 id="23-examples">2.3 Examples</h5>
+<p>Likelihood: the likelihood function is a model of the data &ndash; it&rsquo;s any stochastic algorithm which can just be sampling from a distribution. But remember the data is fixed, and the model parameters are the parameters of the likelihood function.</p>
+<h6 id="231-gaussian-mixture-model">2.3.1 Gaussian Mixture Model</h6>
+<p>A Gaussian mixture model is a density estimation model often used for clustering, in which each data point <code>y_n</code> is assigned to a latent class <code>z_n</code>. We will consider the following generative model:</p>
+<pre><code>σ_k       ~ Gamma(1.0, 1.0)           for k = 1, 2, 3
+µ_k       ~ Normal(0.0, 10.0)         for k = 1, 2, 3
+π         ~ Dirichlet(1.0, 1.0, 1.0)
+z_n       ~ Discrete(π)               for n = 1, ..., 7
+y_n | z_n ~ Normal (µ_k, σ_k) 
+</code></pre><p>The following program shows a translation of this generative model to the FOPPL:</p>
+<pre><code>(let [ data         [1.1 2.1 2.0 1.9 -0.1 -0.05]
+       likelihoods  (foreach 3 []
+                      (let [ mu     (sample (normal 0.0 10.0))
+                             sigma  (sample (gamma 1.0 1.0))
+                           ]
+                           (normal mu sigma)
+                      )
+                    )
+       pi           (sample (dirichlet [1.0 1.0 1.0]))
+       z-prior      (discrete pi)
+     ]
+     (foreach 7 [y data]
+        (let [z (sample z-prior)]
+             (observe (get likelihoods z) y)
+             z 
+        )
+     )
+)
+</code></pre><pre><code>(let data        = [1.1 2.1 2.0 1.9 -0.1 -0.05]
+     likelihoods = (foreach 3 []
+                      (let mu    = sample (normal 0.0 10.0)
+                           sigma = sample (gamma 1.0 1.0)
+                       in  normal mu sigma
+                      )
+                    )
+     pi        = sample (dirichlet [1.0 1.0 1.0])
+     z-prior   = discrete pi
+ in  (foreach 7 [y in data]
+        (do let z = (sample z-prior)]
+            observe (get likelihoods z) y
+            return z 
+        )
+     )
+)
+</code></pre><p>In this model, we first sample the mean <code>µ</code> and standard deviation <code>σ</code> for 3 mixture components, given us an list of 3 normal distributions.</p>
+<p>Sampling from a dirichlet distribution of 3 dimensions (1.0, 1.0, 1.0) will return a sample such as [0.26592092 0.23521457 0.49886451]. Using this as a parameter to a discrete distribution will give a distribution where the integers [0 1 2] are weighted respectively by [0.26592092 0.23521457 0.49886451], hence sampling from this discrete distribution will return an index from [0 1 2] using these probabilities.</p>
+<p>For each observation <code>y</code>, we then sample a class assignment label <code>z</code> from the prior distribution &ndash; the value of this sample will be from [0 1 2], and is used as an index to get one of the likelihood distributions from <code>likelihoods</code>. After this, we observe <code>y</code> according to the likelihood distribution <code>likelihoods[z]</code>. Finally, we return the class assignment index <code>z</code>. The return value from the entire program is the sequence of latent class assignments for each of the 7 data points. We can use this result to ask questions such as &ldquo;Are these two datapoints similar?&rdquo;, etc.</p>
+<h6 id="232-hidden-markov-model">2.3.2 Hidden Markov Model</h6>
+<p>The following program denotes a hidden markov model (HMM) with a known initial state, transition, and observation distributions governing 16 sequential observations.</p>
+<pre><code>( defn hmm-step [ t states data trans-dists likelihoods ]
+  (let [ z ( sample (get trans-dists (last states)) )
+       ]
+       ( observe (get likelihoods z) (get data t) )
+       ( append states z )
+  )
+)
+
+(let [ data [0.9 0.8 0.7 0.0 -0 .025 -5 .0 -2 .0 -0 .1 0.0 0.13 0.45 6 0.2 0.3 -1 -1 ]
+       trans-dists [( discrete [0.10 0.50 0.40])
+                    ( discrete [0.20 0.20 0.60])
+                    ( discrete [0.15 0.15 0.70])]
+       likelihoods [( normal -1 .0 1.0)
+                    ( normal 1.0 1.0)
+                    ( normal 0.0 1.0)]
+       states [( sample ( discrete [0.33 0.33 0.34]))]
+     ]
+     ( loop 16 states hmm-step data trans-dists likelihoods )
+)
+</code></pre><pre><code>( defn hmm-step [ t states data trans-dists likelihoods ]
+    (do let z = sample (get trans-dists (last states))
+        observe (get likelihoods z) (get data t)
+        append states z
+  )
+)
+
+(let data        = [0.9 0.8 0.7 0.0 -0.025 -5.0 -2.0 -0.1
+                    0.0 0.13 0.45 6 0.2 0.3 -1 -1 ]
+     trans-dists = [( discrete [0.10 0.50 0.40]),
+                    ( discrete [0.20 0.20 0.60]),
+                    ( discrete [0.15 0.15 0.70])]
+     likelihoods = [( normal -1.0 1.0),
+                    ( normal 1.0 1.0),
+                    ( normal 0.0 1.0)]
+     states      = [( sample ( discrete [0.33 0.33 0.34]))]
+
+ in  loop 16 states hmm-step data trans-dists likelihoods
+)
+</code></pre><p>Here:</p>
+<ul>
+<li><code>data</code> is a vector of data points.</li>
+<li><code>trans-dists</code> is a vector of transition distributions.</li>
+<li><code>likelihoods</code> is a vector of state likelihoods.</li>
+</ul>
+<p>We then loop over the <code>data</code> using a function <code>hmm-step</code>, which at every loop iteration, does three things:</p>
+<ol>
+<li>It first samples a new state <code>z</code> from the transition distribution associated with the preceding state (or in the first iteration, the initial state).</li>
+<li>It then observes the current data point at time <code>t</code> according to the likelihood component of the current state.</li>
+<li>Finally it appends the state <code>z</code> to the sequence <code>states</code>.</li>
+</ol>
+<p>The vector of accumulated latent states is the return value of the program, and thus is the object whose joint posterior distribution is of interest.</p>
+<h5 id="24-a-simply-purely-deterministic-language">2.4 A Simply Purely Deterministic Language</h5>
+<p>The FOPPL can be understood in two different ways:</p>
+<ol>
+<li>A language for specifying graphical-model data structures on which traditional inference algorithms may be run.</li>
+<li>A language that requires a non-standard interpretation in some implementing language to characterize the denoted posterior distribution.</li>
+</ol>
+<p>In the case of graphical-model construction it will be necessary to have a language for purely deterministic expressions. This language will be used to express link functions in the graphical model (a link function provides the relationship between the linear predictor and the mean of the distribution function, where a linear predictor is a linear function whose value is used to predict the outcome of a dependent variable). Contrasting to the usual definition of link functions from statistics, the pure deterministic language will encode functions that take values of parent random variables and produce distribution objects for children. These link functions cannot have random variables inside them; such a variable would be another node in the graphical model instead.</p>
+<h6 id="241-deterministic-expressions">2.4.1 Deterministic Expressions</h6>
+<p>Expressions in the FOPPL that do not involve user-defined procedure calls and involve only deterministic computations, such as <code>(17 + (2.0 / 6.0))</code>, will be called &ldquo;0th-order expressions&rdquo;.</p>
+<p>To identify and work with these deterministic expressions, we define a language with the following grammar:</p>
+<pre><code>c ::= constant value or primitive operation
+v ::= variable
+E ::= c | v | (if E1 E2 E3) | (c E1 ... En)
+</code></pre><p>Note that neither <code>sample</code> nor <code>observe</code> statements appear in the syntax, and that procedure calls are only allowed for primitive operations, not for defined procedures. These constraints ensure that epxressions <code>E</code> cannot depend on any probabilistic choices or conditioning.</p>
+<h4 id="3-graph-based-inference">3. Graph-Based Inference</h4>
+<h5 id="31-compilation-to-a-graphical-model">3.1 Compilation to a Graphical Model</h5>
+<p>Programs written in the FOPPL specify probabilistic models over finitely many random variables. We will make this aspect clear by presenting the translation of these programs into finite graphical models. In later sections, we will show how this translation can be exploited to adapt inference algorithms for graphical models to probabilistic programs.</p>
+<p>In the following relation, translation is specified by ⇓.</p>
+<pre><code>ρ, φ, e ⇓ G, E
+</code></pre><p>The inputs:</p>
+<ul>
+<li><code>ρ</code> is an environment, mapping procedure names to their definitions</li>
+<li><code>φ</code> is a logical predicate for the flow control context</li>
+<li><code>e</code> is an expression we intend to compile</li>
+</ul>
+<p>This expression <code>e</code> is translated to:</p>
+<ul>
+<li><code>G</code>, a graphical model. Vertices in G represent random variables, and arcs represent dependencies between them. For each random variable in G, we will define a probability density or mass function in the graph.</li>
+<li><code>E</code>, an expression in the deterministic sub-language (described in section 2.4.1). This expression is deterministic in the sense that it does not involve <code>sample</code> nor <code>observe</code>. It describes the return value of the original expression <code>e</code> in terms of random variables in <code>G</code>.</li>
+</ul>
+<p>For observed random variables, we additionally define the observed value, as well as a logical predicate that indicates whether the <code>observe</code> expression is on the control flow path, conditioned on the values of the latent variables.</p>
+<p><strong>Definition of a Graphical Model</strong></p>
+<p>We define a graphical model <code>G</code> as a tuple <code>(V, A, P, Y)</code> where:</p>
+<ul>
+<li><code>V</code> is a set of vertices representing random variables</li>
+<li><code>A</code> is a set of directed edges <code>(V × V)</code> that represent conditional dependencies between random variables</li>
+<li><code>P</code> is a map from vertices to deterministic expressions that specify the probability density function for each random variable</li>
+<li><code>Y</code> is a partial map such that for each observed random variable, it contains a pair <code>(E, Φ)</code>, where <code>E</code> is the deterministic expression for the observed value, and <code>Φ</code> is a predicate expression that evaluates to <code>true</code> when this observation is on the control flow path. A <em>control flow path</em> is a graphical representation of all paths that might be traversed through a program during its execution.</li>
+</ul>
+<p>Before presenting a set of translation rules that can be used to compile any FOPPL program to a graphical model, we will illustrate the intended translation using a simple example:</p>
+<pre><code>(let [  z  (sample ( bernoulli 0.5))
+        mu (if (= z 0) -1 .0 1.0)
+        d  (normal mu 1.0)
+        y 0.5
+     ]
+    (observe d y)
+    z
+)
+</code></pre><p>The program first samples <code>z</code> as a prior from a bernoulli distribution, based on which it sets a likelihood parameter <code>µ</code> to -1.0 or 1.0. It then observes a value <code>y = 0.5</code> from a normal distribution with mean <code>µ</code>. This program defines a joint distribution <code>p(y = 0.5, z)</code>. The inference problem is then to characterize the posterior distribution <code>p(z | y)</code>.</p>
+<p>The below figure shows the graphical model and pure deterministic link functions that correspond to the above program:</p>
+<p><img src="https://i.ibb.co/93cfXxH/graphical-model.png" alt=""></p>
+<p>In the evaluation relation <code>ρ, φ, e ⇓ G, E</code>:</p>
+<ul>
+<li><code>e</code> is the source code of the program.</li>
+<li><code>ρ</code> is the empty map, as there are no procedure definitions.</li>
+<li><code>φ</code> (the control flow predicate) is true at the top level of the program.</li>
+</ul>
+<p>The graphical model <code>G = (V, A, P, Y)</code> and the result expression <code>E</code> that the program translates to are:</p>
+<pre><code>V = {z, y}
+A = {(z, y)}
+P = [ z → p_bern z 0.5,
+      y → p_norm y (if (z = 0) -1.0 1.0) 1.0
+    ]
+Y = [y → 0.5]
+E = z
+</code></pre><p>In here,</p>
+<ul>
+<li><code>V</code>, the vertex set of <code>G</code>, contains two random variables.</li>
+<li><code>A</code>, the arc set of <code>G</code>, contains a single pair <em>(z, y)</em> to mark the conditional dependence relationship between these two variables.</li>
+<li><code>P</code>, the mapping of random variables to probability density functions, states that:
+<ul>
+<li>The probability density for <em>z</em> is defined as the target language expression <code>p_bern z 0.5</code>. Here, <code>p_bern</code> refers to a function in the target language that implements the probability density function for the Bernoulli distribution.</li>
+<li>The probability density for <em>y</em> is defined using <code>p_norm</code>, which implements the probability density function for the normal distribution.</li>
+</ul>
+</li>
+<li><code>Y</code>, the mapping of observed random variables to pairs <code>(E, Φ)</code>, contains a single entry that holds the observed value for `y_.</li>
+</ul>
+<p><strong>Assigning Symbols to Variable Nodes</strong></p>
+<p>In the above example, we used the <em>mathematical</em> symbols:</p>
+<ul>
+<li><em>z</em> to refer to the random variable associated with the expression <code>(sample (bernoulli 0.5))</code>.</li>
+<li><em>y</em> to refer to the observed variable with expression <code>(observe d y)</code>.</li>
+</ul>
+<p><em>In general, there will be one node in the network for each <code>sample</code> or <code>observe</code> expression that is evaluated in a program.</em></p>
+<p>In the above example, there also happens to be a program variable <code>z</code> that holds the value of the <code>sample</code> expression for node <em>z</em>, and a program variable <code>y</code> that holds the observed value for node <em>y</em>. This is of course not necessarily always the case. In programs that have procedures, the same <code>sample</code> and <code>observe</code> expressions in the procedure body can be evaluated multiple times.</p>
+<p>We will later define a general set of translation rules that compile a FOPPL program to a graphical model, in which we assign each vertex in the graphical model a newly generated unique symbol. Assigning a label to each vertex is a way of assigning a unique address to each and every random variable in the program.</p>
+<p><strong>If Expressions in Graphical Models</strong></p>
+<p>When compiling a program to a graphical model, <code>if</code> expressions require special consideration. Consider a simple mixture model, in which only the mean is treated as an unknown variable:</p>
+<pre><code>let z   = sample (bernoulli 0.5)
+    mu  = sample (normal (if z = 0 then -1.0 else 1.0) 1.0)
+    d   = normal mu 1.0
+    y   = 0.5
+in  observe d y
+    z
+</code></pre><p>This is of course a really strange way of writing a mixture model. We define a single likelihood parameter µ, which is either distributed according to Normal(−1, 1) when z = 0 and according to Normal(1, 1) when z = 1.</p>
+<p>Typically we would think of a mixture model as having two components with parameter µ_0 and µ_1 respectively, where z selects the component. A more natural way to write the model might be:</p>
+<pre><code>let z     = sample (bernoulli 0.5)
+    mu_0  = sample (normal -1.0 1.0)
+    mu_1  = sample (normal  1.0 1.0)
+    d_0   = normal mu_0 1.0
+    d_1   = normal mu_1 1.0
+    y     = 0.5
+in  observe (if z = 0 then d0 else d1) y
+    z
+</code></pre><p>Here we sample parameters µ0 and µ1, which then define two component likelihoods d0 and d1. The variable z then selects the component likelihood for an observation y.</p>
+<p>The first program defines a density on three variables p(y, µ, z). The second program defines a joint density on four variables p(y, µ1, µ0, z). Regardless, it seems intuitive that these programs are equivalent in some sense. The equivalence that we would want to achieve here is that both programs define the same marginal posterior on z.</p>
+<pre><code>p(z | y) = ∫ p(z, µ | y) dµ = ∫ ∫ p(z, µ0, µ1 | y) dµ0 dµ1
+</code></pre><p>Recall that the number of nodes in the graphical model depends on the amount of <code>sample</code> and <code>observe</code> expressions. The essential difference between these two programs is that:</p>
+<ul>
+<li>In the first program, the <code>if</code>-expression is placed <em>inside</em> the <code>sample</code> expression for <code>mu</code>. This results in a graph with 3 nodes.</li>
+<li>In the second program, the <code>if</code>-expression is placed <em>outside</em> the <code>sample</code> expression for <code>mu</code>. This results in a graph with 4 nodes.</li>
+</ul>
+<p>However, the distribution on the return values of the programs should be equivalent.</p>
+<p>It also matters how we evaluate <code>if</code>-expressions &ndash; lazily or eagerly. Consider the following program:</p>
+<pre><code>let z   = sample (bernoulli 0.5)
+    mu  = if z = 0 then sample (normal -1.0 1.0) else sample (normal 1.0 1.0)
+    d   = normal mu 1.0
+    y   = 0.5
+in  observe d y
+    z
+</code></pre><p>In lazy evaluation, we would first evaluate the predicate <code>z = 0</code> and then either evaluate the first <code>sample</code> expression or the second <code>sample</code> expression, but never both.</p>
+<p>In eager evaluation, we first evaluate the predicate and both branches, before returning the value of one of the branches based on the predicate value.</p>
+<p><em>The problem with eager evaluation of <code>observe</code> in <code>if</code>-expressions</em>:</p>
+<p>Consider the following code:</p>
+<pre><code>let z   = sample (bernoulli 0.5)
+    mu0 = sample (normal -1 .0 1.0)
+    mu1 = sample (normal 1.0 1.0)
+    y   = 0.5
+in  if   (z = 0)
+    then (observe (normal mu_0 1) y)
+    else (observe (normal mu1 1) y)
+</code></pre><p>When performing eager evaluation, we would be calling <code>observe</code> on two variables <code>y_0</code> and <code>y_1</code>, both with value 0.5 &ndash; this means we&rsquo;re conditioning the probability distribution with both variables, even though we only want to do it for one of them. When performing lazy evaluation, only one of the two branches would be included in the probability density. The lazy interpretation is a lot more natural here.</p>
+<p><em>The problem with lazy evaluation of <code>sample</code> in <code>if</code>-expressions</em>:</p>
+<p>Consider the following code:</p>
+<pre><code>let z   = sample (bernoulli 0.5)
+    mu  = if   (z = 0)
+          then sample (normal -1.0 1.0)
+          else sample (normal  1.0 1.0)
+    d   = normal mu 1.0
+    y   = 0.5
+in  observe d y
+    z
+</code></pre><p>Lazy evaluation of <code>if</code>-expressions makes it difficult to characterize the support of the probability distribution defined by a program when branches contain <code>sample</code> expressions. We cannot marginalize <code>∫ dµ_0 p(µ_0 | z = 0)</code> and <code>∫ dµ_1 p(µ_1 | z = 1)</code> if we assume <code>p(µ_0|z = 0) = 1</code> and <code>p(µ1|z = 1) = 1</code>.</p>
+<p><em>Conclusion</em>:</p>
+<p>We need to understand that <code>observe</code> and <code>sample</code> expressions affect the marginal posterior on a program output in very different ways:</p>
+<ul>
+<li><code>sample</code> expressions that are not on the control flow path cannot affect the values of any expressions outside of their branch. This means they can be safely incorporated into the model as auxiliary variables, since they do not affect the marginal posterior on the return value.</li>
+<li><code>observe</code> expressions do not have the guarantee that <code>sample</code> expressions have, as they change the posterior distribution on the return value when incorporated into a graphical model.</li>
+</ul>
+<p>Based on this intuition, the solution to our problem is:</p>
+<ul>
+<li>We can assign probability 1 to the observed variables that are not on the same control flow path. Since observed variables have constant values, the interpretability of their support for characterizing probability distributions is not an issue in the same way it is with sampled variables.</li>
+<li>Conversely, we assign the same probability to sampled variables, regardless of the branch they occur in. How this is accomplished will be described in later sections.</li>
+</ul>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 

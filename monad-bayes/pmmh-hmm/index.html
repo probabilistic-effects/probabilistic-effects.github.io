@@ -35,7 +35,7 @@ First, for simplicity we consider our latent states xi to be integers, and the c
 data ObservedState = Obs { obs :: Int } deriving Show data LatentState = Lat { lat :: Int } deriving Show We then choose the parameters of the HMM (i.">
 <meta itemprop="datePublished" content="2020-11-13T14:04:50+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:04:50+00:00" />
-<meta itemprop="wordCount" content="1801">
+<meta itemprop="wordCount" content="1806">
 
 
 
@@ -148,27 +148,30 @@ data ObservedState = Obs { obs :: Int } deriving Show data LatentState = Lat { l
 <span style="color:#a6e22e">pmmh</span> t k n param model <span style="color:#f92672">=</span>
 </code></pre></div><p>To perform inference, we elaborate on the parameters we need to provide <code>pmmh</code>.</p>
 <ol>
-<li>
-<p>The first three parameters are simply integers, specific to how PMMH works.</p>
-</li>
-<li>
-<p>The type <code>Traced m b</code> is the prior distribution over our model&rsquo;s parameters, where b represents parameters. We can declare this like so:</p>
+<li>The first three parameters are simply integers, specific to how PMMH works (explained later on in <code>inferModel</code>).</li>
+</ol>
+<!-- raw HTML omitted -->
+<ol start="2">
+<li>The type <code>Traced m b</code> is the prior distribution over our model&rsquo;s parameters, where b represents parameters. We can declare this like so:
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">paramsPrior</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadSample</span> m <span style="color:#f92672">=&gt;</span> m <span style="color:#66d9ef">Params</span>
 <span style="color:#a6e22e">paramsPrior</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
   p_transition  <span style="color:#f92672">&lt;-</span> <span style="color:#66d9ef">Control</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Monad</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Bayes</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Class</span><span style="color:#f92672">.</span>gamma <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">1</span>
   p_observation <span style="color:#f92672">&lt;-</span> <span style="color:#66d9ef">Control</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Monad</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Bayes</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Class</span><span style="color:#f92672">.</span>beta <span style="color:#ae81ff">2.0</span> <span style="color:#ae81ff">7.0</span>
   return (<span style="color:#66d9ef">Params</span> p_transition p_observation)
 </code></pre></div></li>
-<li>
-<p>The type <code>(b -&gt; Sequential (Population m) a)</code> is a function which takes some parameters <code>b</code>, and returns a model which is a distribution over all sample paths using those parameters. For this, we use our previous function <code>scoreModel :: MonadInfer m =&gt; [ObservedState] -&gt; LatentState -&gt; Params -&gt; m Params</code> and partially apply it.</p>
+</ol>
+<!-- raw HTML omitted -->
+<ol start="3">
+<li>The type <code>(b -&gt; Sequential (Population m) a)</code> is a function which takes some parameters <code>b</code>, and returns a model which is a distribution over all sample paths using those parameters. For this, we use our previous function <code>scoreModel :: MonadInfer m =&gt; [ObservedState] -&gt; LatentState -&gt; Params -&gt; m Params</code> and partially apply it.
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">initialLatState</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">LatentState</span>
 <span style="color:#a6e22e">initialLatState</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">LatentState</span> <span style="color:#ae81ff">0</span>
 
 <span style="color:#a6e22e">scoreModel</span> obsData initialLatState <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadInfer</span> m <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Params</span> <span style="color:#f92672">-&gt;</span> m <span style="color:#66d9ef">Params</span>
 </code></pre></div></li>
-<li>
-<p>The return type <code>m [[(a, Log Double)]]</code> represents a distribution over all possible parameters for our model. The type <code>a</code> represents parameters and <code>Log Double</code> represents the corresponding likelihood of those parameters for our model. More precisely, it returns the history of all the particles and their associated probabilities/weightings for each step during Metropolis-Hastings.</p>
-</li>
+</ol>
+<!-- raw HTML omitted -->
+<ol start="4">
+<li>The return type <code>m [[(a, Log Double)]]</code> represents a distribution over all possible parameters for our model. The type <code>a</code> represents parameters and <code>Log Double</code> represents the corresponding likelihood of those parameters for our model. More precisely, it returns the history of all the particles and their associated probabilities/weightings for each step during Metropolis-Hastings.</li>
 </ol>
 <p><strong>Finally</strong>, we can put all this together to create a function <code>inferModel </code> which uses <code>pmmh</code> on our HMM.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">inferModel</span>  <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> [[(<span style="color:#66d9ef">Params</span>, <span style="color:#66d9ef">Numeric</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Log</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)]]
@@ -187,6 +190,9 @@ data ObservedState = Obs { obs :: Int } deriving Show data LatentState = Lat { l
    <span style="color:#f92672">::</span> <span style="color:#66d9ef">MonadInfer</span> m <span style="color:#f92672">=&gt;</span> m [[(<span style="color:#66d9ef">Params</span>, <span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)]]
 </code></pre></div><p>The number of metropolis-hastings steps is how long we run the Markov chain for, which is as long as you want. Running it for longer just gives you a better estimate, tending towards the true value. Similarly, the number of particles is the population size we want to use in our particle filter - as the particle filter is a means of estimating the likelihood, increasing the number of particles increases the likelihood estimate accuracy, so the number of particles can be anything we choose. The number of time steps is the amount of particle filter steps to run during each call to the particle filter - this is the same as the amount of data points we provide it in our <code>datafile</code>. Each data point in this file corresponds to the true values of each time step, which the particle filter will weight the simulated particles against.</p>
 </li>
+</ol>
+<!-- raw HTML omitted -->
+<ol start="2">
 <li>
 <p>Applying the monad-bayes function <code>prior</code> to an inference representation will execute the program (with <code>runStateT</code>) and return us a value from the distribution over values of type <code>a</code>. (This could be imagined as turning the inference representation into a prior distribution from which we can sample parameters from.)</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Compute the sample and discard the weight.</span>

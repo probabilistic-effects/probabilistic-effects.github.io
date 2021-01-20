@@ -14,7 +14,7 @@
       
       <guid>https://probabilistic-effects.github.io/research/research-journal/</guid>
       <description>Activity (MN) 18/01/2021
- To do:  Check if all of the naive optimisation options have been exhausted:  Inlining CPS&amp;rsquo;ing Unboxed types Strictness annotations Strength reduction Compile-time flags Modules: Using explicit export lists   Implement a version of trace mcmc in c++ / r to compare against, just because there’s no point comparing to mcmc without tracing. Learn about eff and implement monad-bayes in eff    Meeting (MN + AZ) 05/01/2021 - 17/01/2021</description>
+ Checking if all of the naive optimisation options have been exhausted:  Inlining (x) CPS&amp;rsquo;ing (x) Compile-time flags (x) Modules &amp;ndash; using explicit export lists (x) The following have been partially applied, but is typically time-consuming and yield small improvements:  Unboxed types (?) Strictness annotations (?) Strength reduction (?)     To do:  Implement a version of trace mcmc in c++ / r to compare against, just because there’s no point comparing to mcmc without tracing.</description>
     </item>
     
     <item>

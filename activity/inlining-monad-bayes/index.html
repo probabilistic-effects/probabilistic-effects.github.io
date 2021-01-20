@@ -17,25 +17,19 @@
 :root {}
 </style>
 <meta property="og:title" content="Inlining Monad Bayes" />
-<meta property="og:description" content="Original profiling report for PMMH inference on a HMM:
-  Analysing the dumped core of Population.hs and Weighted.hs of monad-bayes:
-It turns out that we should expect to see these definitions, however if we use optimization:2, then we should also expect them to not actually be used. This is because GHC generates a lot of garbage that it doesn&rsquo;t seem to want to remove, but when we go to places where they would have been used, we should be able to find that they aren&rsquo;t actually there." />
+<meta property="og:description" content="Original benchmark, using a data file containing 500 data points:  scoreModel :: MonadInfer m =&gt; LatentState -&gt; [ObservedState] -&gt; Params -&gt; m Params scoreModel latentState observedStates params = do let observe n p y = score (binomialPdf n p y) go [] x = return x go (y:ys) x = do x&#39; &lt;- transitionModel params x observe (getLat x&#39;) ((fromIntegral $ getLat x&#39;) * (observation_p params)) y go ys x&#39; (go $!" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://probabilistic-effects.github.io/activity/inlining-monad-bayes/" />
 <meta property="article:published_time" content="2020-11-13T14:05:41+00:00" />
 <meta property="article:modified_time" content="2020-11-13T14:05:41+00:00" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Inlining Monad Bayes"/>
-<meta name="twitter:description" content="Original profiling report for PMMH inference on a HMM:
-  Analysing the dumped core of Population.hs and Weighted.hs of monad-bayes:
-It turns out that we should expect to see these definitions, however if we use optimization:2, then we should also expect them to not actually be used. This is because GHC generates a lot of garbage that it doesn&rsquo;t seem to want to remove, but when we go to places where they would have been used, we should be able to find that they aren&rsquo;t actually there."/>
+<meta name="twitter:description" content="Original benchmark, using a data file containing 500 data points:  scoreModel :: MonadInfer m =&gt; LatentState -&gt; [ObservedState] -&gt; Params -&gt; m Params scoreModel latentState observedStates params = do let observe n p y = score (binomialPdf n p y) go [] x = return x go (y:ys) x = do x&#39; &lt;- transitionModel params x observe (getLat x&#39;) ((fromIntegral $ getLat x&#39;) * (observation_p params)) y go ys x&#39; (go $!"/>
 <meta itemprop="name" content="Inlining Monad Bayes">
-<meta itemprop="description" content="Original profiling report for PMMH inference on a HMM:
-  Analysing the dumped core of Population.hs and Weighted.hs of monad-bayes:
-It turns out that we should expect to see these definitions, however if we use optimization:2, then we should also expect them to not actually be used. This is because GHC generates a lot of garbage that it doesn&rsquo;t seem to want to remove, but when we go to places where they would have been used, we should be able to find that they aren&rsquo;t actually there.">
+<meta itemprop="description" content="Original benchmark, using a data file containing 500 data points:  scoreModel :: MonadInfer m =&gt; LatentState -&gt; [ObservedState] -&gt; Params -&gt; m Params scoreModel latentState observedStates params = do let observe n p y = score (binomialPdf n p y) go [] x = return x go (y:ys) x = do x&#39; &lt;- transitionModel params x observe (getLat x&#39;) ((fromIntegral $ getLat x&#39;) * (observation_p params)) y go ys x&#39; (go $!">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="1132">
+<meta itemprop="wordCount" content="1306">
 
 
 
@@ -48,6 +42,45 @@ It turns out that we should expect to see these definitions, however if we use o
 <div class="content-container">
 <main><h1>Inlining Monad Bayes</h1>
 <ul>
+<li>Original benchmark, using a data file containing 500 data points:</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">scoreModel</span> <span style="color:#f92672">::</span>
+   <span style="color:#66d9ef">MonadInfer</span> m
+   <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">LatentState</span>
+   <span style="color:#f92672">-&gt;</span> [<span style="color:#66d9ef">ObservedState</span>]
+   <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Params</span>
+   <span style="color:#f92672">-&gt;</span> m <span style="color:#66d9ef">Params</span>
+<span style="color:#a6e22e">scoreModel</span> latentState observedStates params
+   <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>  <span style="color:#66d9ef">let</span> observe n p y <span style="color:#f92672">=</span> score (binomialPdf n p y)
+
+             go <span style="color:#66d9ef">[]</span>     x <span style="color:#f92672">=</span> return x
+             go (y<span style="color:#66d9ef">:</span>ys) x <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span> x&#39; <span style="color:#f92672">&lt;-</span> transitionModel params x
+                              observe (getLat x&#39;) ((fromIntegral <span style="color:#f92672">$</span> getLat x&#39;) <span style="color:#f92672">*</span> (observation_p params)) y
+                              go ys x&#39;
+
+         (go <span style="color:#f92672">$!</span> (map getObs observedStates)) <span style="color:#f92672">$!</span> latentState
+
+         return params
+
+<span style="color:#a6e22e">inferModel</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> [[(<span style="color:#66d9ef">Params</span>, <span style="color:#66d9ef">Numeric</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Log</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Log</span> <span style="color:#66d9ef">Double</span>)]]
+<span style="color:#a6e22e">inferModel</span> n_mhsteps n_timesteps n_particles <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+    ys <span style="color:#f92672">&lt;-</span> parseFromFile dataParser <span style="color:#e6db74">&#34;data/datafile&#34;</span>
+    <span style="color:#66d9ef">case</span> ys <span style="color:#66d9ef">of</span>
+      (<span style="color:#66d9ef">Left</span> <span style="color:#66d9ef">_</span>)    <span style="color:#f92672">-&gt;</span> <span style="color:#a6e22e">error</span> <span style="color:#e6db74">&#34;naughty&#34;</span>
+      (<span style="color:#66d9ef">Right</span> obsData) <span style="color:#f92672">-&gt;</span> sampleIO <span style="color:#f92672">$</span> <span style="color:#66d9ef">do</span>
+              pmmhRes <span style="color:#f92672">&lt;-</span> prior <span style="color:#f92672">$</span> pmmh n_mhsteps n_timesteps n_particles paramsPrior (scoreModel initLatentState (map <span style="color:#66d9ef">Obs</span> obsData))
+              return pmmhRes
+
+<span style="color:#a6e22e">runPmmh</span> <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Int</span>, <span style="color:#66d9ef">Int</span>, <span style="color:#66d9ef">Int</span>) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> ()
+<span style="color:#a6e22e">runPmmh</span> (n_mhsteps, n_timesteps, n_particles) <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+  particleWeightings <span style="color:#f92672">&lt;-</span> inferModel n_mhsteps n_timesteps n_particles
+  print particleWeightings
+
+<span style="color:#a6e22e">main</span> <span style="color:#f92672">=</span> defaultMain [
+  bgroup <span style="color:#e6db74">&#34;runPmmh&#34;</span> [ bench <span style="color:#e6db74">&#34;(100, 100, 100)&#34;</span>  <span style="color:#f92672">$</span> whnfIO <span style="color:#f92672">$</span> runPmmh (<span style="color:#ae81ff">100</span>, <span style="color:#ae81ff">100</span>, <span style="color:#ae81ff">100</span>)
+                   ]
+  ]
+</code></pre></div><ul>
 <li>
 <p>Original profiling report for PMMH inference on a HMM:</p>
 <p><img src="https://i.ibb.co/6mv24Cp/pmmh-prof.png" alt=""></p>

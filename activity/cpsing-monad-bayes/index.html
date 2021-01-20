@@ -29,7 +29,7 @@
 <meta itemprop="description" content="Implemented and integrated CPS version of StateT monad into monad-bayes:  type State s = StateT s Identity {-# INLINE state #-} state :: Monad m =&gt; (s -&gt; (a, s)) -&gt; StateT s m a state f = StateT (\s k -&gt; uncurry k (f s)) {-# INLINE runState #-} runState :: State s a -&gt; s -&gt; (a, s) runState mx = runIdentity . runStateT mx {-# INLINE evalState #-} evalState :: State s a -&gt; s -&gt; a evalState mx = runIdentity .">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="2684">
+<meta itemprop="wordCount" content="2812">
 
 
 
@@ -438,6 +438,31 @@
 <li>Added <code>-O2</code>, <code>-funfolding-use-threshold=16</code>, and <code>-fexcess-precision</code> flags.</li>
 </ul>
 <p><img src="https://i.ibb.co/SsFwVrk/benchmark-19.png" alt=""></p>
+<ul>
+<li>Started using larger arguments to the benchmark program to increase the base run-time, so that optimisations yielding improved run-times are more noticeable. Previously, a data file of 500 data points were used, with 100 metropolis-hastings steps, 100 particle filter time steps, and 100 particles (100, 100, 100). Now, we bench using (100, 100, 300) and (300, 100, 100).</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell">
+<span style="color:#a6e22e">runPmmh</span> <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Int</span>, <span style="color:#66d9ef">Int</span>, <span style="color:#66d9ef">Int</span>) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> ()
+<span style="color:#a6e22e">runPmmh</span> (n_mhsteps, n_timesteps, n_particles) <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+  particleWeightings <span style="color:#f92672">&lt;-</span> inferModel n_mhsteps n_timesteps n_particles
+  print particleWeightings
+
+<span style="color:#a6e22e">main</span> <span style="color:#f92672">=</span> defaultMain [
+  bgroup <span style="color:#e6db74">&#34;runPmmh&#34;</span> [ bench <span style="color:#e6db74">&#34;(100, 100, 300)&#34;</span>  <span style="color:#f92672">$</span> whnfIO <span style="color:#f92672">$</span> runPmmh (<span style="color:#ae81ff">100</span>, <span style="color:#ae81ff">100</span>, <span style="color:#ae81ff">300</span>),
+                     bench <span style="color:#e6db74">&#34;(300, 100, 100)&#34;</span>  <span style="color:#f92672">$</span> whnfIO <span style="color:#f92672">$</span> runPmmh (<span style="color:#ae81ff">300</span>, <span style="color:#ae81ff">100</span>, <span style="color:#ae81ff">100</span>)
+                   ]
+  ]
+</code></pre></div><p><em>(100, 100, 300)</em>
+<img src="https://i.ibb.co/Rjvnpz0/benchmark-21.png" alt=""></p>
+<p><em>(300, 100, 100)</em>
+<img src="https://i.ibb.co/W041Hh1/benchmark-22.png" alt=""></p>
+<ul>
+<li>Added <code>-optc-O3</code> and <code>-optc-ffast-math</code> flags.</li>
+</ul>
+<p><em>(100, 100, 300)</em>
+<img src="https://i.ibb.co/yB9RgHN/benchmark-23.png" alt=""></p>
+<p><em>(300, 100, 100)</em>
+<img src="https://i.ibb.co/LCqDGb5/benchmark-24.png" alt=""></p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
