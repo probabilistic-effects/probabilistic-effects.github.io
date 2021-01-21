@@ -29,7 +29,7 @@
 <meta itemprop="description" content="1.1 Model-based Reasoning A model is an artifical construct designed to respond in the same way as the system we would like to understand. As computers have evolved, numerical models have come to the forefront and computer simulations have replaced physical models. Numerical models emulate stochasticity, i.e. they use pseudorandom number generators to simulate actually random phenomena and other uncertainties. Running a simulator with stochastic value generation leads to an explosion of possible simulation outcomes.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="6888">
+<meta itemprop="wordCount" content="7668">
 
 
 
@@ -581,18 +581,79 @@ in  if   (z = 0)
     y   = 0.5
 in  observe d y
     z
-</code></pre><p>Lazy evaluation of <code>if</code>-expressions makes it difficult to characterize the support of the probability distribution defined by a program when branches contain <code>sample</code> expressions. We cannot marginalize <code>∫ dµ_0 p(µ_0 | z = 0)</code> and <code>∫ dµ_1 p(µ_1 | z = 1)</code> if we assume <code>p(µ_0|z = 0) = 1</code> and <code>p(µ1|z = 1) = 1</code>.</p>
+</code></pre><p>Lazy evaluation of <code>if</code>-expressions makes it difficult to characterize the support of the probability distribution defined by a program when branches contain <code>sample</code> expressions.
+How do we define the probabilities for <code>mu_0</code> and <code>mu_1</code>? One choice is to set the probability of unevaluated branches to 1. We would include either <code>p(mu_0 | z = 0)</code> or <code>p(mu_1 | z = 1)</code> in the probability, and assume a probability 1 for unevaluated branches. This would be equivalent to both:</p>
+<ul>
+<li>Defining <code>P(mu_0)</code> as <code>if (z  = 0) then p_norm mu_0 -1.0 1.0 else 1.0</code></li>
+<li>Defining <code>P(mu_0)</code> as <code>if (z != 0) then p_norm mu_1  1.0 1.0 else 1.0</code></li>
+</ul>
+<p>However, we cannot marginalize <code>∫ dµ_0 p(µ_0 | z = 0)</code> and <code>∫ dµ_1 p(µ_1 | z = 1)</code> if we assume both <code>p(µ_0|z = 0) = 1</code> and <code>p(µ1|z = 1) = 1</code>.</p>
 <p><em>Conclusion</em>:</p>
 <p>We need to understand that <code>observe</code> and <code>sample</code> expressions affect the marginal posterior on a program output in very different ways:</p>
 <ul>
 <li><code>sample</code> expressions that are not on the control flow path cannot affect the values of any expressions outside of their branch. This means they can be safely incorporated into the model as auxiliary variables, since they do not affect the marginal posterior on the return value.</li>
-<li><code>observe</code> expressions do not have the guarantee that <code>sample</code> expressions have, as they change the posterior distribution on the return value when incorporated into a graphical model.</li>
+<li><code>observe</code> expressions do not have the guarantee that <code>sample</code> expressions have, as <strong>they change the posterior distribution on the return value when incorporated into a graphical model</strong>.</li>
 </ul>
 <p>Based on this intuition, the solution to our problem is:</p>
 <ul>
 <li>We can assign probability 1 to the observed variables that are not on the same control flow path. Since observed variables have constant values, the interpretability of their support for characterizing probability distributions is not an issue in the same way it is with sampled variables.</li>
 <li>Conversely, we assign the same probability to sampled variables, regardless of the branch they occur in. How this is accomplished will be described in later sections.</li>
 </ul>
+<p><strong>Translation Rules</strong></p>
+<pre><code>             ρ, φ, e ⇓ G, E
+</code></pre><ul>
+<li>Constants and Variables: we translate constants <em>c</em> and variables <em>z</em> to themselves and the empty graphical model.</li>
+</ul>
+<pre><code>────────────────────      ──────────────────── 
+ρ, φ, c ⇓ G_empty, c      ρ, φ, z ⇓ G_empty, z
+
+</code></pre><ul>
+<li>Let: we translate <code>let [v e_1] e_2</code> by first translating <code>e_1</code>, then substituting the outcome of this translation for <code>v</code> in <code>e_2</code>, and finally translating the result of this substitution:</li>
+</ul>
+<pre><code>ρ, φ, e_1 ⇓ G_1 E_1     ρ, φ, e_2[v := E_1] ⇓ G_2, E_2
+────────────────────────────────────────────────────── 
+      ρ, φ, let [v e_1] e_2 ⇓ G_1 ⊕ G_2, E_2 
+</code></pre><p><code>G_1 ⊕ G_2</code> is the concatenation of two disjoint graphical models. When <code>G_1 = (V_1, A_1, P_1, Y_1)</code> and <code>G_2 = (V_2, A_2, P_2, Y_2)</code>:</p>
+<pre><code>G_1 ⊕ G_2 = (V1 ∪ V2, A1 ∪ A2, P1 ⊕ P2, Y1 ⊕ Y2)
+</code></pre><p>where <code>P1 ⊕ P2</code> and <code>Y1 ⊕ Y2</code> are the concatenation of two finite maps with disjoint domains (disjoint meaning having no elements in common). This operator <code>⊕</code> assumes that the input graphical models <code>G_1</code> and <code>G_2</code> use disjoint sets of vertices. This assumption always holds because every graphical model created by our translation uses fresh vertices, which do not appear in other networks generated.</p>
+<ul>
+<li>If: when we translate the sub-expressions for the alternative branches, the conjoin the logical predicate <code>φ</code> with the expression <code>E_1</code> or its negation &ndash; recall that the role of the logical predicate is useful for including <code>observe</code> statements that are on the current-sample control-flow path, and excluding <code>observe</code> statements that are off the current-sample control-flow path.</li>
+</ul>
+<pre><code>ρ, φ, e_1 ⇓ G_1 E_1   ρ, (φ &amp;&amp; E_1), e_2 ⇓ G_2, E_2   ρ, (φ &amp;&amp; not E_1), e_3 ⇓ G_3, E_3
+───────────────────────────────────────────────────────────────────────────────────────
+        ρ, φ, if e_1 e_2 e_3 ⇓ G_1 ⊕ G_2 ⊕ G_3, E_2 
+</code></pre><p>The set of rules so far for an expression <code>e</code> do not extend graphical models from <code>e</code>&rsquo;s sub-expressions with any new vertices. This is because the programming constructs involved in these rules perform deterministic computations, not probabilistic computations, and graphical models are used to express random variables.</p>
+<p>The next two rules for <code>sample</code> and <code>observe</code> will show how graphical models are extended with new random variables.</p>
+<ul>
+<li>Sample:</li>
+</ul>
+<pre><code>ρ, φ, e ⇓ (V, A, P, Y), E    Choose a fresh variable v   Z = FREE-VARS(E)  F = SCORE(E, v)
+───────────────────────────────────────────────────────────────────────────────────────
+        ρ, φ, sample e ⇓ ⇓ (V ∪ {v}, A ∪ {(z, v) | z ∈ Z}, P ⊕ [v → F], Y), v
+</code></pre><p>This rule states that we translate <code>(sample e)</code> in three steps.</p>
+<ol>
+<li>First, we translate the argument <code>e</code> to a graphical model <code>(V, A, P, Y)</code> and a deterministic expression <code>E</code>. Both the argument <code>e</code> and its translation <code>E</code> represent the same distribution, from which <code>sample e</code> samples.</li>
+<li>Second, we choose a fresh variable <code>v</code>, then collect all the free variables in <code>E</code> that are used as random variables of the network, and set <code>Z</code> to the set of these random variables.</li>
+<li>Finally, we convert the expression <code>E</code> that denotes a distribution, to the probability density function <code>F</code> of the distribution. This conversion is done by calling <code>SCORE</code> on the distribution <code>E</code> and the variable <code>v</code>, which is defined as follows:</li>
+</ol>
+<pre><code>SCORE(if E_1, E_2, E_3, v) = if E_1 F_2 F_3
+  when F_i = SCORE(E_i, v) for i ∈ {2, 3} and it is not ⊥
+
+SCORE((c E_1 ... E_n), v)  = (p_c v E_1 ... E_n)
+  when c is a constructor for a distribution and p_c is its probability density function
+
+SCORE(E, v) = ⊥
+  when E is not one of the above cases (when E is not a distribution)
+</code></pre><ul>
+<li>Observe:</li>
+</ul>
+<pre><code>  ρ, φ, e_1  ⇓ G_1, E_1        ρ, φ, e_2 ⇓ G_2, E_2
+  (V, A, P, Y) = G_1 ⊕ G_2     Choose a fresh variable v
+  F_1 = SCORE(E_1, v) ≠ ⊥      F = if φ then F_1 else 1
+  Z = FREE-VARS(F_1) \ {v}     FREE-VARS(E_2) ∩ V = ∅
+───────────────────────────────────────────────────────────────────────────────────────
+  ρ, φ, observe e_1 e_2 ⇓ (V ∪ {v}, A ∪ B, P ⊕ [v → F], Y ⊕ [v → E_2]), E_2
+</code></pre><p>The rule for <code>observe</code> expressions is analogous to <code>sample</code> expressions, but we additionally need to account for the observed value <code>e_2</code> and the predicate <code>φ</code>.</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
