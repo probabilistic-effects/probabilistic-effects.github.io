@@ -29,7 +29,7 @@
 <meta itemprop="description" content="1. What Does Monad-Bayes Do? The general way of inferring a posterior distribution given a likelihood and a prior is an approximate inference technique called MCMC which are a whole class of methods to infer the posterior. A key point to note is that although we are inferring the posterior, we are also inferring an estimate of the likelihood as well using the data. Inference in general is the act of predicting the values of something which we don&rsquo;t have access to directly, given some data.">
 <meta itemprop="datePublished" content="2020-11-13T14:04:44+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:04:44+00:00" />
-<meta itemprop="wordCount" content="8376">
+<meta itemprop="wordCount" content="8440">
 
 
 
@@ -384,7 +384,7 @@ Result: ()
   <span style="color:#66d9ef">deriving</span> (<span style="color:#66d9ef">Functor</span>, <span style="color:#66d9ef">Applicative</span>, <span style="color:#66d9ef">Monad</span>, <span style="color:#66d9ef">MonadTrans</span>)
 </code></pre></div><p>The type <code>FreeSampler</code> is essentially the free monad transformer <code>FT</code> where the functor (shape of the tree&rsquo;s nodes) is specified as the type <code>SamF</code>, and the monadic context we wrap our nodes in is left abstract.</p>
 <p>The type <code>SamF</code> is the random sampling functor, which represents the idea of a random effect. It captures the notion that we provide a (random) <code>Double</code> and it returns some value of type <code>a</code>, i.e. the notion that we make a random decision at some point.</p>
-<p>The type <code>FT SamF m a</code> is hence the free monad tree of random decisions. In some sense, this is the composition of a bunch of functions which take <code>Double</code>s and return us <code>a</code>s. Imagine a tree where every step of the tree we provide it a random number as a <code>Double</code> which is then mapped to a value as an <code>a</code> &ndash; we can then consider this <code>a</code> to be a random value. The type <code>a</code> represents whatever we want samples of. We can think of <code>(Double -&gt; a)</code> as a specification for a random number generator - a random number generator takes some seed as a double and produces a random value in type <code>a</code>.</p>
+<p>The type <code>FT SamF m a</code> is hence the free monad tree of random decisions. In some sense, this is the composition of a bunch of functions which take <code>Double</code>s and return us <code>a</code>s. Imagine a tree where every step of the tree we provide it a random number as a <code>Double</code> which is then mapped to a value as an <code>a</code> &ndash; we can then consider this <code>a</code> to be a random value. The type <code>a</code> represents whatever we want samples of. We can think of <code>(Double -&gt; a)</code> as a specification for a random number generator - a random number generator takes some seed as a double and produces a random value in type <code>a</code>. Specifically in this context, this function <code>Double -&gt; a</code> will specialise to <code>StateT [Double] (WriterT [Double] m) a</code>. (This is talked about later, in the function <code>withPartialRandomness</code>).</p>
 <p>&ldquo;So what does the free sampler <code>FT SamF m a</code> allow us to do?&rdquo; Let&rsquo;s take a look at the function <code>withRandomness</code>: this executes a computation with supplied values for random choices.</p>
 <p><em>Bayes.Free</em></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Execute computation with supplied values for random choices.</span>
@@ -513,7 +513,9 @@ Result: ()
 </li>
 <li>
 <p><strong><code>smcSystematic</code></strong> - the particle filter (Sequential Monte Carlo) which uses systematic resampling at each timestep as a resampling method. Hence composing <code>smcSystematic</code> with <code>model</code> is running the particle filter on the model we give it.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Sequential Monte Carlo with systematic resampling at each timestep.</span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">sir</span> resampler k n <span style="color:#f92672">=</span> finish <span style="color:#f92672">.</span> composeCopies k (advance <span style="color:#f92672">.</span> hoistFirst resampler) <span style="color:#f92672">.</span> <span style="color:#66d9ef">Seq</span><span style="color:#f92672">.</span>hoistFirst (spawn n <span style="color:#f92672">&gt;&gt;</span>)
+
+<span style="color:#75715e">-- | Sequential Monte Carlo with systematic resampling at each timestep.</span>
 <span style="color:#75715e">-- Weights are not normalized.</span>
 <span style="color:#a6e22e">smcSystematic</span> <span style="color:#f92672">::</span>
   <span style="color:#66d9ef">MonadSample</span> m <span style="color:#f92672">=&gt;</span>
@@ -587,7 +589,7 @@ Result: ()
 <p>The metropolis hastings function <code>mh</code> is run for <code>t</code> amount of metropolis-hastings steps, using <code>(param &gt;&gt;= runPopulation . pushEvidence . Pop.hoist Traced.Static.lift . smcSystematic k n . model)</code> as a likelihood function to draw samples from the posterior distribution which are representative enough of the posterior.</p>
 </li>
 </ul>
-<h4 id="8-using-the-free-sampler">8. Using the Free Sampler</h4>
+<h4 id="8-some-brainstorming-on-how-the-free-sampler-is-used">8. Some brainstorming on how the Free Sampler is used</h4>
 <p>Let&rsquo;s start off in <code>pmmh</code></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- | Particle Marginal Metropolis-Hastings sampling.</span>
 <span style="color:#a6e22e">pmmh</span> <span style="color:#f92672">::</span>
@@ -606,9 +608,17 @@ Result: ()
 <span style="color:#a6e22e">pmmh</span> t k n param model <span style="color:#f92672">=</span>
   mh t (param <span style="color:#f92672">&gt;&gt;=</span> runPopulation <span style="color:#f92672">.</span> pushEvidence <span style="color:#f92672">.</span> <span style="color:#66d9ef">Pop</span><span style="color:#f92672">.</span>hoist <span style="color:#66d9ef">Bayes</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Traced</span><span style="color:#f92672">.</span><span style="color:#66d9ef">Static</span><span style="color:#f92672">.</span>lift <span style="color:#f92672">.</span>
         smcSystematic k n <span style="color:#f92672">.</span> model)
-</code></pre></div><p>Our <code>model</code> has type <code>b -&gt; Sequential (Population m) a</code>.</p>
+</code></pre></div><ul>
+<li>
+<p>Our <code>model</code> has type <code>b -&gt; Sequential (Population m) a</code>.</p>
+</li>
+<li>
 <p>The partially applied function <code>smcSystematic k n</code> (the particle filter) will have type <code>Sequential (Population m a) -&gt; Population m a</code>.</p>
+</li>
+<li>
 <p><code>Pop.hoist Bayes.Traced.Static.lift</code> will have type <code>Population m a -&gt; Population (Traced m) a</code>.</p>
+</li>
+</ul>
 <p>When we called <code>Bayes.Traced.Static.lift</code> on <code>m</code>, <code>lift</code> has the following definition:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Traced</span> m a
   <span style="color:#f92672">=</span> <span style="color:#66d9ef">Traced</span>
@@ -728,7 +738,7 @@ Result: ()
 <span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">FreeT</span> f m a <span style="color:#f92672">=</span> <span style="color:#66d9ef">FreeT</span> { runFreeT <span style="color:#f92672">::</span> m (<span style="color:#66d9ef">FreeF</span> f a (<span style="color:#66d9ef">FreeT</span> f m a)) }
 </code></pre></div></li>
 <li>
-<p><code>f</code> has type <code>SamF (StateT [Double] (WriterT [Double] m) a) -&gt; StateT [Double] (WriterT [Double] m) a</code>. In other words, it takes a <code>SamF</code> node containing a function <code>k :: Double -&gt; StateT [Double] (WriterT [Double] m) a</code>.</p>
+<p><code>f</code> has type <code>SamF (StateT [Double] (WriterT [Double] m) a) -&gt; StateT [Double] (WriterT [Double] m) a</code>. In other words, it takes a <code>SamF</code> node containing a function <code>k :: Double -&gt; StateT [Double] (WriterT [Double] m) a</code>.  The description of what <code>f</code> does is given in comments in the code above.</p>
 </li>
 <li>
 <p><code>iterTM</code> has type <code>(f (t m a) -&gt; t m a) -&gt; FT f m a -&gt; t m a</code></p>
