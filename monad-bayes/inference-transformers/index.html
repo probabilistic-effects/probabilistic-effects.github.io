@@ -58,9 +58,7 @@
 <span style="color:#66d9ef">class</span> ( <span style="color:#66d9ef">MonadSample</span> m , <span style="color:#66d9ef">MonadCond</span> m ) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">MonadInfer</span> m
 </code></pre></div><hr>
 <h2 id="sampler">Sampler</h2>
-<p>This inference transformer is a sampler that draws concrete values for random variables from the
-prior. Such a sampler type can be constructed as a state monad that references a global
-pseudo-random number generator.</p>
+<p>This inference transformer is a sampler that draws concrete values for random variables from the prior. Such a sampler type can be constructed as a state monad that references a global pseudo-random number generator.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Sampler</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Sampler</span> ( forall s <span style="color:#f92672">.</span> <span style="color:#66d9ef">ReaderT</span> ( <span style="color:#66d9ef">GenST</span> s ) ( <span style="color:#66d9ef">ST</span> s ) a )
 
 <span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">MonadSample</span> <span style="color:#66d9ef">Sampler</span> <span style="color:#66d9ef">where</span>

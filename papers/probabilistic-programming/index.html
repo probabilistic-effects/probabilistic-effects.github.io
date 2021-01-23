@@ -29,7 +29,7 @@
 <meta itemprop="description" content="1.1 Model-based Reasoning A model is an artifical construct designed to respond in the same way as the system we would like to understand. As computers have evolved, numerical models have come to the forefront and computer simulations have replaced physical models. Numerical models emulate stochasticity, i.e. they use pseudorandom number generators to simulate actually random phenomena and other uncertainties. Running a simulator with stochastic value generation leads to an explosion of possible simulation outcomes.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="7668">
+<meta itemprop="wordCount" content="8923">
 
 
 
@@ -166,9 +166,13 @@ e ::= c | v | (let [v e1] e2) | (if e1 e2 e3)
 q ::= e | (defn f [v1 ... vn] e) q 
 </code></pre><p>The two forms of expressions &ldquo;sample&rdquo; and &ldquo;observe&rdquo; are what make the FOPPL a probabilistic programming language.</p>
 <ul>
-<li>A sample form <code>(sample e)</code> represents an unobserved random variable. It accepts a single expression <code>e</code> (which must evaluate to a &ldquo;distribution object&rdquo;), and returns a value that is a sample from this distribution. Distributions are constructed using primitives provided by the FOPPL &ndash; for example, <code>normal 0.0 1.0</code> evaluates to a standard normal distribution.</li>
-<li>An observe form <code>(observe e1 e2)</code> represents an observed random variable. It accepts an argument <code>e1</code> which must evaluate to a distribution, and conditions the distribution on the next argument <code>e2</code>, which is the value of the random variable.</li>
+<li>A sample form <code>(sample e)</code> represents an <strong>unobserved random variable</strong> (i.e. a latent variable. We call these latent variables, because they are typically variables we sample from a distribution to represent some parameter we do not know much about yet). It accepts a single expression <code>e</code> (which must evaluate to a &ldquo;distribution object&rdquo;), and returns a value that is a sample from this distribution. Distributions are constructed using primitives provided by the FOPPL &ndash; for example, <code>normal 0.0 1.0</code> evaluates to a standard normal distribution.</li>
+<li>An observe form <code>(observe e1 e2)</code> represents an <strong>observed random variable</strong> (these are observed because we typically use a latent variable to parameterise a distribution, and from this we can <em>directly</em> observe a value). It accepts an argument <code>e1</code> which must evaluate to a distribution, and conditions the distribution on the next argument <code>e2</code>, which is the value of the random variable.</li>
 </ul>
+<p>To elaborate on how <code>sample</code> represents a latent variable, and <code>observe</code> represents an observed variable:</p>
+<pre><code>x ∼ Beta(α, β)
+y ∼ Bernoulli(x)
+</code></pre><p>Here, <code>x</code> is a latent variable that we <code>sample</code> from a prior distribution, for example, the bias of a coin. Then, <code>y</code> will be a variable that we directly <code>observe</code> from a distribution parameterised by our latent variable, for example, the value of a flipped coin. We can&rsquo;t observe the bias of the coin, but we can sample an initial guess for it as a latent variable. Using this, we can directly observe values which are produced from a distribution parameterised by the latent variable, in order to indirectly observe and infer the latent variable.</p>
 <!-- raw HTML omitted -->
 <p>Let&rsquo;s now illustrate what a program in the FOPPL looks like. Below shows a simple univariate Bayesian linear regression model.</p>
 <pre><code>(defn observe-data [slope intercept x y]
@@ -471,12 +475,12 @@ E ::= c | v | (if E1 E2 E3) | (c E1 ... En)
 </ul>
 <p>For observed random variables, we additionally define the observed value, as well as a logical predicate that indicates whether the <code>observe</code> expression is on the control flow path, conditioned on the values of the latent variables.</p>
 <p><strong>Definition of a Graphical Model</strong></p>
-<p>We define a graphical model <code>G</code> as a tuple <code>(V, A, P, Y)</code> where:</p>
+<p>We define a graphical model <code>G</code> as a tuple <code>(V, A, Ƿ, Ƴ)</code> where:</p>
 <ul>
 <li><code>V</code> is a set of vertices representing random variables</li>
 <li><code>A</code> is a set of directed edges <code>(V × V)</code> that represent conditional dependencies between random variables</li>
-<li><code>P</code> is a map from vertices to deterministic expressions that specify the probability density function for each random variable</li>
-<li><code>Y</code> is a partial map such that for each observed random variable, it contains a pair <code>(E, Φ)</code>, where <code>E</code> is the deterministic expression for the observed value, and <code>Φ</code> is a predicate expression that evaluates to <code>true</code> when this observation is on the control flow path. A <em>control flow path</em> is a graphical representation of all paths that might be traversed through a program during its execution.</li>
+<li><code>Ƿ</code> is a map from vertices to deterministic expressions that specify the probability density function for each random variable</li>
+<li><code>Ƴ</code> is a partial map such that for each observed random variable, it contains a pair <code>(E, Φ)</code>, where <code>E</code> is the deterministic expression for the observed value, and <code>Φ</code> is a predicate expression that evaluates to <code>true</code> when this observation is on the control flow path. A <em>control flow path</em> is a graphical representation of all paths that might be traversed through a program during its execution.</li>
 </ul>
 <p>Before presenting a set of translation rules that can be used to compile any FOPPL program to a graphical model, we will illustrate the intended translation using a simple example:</p>
 <pre><code>(let [  z  (sample ( bernoulli 0.5))
@@ -496,25 +500,25 @@ E ::= c | v | (if E1 E2 E3) | (c E1 ... En)
 <li><code>ρ</code> is the empty map, as there are no procedure definitions.</li>
 <li><code>φ</code> (the control flow predicate) is true at the top level of the program.</li>
 </ul>
-<p>The graphical model <code>G = (V, A, P, Y)</code> and the result expression <code>E</code> that the program translates to are:</p>
+<p>The graphical model <code>G = (V, A, Ƿ, Ƴ)</code> and the result expression <code>E</code> that the program translates to are:Ƴ</p>
 <pre><code>V = {z, y}
 A = {(z, y)}
-P = [ z → p_bern z 0.5,
+Ƿ = [ z → p_bern z 0.5,
       y → p_norm y (if (z = 0) -1.0 1.0) 1.0
     ]
-Y = [y → 0.5]
+Ƴ = [y → 0.5]
 E = z
 </code></pre><p>In here,</p>
 <ul>
 <li><code>V</code>, the vertex set of <code>G</code>, contains two random variables.</li>
 <li><code>A</code>, the arc set of <code>G</code>, contains a single pair <em>(z, y)</em> to mark the conditional dependence relationship between these two variables.</li>
-<li><code>P</code>, the mapping of random variables to probability density functions, states that:
+<li><code>Ƿ</code>, the mapping of random variables to probability density functions, states that:
 <ul>
 <li>The probability density for <em>z</em> is defined as the target language expression <code>p_bern z 0.5</code>. Here, <code>p_bern</code> refers to a function in the target language that implements the probability density function for the Bernoulli distribution.</li>
 <li>The probability density for <em>y</em> is defined using <code>p_norm</code>, which implements the probability density function for the normal distribution.</li>
 </ul>
 </li>
-<li><code>Y</code>, the mapping of observed random variables to pairs <code>(E, Φ)</code>, contains a single entry that holds the observed value for `y_.</li>
+<li><code>Ƴ</code>, the mapping of observed random variables to pairs <code>(E, Φ)</code>, contains a single entry that holds the observed value for `y_.</li>
 </ul>
 <p><strong>Assigning Symbols to Variable Nodes</strong></p>
 <p>In the above example, we used the <em>mathematical</em> symbols:</p>
@@ -584,8 +588,8 @@ in  observe d y
 </code></pre><p>Lazy evaluation of <code>if</code>-expressions makes it difficult to characterize the support of the probability distribution defined by a program when branches contain <code>sample</code> expressions.
 How do we define the probabilities for <code>mu_0</code> and <code>mu_1</code>? One choice is to set the probability of unevaluated branches to 1. We would include either <code>p(mu_0 | z = 0)</code> or <code>p(mu_1 | z = 1)</code> in the probability, and assume a probability 1 for unevaluated branches. This would be equivalent to both:</p>
 <ul>
-<li>Defining <code>P(mu_0)</code> as <code>if (z  = 0) then p_norm mu_0 -1.0 1.0 else 1.0</code></li>
-<li>Defining <code>P(mu_0)</code> as <code>if (z != 0) then p_norm mu_1  1.0 1.0 else 1.0</code></li>
+<li>Defining <code>Ƿ(mu_0)</code> as <code>if (z  = 0) then p_norm mu_0 -1.0 1.0 else 1.0</code></li>
+<li>Defining <code>Ƿ(mu_0)</code> as <code>if (z != 0) then p_norm mu_1  1.0 1.0 else 1.0</code></li>
 </ul>
 <p>However, we cannot marginalize <code>∫ dµ_0 p(µ_0 | z = 0)</code> and <code>∫ dµ_1 p(µ_1 | z = 1)</code> if we assume both <code>p(µ_0|z = 0) = 1</code> and <code>p(µ1|z = 1) = 1</code>.</p>
 <p><em>Conclusion</em>:</p>
@@ -627,13 +631,14 @@ How do we define the probabilities for <code>mu_0</code> and <code>mu_1</code>? 
 <ul>
 <li>Sample:</li>
 </ul>
-<pre><code>ρ, φ, e ⇓ (V, A, P, Y), E    Choose a fresh variable v   Z = FREE-VARS(E)  F = SCORE(E, v)
+<pre><code>ρ, φ, e ⇓ (V, A, Ƿ, Ƴ), E    Choose a fresh variable v   Z = FREE-VARS(E)  F = SCORE(E, v)
 ───────────────────────────────────────────────────────────────────────────────────────
-        ρ, φ, sample e ⇓ ⇓ (V ∪ {v}, A ∪ {(z, v) | z ∈ Z}, P ⊕ [v → F], Y), v
-</code></pre><p>This rule states that we translate <code>(sample e)</code> in three steps.</p>
+        ρ, φ, sample e ⇓ ⇓ (V ∪ {v}, A ∪ {(z, v) | z ∈ Z}, Ƿ ⊕ [v → F], Ƴ), v
+</code></pre><p>This rule states that we translate <code>(sample e)</code> in four steps.</p>
 <ol>
-<li>First, we translate the argument <code>e</code> to a graphical model <code>(V, A, P, Y)</code> and a deterministic expression <code>E</code>. Both the argument <code>e</code> and its translation <code>E</code> represent the same distribution, from which <code>sample e</code> samples.</li>
-<li>Second, we choose a fresh variable <code>v</code>, then collect all the free variables in <code>E</code> that are used as random variables of the network, and set <code>Z</code> to the set of these random variables.</li>
+<li>First, we translate the argument <code>e</code> to a graphical model <code>(V, A, Ƿ, Ƴ)</code> and a deterministic expression <code>E</code>. Both the argument <code>e</code> and its translation <code>E</code> represent the same distribution, from which <code>sample e</code> samples.</li>
+<li>Second, we choose a fresh variable <code>v</code> that will represent the sampled random variable.</li>
+<li>Third, we collect all the free variables in <code>E</code> that are used as random variables of the network, and set <code>Z</code> to the set of these random variables.</li>
 <li>Finally, we convert the expression <code>E</code> that denotes a distribution, to the probability density function <code>F</code> of the distribution. This conversion is done by calling <code>SCORE</code> on the distribution <code>E</code> and the variable <code>v</code>, which is defined as follows:</li>
 </ol>
 <pre><code>SCORE(if E_1, E_2, E_3, v) = if E_1 F_2 F_3
@@ -645,15 +650,75 @@ SCORE((c E_1 ... E_n), v)  = (p_c v E_1 ... E_n)
 SCORE(E, v) = ⊥
   when E is not one of the above cases (when E is not a distribution)
 </code></pre><ul>
-<li>Observe:</li>
+<li>Observe: the rule for <code>observe</code> expressions is analogous to <code>sample</code> expressions, but we additionally need to account for the observed value <code>e_2</code> and the predicate <code>φ</code>.</li>
 </ul>
 <pre><code>  ρ, φ, e_1  ⇓ G_1, E_1        ρ, φ, e_2 ⇓ G_2, E_2
-  (V, A, P, Y) = G_1 ⊕ G_2     Choose a fresh variable v
+  (V, A, Ƿ, Ƴ) = G_1 ⊕ G_2     Choose a fresh variable v
   F_1 = SCORE(E_1, v) ≠ ⊥      F = if φ then F_1 else 1
   Z = FREE-VARS(F_1) \ {v}     FREE-VARS(E_2) ∩ V = ∅
+  B = {(z, v) : z ∈ Z}
 ───────────────────────────────────────────────────────────────────────────────────────
-  ρ, φ, observe e_1 e_2 ⇓ (V ∪ {v}, A ∪ B, P ⊕ [v → F], Y ⊕ [v → E_2]), E_2
-</code></pre><p>The rule for <code>observe</code> expressions is analogous to <code>sample</code> expressions, but we additionally need to account for the observed value <code>e_2</code> and the predicate <code>φ</code>.</p>
+  ρ, φ, observe e_1 e_2 ⇓ (V ∪ {v}, A ∪ B, Ƿ ⊕ [v → F], Ƴ ⊕ [v → E_2]), E_2
+</code></pre><p>The rule states that:</p>
+<ol>
+<li>First we translate the sub-expressions <code>e_1</code> and <code>e_2</code> into the graphical models <code>G_1</code> and <code>G_2</code> and deterministic expressions <code>E_1</code> and <code>E_2</code>, where <code>E_1</code> is the distribution and <code>E_2</code> is the value of an observed variable.</li>
+<li>Next, we construct a graphical network <code>(V, A, Ƿ, Ƴ)</code> by merging the networks of the subexpressions.</li>
+<li>Then, we pick a new variable <code>v</code> that will represent the observed random variable.</li>
+<li>We use <code>SCORE</code> to construct an expression <code>F_1</code> that represents the probability density function of the observed variable <code>v</code> under the distribution <code>E_1</code>. (As with <code>sample</code>, the expression <code>e_1</code> which translates to <code>E_1</code> must be a distribution.)</li>
+<li>We then construct a new expression <code>F = if φ then F_1 else 1</code> to ensure that the probability of the observed variable evaluates to 1 if the <code>observe</code> expression occurs in a branch that was not taken. The free variables in this expression <code>F</code> are the union of the free variables in <code>E_1</code>, <code>φ</code> and the new variable <code>v</code>.</li>
+<li>We add a set of arcs <code>B</code> to the graphical network, consisting of edges from all the free variables in <code>F</code> (i.e. the free variables in the probability density function of <code>v</code> under distribution <code>E_1</code>) to the observed random variable <code>v</code>, excluding <code>v</code> itself.</li>
+</ol>
+<p>In order for this notion of an observed random variable to make sense, the expression <code>E_2</code> for the observed random variable must be fully deterministic. For this reason we require that <code>FREE-VARS(E_2) ∩ V = ∅</code>, which ensures that <code>E_2</code> cannot reference any other random variables in the graphical model <code>G_1 ⊕ G_2</code>.</p>
+<p>An important consequence of <code>E_2</code> being a value is that although the return value of an <code>observe</code> (being the value of the observed variable) may be used in subsequent computation, no graphical model edges will be generated with the observed random variable as a parent. An alternative rule could return a <code>null</code> value in place of <code>E_2</code>, which may be safer in terms of ensuring clarity to the programmer, so that there is no way to imagine that an edge could be created where one was not.</p>
+<ul>
+<li>Procedure Call: the remaining two cases are those for a user-defined procedure <code>f</code> and a primitive function <code>c</code>.</li>
+</ul>
+<p>For primitive functions, we first translate the arguments <code>e_i</code> to <code>e_n</code>. Then we translate the expression for the call by substituting the translated arguments into the original expression, and merging the graphs for the arguments.</p>
+<pre><code>  ρ, φ, e_i ⇓ G_i, E_i  forall i ∈ [1 ... n]
+───────────────────────────────────────────────────────────────────────────────────────
+  ρ, φ, (c e_1 ... e_2) ⇓ G_1 ⊕ ... ⊕ G_n, (c E_1 ... E_n)
+</code></pre><p>For user-defined procedures, we first translate the arguments <code>e_i</code> to <code>e_n</code>. Then we transform the procedure body by replacing all instances of the variable <code>v_i</code> with the expression for the argument <code>E_i</code>.</p>
+<h5 id="32-evaluating-the-density">3.2 Evaluating the Density</h5>
+<p>We make explicit how we can use this representation of a probabilistic program to evaluate the probability of a particular setting of the variables in <code>V</code>. The Bayesian network <code>G = (V, A, Ƿ, Ƴ)</code> that we construct by compiling a <code>FOPPL</code> program is a mathematical representation of a directed graphical model. Like any graphical model, <code>G</code> defines a probability density on its variables <code>V</code>.</p>
+<p>In a directed graphical model, each node <code>v ∈ V</code> has a set of parents:</p>
+<pre><code>parents(v) := {u : (u, v) ∈ A}
+</code></pre><p>The joint probability of all variables can be expressed as a product over conditional probabilities.</p>
+<pre><code>p(V) = ∏  p(v | parents(v))
+      v∈V
+</code></pre><p>In our graph <code>G</code>, each term <code>p(v | parents(v))</code> is represented as a deterministic expression <code>Ƿ(v) = c v E_1 ... E_n</code>, where:</p>
+<ul>
+<li><code>c</code> is either a probability density function (for continuous variables) or a probability mass function (for discrete functions)</li>
+<li><code>E_1 ... E_n</code> are expressions that evaluate to the parameters <code>θ_1 ... θ_n</code> of that probability density/mass function.</li>
+</ul>
+<p>Implicit in this notation is that fact that each expression has some set of free variables. In order to evaluate an expression to a value, we must specify values for each of these free variables. In other words, we can think of each of these expressions <code>E_i</code> as a mapping from a value of a free variable to a parameter value. By construction, the set of parents <code>parents(v)</code> is nothing but the free variables in <code>Ƿ(v)</code> except <code>v</code>. We can imagine this as the probability of <code>v</code> conditioned on its ancestor/parent random variables in the graph.</p>
+<pre><code>parents(v) = FREE-VARS(Ƿ(v)) \ {v}
+</code></pre><p>Recall that <code>Ƿ</code> is a map from vertices to deterministic expressions that specify the probability density or mass function for each random variable. <strong>The expression <code>Ƿ(v)</code> can hence be thought of as a function that maps the random variable <code>v</code> and its parents <code>parents(v)</code> to a probability or a probability density</strong>. Therefore, we will treat these two as equivalent:</p>
+<pre><code>p(v | parents(v)) ≡ Ƿ(v)
+</code></pre><p>This means that the conditional probability of random variable <code>v</code> given its parent random variables can be looked up in <code>Ƿ</code> by doing <code>Ƿ(v)</code>.</p>
+<p>We can decompose the joint probability <code>p(V)</code> into a prior and a likelihood term.</p>
+<ul>
+<li>
+<p>Recall that <code>Ƴ</code> is a mapping from random variables to deterministic expressions representing their value. In the translation rule for <code>observe</code>, we require that the expression <code>Ƴ(v)</code> for an observed value can not have free variables. Each expression <code>Ƴ(v)</code> will hence simplify to a constant when we perform partial evaluation.</p>
+</li>
+<li>
+<p>We will use <code>Y</code> to refer to all the nodes in <code>V</code> that correspond to observed random variables, which is to say <code>Y = dom(Ƴ)</code>. Observed random variables are those produced by the <code>observe</code> expression.</p>
+</li>
+<li>
+<p>We will use <code>X</code> to refer to all the nodes in <code>V</code> that correspond to unobserved random variables, which is to say <code>X = V \ Y</code>. Unobserved random variables are those produced by the <code>sample</code> expression.</p>
+</li>
+</ul>
+<p>Since the observed nodes <code>y ∈ Y</code> cannot have any children, we can re-express the joint probability <code>p(V)</code> as:</p>
+<pre><code>p(V) = p(Y, X) = p(Y | X)p(X)
+
+where
+
+p(Y|X) = ∏  p(y | parents(y))     p(X) = ∏ p(x | parents(x))
+        y∈Y                             x∈X
+</code></pre><p>In this manner, a probabilistic program defines a joint distribution <code>p(Y, X)</code>.</p>
+<p>The goal of probabilistic program <em>inference</em> is to characterize the posterior distribution:</p>
+<pre><code>p(X | Y) = p(X, Y)/p(Y)     p(Y) = ∫ p(X, Y) dX
+</code></pre><h6 id="321-conditioning-with-factors">3.2.1 Conditioning with Factors</h6>
+<p>Not all inference problems for probabilistic programs target a posterior <code>p(X | Y)</code> that is defined in terms of unobserved and observed random variables.</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 

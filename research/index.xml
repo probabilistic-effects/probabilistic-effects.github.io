@@ -13,8 +13,8 @@
       <pubDate>Fri, 13 Nov 2020 14:05:57 +0000</pubDate>
       
       <guid>https://probabilistic-effects.github.io/research/research-journal/</guid>
-      <description>Activity (MN) 19/01/2021 - 21/01/2021
- Reading and writing up introduction to probabilistic programming. Meeting with Alessio on understanding how the free monad transformer tree is constructed and executed as a random decision function.  Activity (MN) 18/01/2021
+      <description>Activity (MN) 19/01/2021 - 22/01/2021
+ Reading and writing up introduction to probabilistic programming. Meeting with Alessio on understanding how the free monad transformer tree is constructed and executed as a random decision function. Things to look at: Tagless final style, Embedded probabilistic programming, PλωNK: Functional Probabilistic NetKAT, Algebraic effects  Activity (MN) 18/01/2021
  Checking if all of the naive optimisation options have been exhausted:  Inlining (x) CPS&amp;rsquo;ing (x) Compile-time flags (x) Modules &amp;ndash; using explicit export lists (x) The following have been partially applied, but is typically time-consuming and yield small improvements:  Unboxed types (?</description>
     </item>
     
