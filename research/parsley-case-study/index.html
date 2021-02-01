@@ -35,7 +35,7 @@ Usually, if one is confused about something in the core, it is best to compare i
 regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="10348">
+<meta itemprop="wordCount" content="10555">
 
 
 
@@ -976,6 +976,45 @@ Yeah</p>
 That&rsquo;s so awesome, i was thinking about that approach but i wasn&rsquo;t sure how the cases translated to branching of continuations, thanks loads! I&rsquo;ll have a try at fitting the rest in.</p>
 <p><strong>JW</strong>:
 I would probably not try and translate what I did, but use the principal. Really, you should implement a parser combinator library, it helps with this sort of thing. It&rsquo;s basically 100% juggling these dual continuation structures (or in Parsecs case quad-continuation).</p>
+<hr>
+<p>Minh  7:54 PM
+i&rsquo;ve forgotten how to use RankNTypes, how does one do something like :
+evalDist :: Dist d =&gt; [Double] -&gt; d
+evalDist (μ: σ: _) = normalDist μ σ
+where normalDist returns a concrete type NormalDist which is an instance of the class Dist?</p>
+<p>Jamie Willis  8:10 PM
+erm
+8:10
+not sure what you mean</p>
+<p>Minh  8:10 PM
+hm, so, i want to return a value where all i know about it is that its an instance of a certain class
+8:11
+but in the actual function definition, i want to be able to return different concrete types, where i know they have instances of that class
+8:12
+but i&rsquo;m getting errors like
+Couldn&rsquo;t match expected type &rsquo;d'
+with actual type &lsquo;NormalDistribution&rsquo;
+&rsquo;d' is a rigid type variable bound by &hellip;</p>
+<p>Jamie Willis  8:23 PM
+oh I think you want existentials
+8:23
+I always struggle with this stuff
+8:23
+but you basically want to capture the instance in the data constructor
+8:24
+image.png
+image.png</p>
+<p>8:24
+there is an example
+New
+8:24
+the SAME constructor has a positionOps instance
+8:24
+the instance must be present when the SAME value is made
+:heart:
+1</p>
+<p>8:24
+and whenever we pattern match on SAME the instance is available</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 

@@ -29,7 +29,7 @@
 <meta itemprop="description" content="1.1 Model-based Reasoning A model is an artifical construct designed to respond in the same way as the system we would like to understand. As computers have evolved, numerical models have come to the forefront and computer simulations have replaced physical models. Numerical models emulate stochasticity, i.e. they use pseudorandom number generators to simulate actually random phenomena and other uncertainties. Running a simulator with stochastic value generation leads to an explosion of possible simulation outcomes.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="8923">
+<meta itemprop="wordCount" content="13283">
 
 
 
@@ -164,12 +164,21 @@ e ::= c | v | (let [v e1] e2) | (if e1 e2 e3)
     | (f e1 ... en) | (c e1 ... en)
     | (sample e) | (observe e1 e2)
 q ::= e | (defn f [v1 ... vn] e) q 
-</code></pre><p>The two forms of expressions &ldquo;sample&rdquo; and &ldquo;observe&rdquo; are what make the FOPPL a probabilistic programming language.</p>
+</code></pre><p>The two forms of expressions <strong><code>sample</code></strong> and <strong><code>observe</code></strong> are what make the FOPPL a probabilistic programming language.</p>
 <ul>
-<li>A sample form <code>(sample e)</code> represents an <strong>unobserved random variable</strong> (i.e. a latent variable. We call these latent variables, because they are typically variables we sample from a distribution to represent some parameter we do not know much about yet). It accepts a single expression <code>e</code> (which must evaluate to a &ldquo;distribution object&rdquo;), and returns a value that is a sample from this distribution. Distributions are constructed using primitives provided by the FOPPL &ndash; for example, <code>normal 0.0 1.0</code> evaluates to a standard normal distribution.</li>
-<li>An observe form <code>(observe e1 e2)</code> represents an <strong>observed random variable</strong> (these are observed because we typically use a latent variable to parameterise a distribution, and from this we can <em>directly</em> observe a value). It accepts an argument <code>e1</code> which must evaluate to a distribution, and conditions the distribution on the next argument <code>e2</code>, which is the value of the random variable.</li>
+<li>
+<p>A sample form <strong><code>(sample e)</code></strong> represents an <strong>unobserved random variable</strong> , i.e. a latent variable. We call these latent variables, because they are typically variables we sample from a prior distribution to represent some parameter we do not know much about yet. The <code>sample</code> statements hence define a prior <code>p(X)</code> on the random variables.</p>
+<p>It accepts a single expression <code>e</code> (which must evaluate to a &ldquo;distribution object&rdquo;), and returns a value that is a sample from this distribution. Distributions are constructed using primitives provided by the FOPPL &ndash; for example, <code>normal 0.0 1.0</code> evaluates to a standard normal distribution.</p>
+</li>
 </ul>
-<p>To elaborate on how <code>sample</code> represents a latent variable, and <code>observe</code> represents an observed variable:</p>
+<!-- raw HTML omitted -->
+<ul>
+<li>
+<p>An observe form <strong><code>(observe e1 e2)</code></strong> represents an <strong>observed random variable</strong>. These are observed because we typically use a latent variable to parameterise a distribution, and from this we can <em>directly</em> observe a value. The <code>observe</code> statements hence define a likelihood <code>p(Y|X)</code>, which is the probability of observing the observed variable <code>Y</code> conditioned on the latent variable <code>X</code>.</p>
+<p>It accepts an argument <code>e1</code> which must evaluate to a distribution, and conditions the distribution on the next argument <code>e2</code>, which is the value of the random variable.</p>
+</li>
+</ul>
+<p>To elaborate on how <code>sample</code> represents a latent variable, and <code>observe</code> represents an observed variable, consider the following:</p>
 <pre><code>x ∼ Beta(α, β)
 y ∼ Bernoulli(x)
 </code></pre><p>Here, <code>x</code> is a latent variable that we <code>sample</code> from a prior distribution, for example, the bias of a coin. Then, <code>y</code> will be a variable that we directly <code>observe</code> from a distribution parameterised by our latent variable, for example, the value of a flipped coin. We can&rsquo;t observe the bias of the coin, but we can sample an initial guess for it as a latent variable. Using this, we can directly observe values which are produced from a distribution parameterised by the latent variable, in order to indirectly observe and infer the latent variable.</p>
@@ -353,6 +362,7 @@ in  (let v_0 = (f 0 e a_1 ... a_n)
 z_n       ~ Discrete(π)               for n = 1, ..., 7
 y_n | z_n ~ Normal (µ_k, σ_k) 
 </code></pre><p>The following program shows a translation of this generative model to the FOPPL:</p>
+<p>I&rsquo;m assuming <code>discrete</code> takes a list of <code>n</code> probabilities which sum to 1, and assign them correspondingly to the values <code>[0 .. n]</code>.</p>
 <pre><code>(let [ data         [1.1 2.1 2.0 1.9 -0.1 -0.05]
        likelihoods  (foreach 3 []
                       (let [ mu     (sample (normal 0.0 10.0))
@@ -475,11 +485,11 @@ E ::= c | v | (if E1 E2 E3) | (c E1 ... En)
 </ul>
 <p>For observed random variables, we additionally define the observed value, as well as a logical predicate that indicates whether the <code>observe</code> expression is on the control flow path, conditioned on the values of the latent variables.</p>
 <p><strong>Definition of a Graphical Model</strong></p>
-<p>We define a graphical model <code>G</code> as a tuple <code>(V, A, Ƿ, Ƴ)</code> where:</p>
+<p>We define a graphical model <code>G</code> as a tuple <code>(V, A, ℙ, Ƴ)</code> where:</p>
 <ul>
 <li><code>V</code> is a set of vertices representing random variables</li>
 <li><code>A</code> is a set of directed edges <code>(V × V)</code> that represent conditional dependencies between random variables</li>
-<li><code>Ƿ</code> is a map from vertices to deterministic expressions that specify the probability density function for each random variable</li>
+<li><code>ℙ</code> is a map from vertices to deterministic expressions that specify the probability density function for each random variable</li>
 <li><code>Ƴ</code> is a partial map such that for each observed random variable, it contains a pair <code>(E, Φ)</code>, where <code>E</code> is the deterministic expression for the observed value, and <code>Φ</code> is a predicate expression that evaluates to <code>true</code> when this observation is on the control flow path. A <em>control flow path</em> is a graphical representation of all paths that might be traversed through a program during its execution.</li>
 </ul>
 <p>Before presenting a set of translation rules that can be used to compile any FOPPL program to a graphical model, we will illustrate the intended translation using a simple example:</p>
@@ -500,10 +510,10 @@ E ::= c | v | (if E1 E2 E3) | (c E1 ... En)
 <li><code>ρ</code> is the empty map, as there are no procedure definitions.</li>
 <li><code>φ</code> (the control flow predicate) is true at the top level of the program.</li>
 </ul>
-<p>The graphical model <code>G = (V, A, Ƿ, Ƴ)</code> and the result expression <code>E</code> that the program translates to are:Ƴ</p>
+<p>The graphical model <code>G = (V, A, ℙ, Ƴ)</code> and the result expression <code>E</code> that the program translates to are:Ƴ</p>
 <pre><code>V = {z, y}
 A = {(z, y)}
-Ƿ = [ z → p_bern z 0.5,
+ℙ = [ z → p_bern z 0.5,
       y → p_norm y (if (z = 0) -1.0 1.0) 1.0
     ]
 Ƴ = [y → 0.5]
@@ -512,7 +522,7 @@ E = z
 <ul>
 <li><code>V</code>, the vertex set of <code>G</code>, contains two random variables.</li>
 <li><code>A</code>, the arc set of <code>G</code>, contains a single pair <em>(z, y)</em> to mark the conditional dependence relationship between these two variables.</li>
-<li><code>Ƿ</code>, the mapping of random variables to probability density functions, states that:
+<li><code>ℙ</code>, the mapping of random variables to probability density functions, states that:
 <ul>
 <li>The probability density for <em>z</em> is defined as the target language expression <code>p_bern z 0.5</code>. Here, <code>p_bern</code> refers to a function in the target language that implements the probability density function for the Bernoulli distribution.</li>
 <li>The probability density for <em>y</em> is defined using <code>p_norm</code>, which implements the probability density function for the normal distribution.</li>
@@ -588,8 +598,8 @@ in  observe d y
 </code></pre><p>Lazy evaluation of <code>if</code>-expressions makes it difficult to characterize the support of the probability distribution defined by a program when branches contain <code>sample</code> expressions.
 How do we define the probabilities for <code>mu_0</code> and <code>mu_1</code>? One choice is to set the probability of unevaluated branches to 1. We would include either <code>p(mu_0 | z = 0)</code> or <code>p(mu_1 | z = 1)</code> in the probability, and assume a probability 1 for unevaluated branches. This would be equivalent to both:</p>
 <ul>
-<li>Defining <code>Ƿ(mu_0)</code> as <code>if (z  = 0) then p_norm mu_0 -1.0 1.0 else 1.0</code></li>
-<li>Defining <code>Ƿ(mu_0)</code> as <code>if (z != 0) then p_norm mu_1  1.0 1.0 else 1.0</code></li>
+<li>Defining <code>ℙ(mu_0)</code> as <code>if (z  = 0) then p_norm mu_0 -1.0 1.0 else 1.0</code></li>
+<li>Defining <code>ℙ(mu_0)</code> as <code>if (z != 0) then p_norm mu_1  1.0 1.0 else 1.0</code></li>
 </ul>
 <p>However, we cannot marginalize <code>∫ dµ_0 p(µ_0 | z = 0)</code> and <code>∫ dµ_1 p(µ_1 | z = 1)</code> if we assume both <code>p(µ_0|z = 0) = 1</code> and <code>p(µ1|z = 1) = 1</code>.</p>
 <p><em>Conclusion</em>:</p>
@@ -631,15 +641,15 @@ How do we define the probabilities for <code>mu_0</code> and <code>mu_1</code>? 
 <ul>
 <li>Sample:</li>
 </ul>
-<pre><code>ρ, φ, e ⇓ (V, A, Ƿ, Ƴ), E    Choose a fresh variable v   Z = FREE-VARS(E)  F = SCORE(E, v)
+<pre><code>ρ, φ, e ⇓ (V, A, ℙ, Ƴ), E    Choose a fresh variable v   Z = FREE-VARS(E)  F = SCORE(E, v)
 ───────────────────────────────────────────────────────────────────────────────────────
-        ρ, φ, sample e ⇓ ⇓ (V ∪ {v}, A ∪ {(z, v) | z ∈ Z}, Ƿ ⊕ [v → F], Ƴ), v
+        ρ, φ, sample e ⇓ ⇓ (V ∪ {v}, A ∪ {(z, v) | z ∈ Z}, ℙ ⊕ [v → F], Ƴ), v
 </code></pre><p>This rule states that we translate <code>(sample e)</code> in four steps.</p>
 <ol>
-<li>First, we translate the argument <code>e</code> to a graphical model <code>(V, A, Ƿ, Ƴ)</code> and a deterministic expression <code>E</code>. Both the argument <code>e</code> and its translation <code>E</code> represent the same distribution, from which <code>sample e</code> samples.</li>
+<li>First, we translate the argument <code>e</code> to a graphical model <code>(V, A, ℙ, Ƴ)</code> and a deterministic expression <code>E</code>. Both the argument <code>e</code> and its translation <code>E</code> represent the same distribution, from which <code>sample e</code> samples.</li>
 <li>Second, we choose a fresh variable <code>v</code> that will represent the sampled random variable.</li>
 <li>Third, we collect all the free variables in <code>E</code> that are used as random variables of the network, and set <code>Z</code> to the set of these random variables.</li>
-<li>Finally, we convert the expression <code>E</code> that denotes a distribution, to the probability density function <code>F</code> of the distribution. This conversion is done by calling <code>SCORE</code> on the distribution <code>E</code> and the variable <code>v</code>, which is defined as follows:</li>
+<li>Finally, we convert the expression <code>E</code> (that denotes a distribution) to the probability density function <code>F</code> of the distribution. This conversion is done by calling <code>SCORE</code> on the distribution <code>E</code> and the variable <code>v</code>, which is defined as follows:</li>
 </ol>
 <pre><code>SCORE(if E_1, E_2, E_3, v) = if E_1 F_2 F_3
   when F_i = SCORE(E_i, v) for i ∈ {2, 3} and it is not ⊥
@@ -653,16 +663,16 @@ SCORE(E, v) = ⊥
 <li>Observe: the rule for <code>observe</code> expressions is analogous to <code>sample</code> expressions, but we additionally need to account for the observed value <code>e_2</code> and the predicate <code>φ</code>.</li>
 </ul>
 <pre><code>  ρ, φ, e_1  ⇓ G_1, E_1        ρ, φ, e_2 ⇓ G_2, E_2
-  (V, A, Ƿ, Ƴ) = G_1 ⊕ G_2     Choose a fresh variable v
+  (V, A, ℙ, Ƴ) = G_1 ⊕ G_2     Choose a fresh variable v
   F_1 = SCORE(E_1, v) ≠ ⊥      F = if φ then F_1 else 1
   Z = FREE-VARS(F_1) \ {v}     FREE-VARS(E_2) ∩ V = ∅
   B = {(z, v) : z ∈ Z}
 ───────────────────────────────────────────────────────────────────────────────────────
-  ρ, φ, observe e_1 e_2 ⇓ (V ∪ {v}, A ∪ B, Ƿ ⊕ [v → F], Ƴ ⊕ [v → E_2]), E_2
+  ρ, φ, observe e_1 e_2 ⇓ (V ∪ {v}, A ∪ B, ℙ ⊕ [v → F], Ƴ ⊕ [v → E_2]), E_2
 </code></pre><p>The rule states that:</p>
 <ol>
 <li>First we translate the sub-expressions <code>e_1</code> and <code>e_2</code> into the graphical models <code>G_1</code> and <code>G_2</code> and deterministic expressions <code>E_1</code> and <code>E_2</code>, where <code>E_1</code> is the distribution and <code>E_2</code> is the value of an observed variable.</li>
-<li>Next, we construct a graphical network <code>(V, A, Ƿ, Ƴ)</code> by merging the networks of the subexpressions.</li>
+<li>Next, we construct a graphical network <code>(V, A, ℙ, Ƴ)</code> by merging the networks of the subexpressions.</li>
 <li>Then, we pick a new variable <code>v</code> that will represent the observed random variable.</li>
 <li>We use <code>SCORE</code> to construct an expression <code>F_1</code> that represents the probability density function of the observed variable <code>v</code> under the distribution <code>E_1</code>. (As with <code>sample</code>, the expression <code>e_1</code> which translates to <code>E_1</code> must be a distribution.)</li>
 <li>We then construct a new expression <code>F = if φ then F_1 else 1</code> to ensure that the probability of the observed variable evaluates to 1 if the <code>observe</code> expression occurs in a branch that was not taken. The free variables in this expression <code>F</code> are the union of the free variables in <code>E_1</code>, <code>φ</code> and the new variable <code>v</code>.</li>
@@ -678,23 +688,23 @@ SCORE(E, v) = ⊥
 ───────────────────────────────────────────────────────────────────────────────────────
   ρ, φ, (c e_1 ... e_2) ⇓ G_1 ⊕ ... ⊕ G_n, (c E_1 ... E_n)
 </code></pre><p>For user-defined procedures, we first translate the arguments <code>e_i</code> to <code>e_n</code>. Then we transform the procedure body by replacing all instances of the variable <code>v_i</code> with the expression for the argument <code>E_i</code>.</p>
-<h5 id="32-evaluating-the-density">3.2 Evaluating the Density</h5>
-<p>We make explicit how we can use this representation of a probabilistic program to evaluate the probability of a particular setting of the variables in <code>V</code>. The Bayesian network <code>G = (V, A, Ƿ, Ƴ)</code> that we construct by compiling a <code>FOPPL</code> program is a mathematical representation of a directed graphical model. Like any graphical model, <code>G</code> defines a probability density on its variables <code>V</code>.</p>
+<h5 id="32-evaluating-the-probability-density">3.2 Evaluating the Probability Density</h5>
+<p>We make explicit how we can use this representation of a probabilistic program to evaluate the probability of a particular setting of the variables in <code>V</code>. The Bayesian network <code>G = (V, A, ℙ, Ƴ)</code> that we construct by compiling a <code>FOPPL</code> program is a mathematical representation of a directed graphical model. Like any graphical model, <code>G</code> defines a probability density on its variables <code>V</code>.</p>
 <p>In a directed graphical model, each node <code>v ∈ V</code> has a set of parents:</p>
 <pre><code>parents(v) := {u : (u, v) ∈ A}
 </code></pre><p>The joint probability of all variables can be expressed as a product over conditional probabilities.</p>
 <pre><code>p(V) = ∏  p(v | parents(v))
       v∈V
-</code></pre><p>In our graph <code>G</code>, each term <code>p(v | parents(v))</code> is represented as a deterministic expression <code>Ƿ(v) = c v E_1 ... E_n</code>, where:</p>
+</code></pre><p>In our graph <code>G</code>, each term <code>p(v | parents(v))</code> is represented as a deterministic expression <code>ℙ(v) = c v E_1 ... E_n</code>, where:</p>
 <ul>
 <li><code>c</code> is either a probability density function (for continuous variables) or a probability mass function (for discrete functions)</li>
 <li><code>E_1 ... E_n</code> are expressions that evaluate to the parameters <code>θ_1 ... θ_n</code> of that probability density/mass function.</li>
 </ul>
-<p>Implicit in this notation is that fact that each expression has some set of free variables. In order to evaluate an expression to a value, we must specify values for each of these free variables. In other words, we can think of each of these expressions <code>E_i</code> as a mapping from a value of a free variable to a parameter value. By construction, the set of parents <code>parents(v)</code> is nothing but the free variables in <code>Ƿ(v)</code> except <code>v</code>. We can imagine this as the probability of <code>v</code> conditioned on its ancestor/parent random variables in the graph.</p>
-<pre><code>parents(v) = FREE-VARS(Ƿ(v)) \ {v}
-</code></pre><p>Recall that <code>Ƿ</code> is a map from vertices to deterministic expressions that specify the probability density or mass function for each random variable. <strong>The expression <code>Ƿ(v)</code> can hence be thought of as a function that maps the random variable <code>v</code> and its parents <code>parents(v)</code> to a probability or a probability density</strong>. Therefore, we will treat these two as equivalent:</p>
-<pre><code>p(v | parents(v)) ≡ Ƿ(v)
-</code></pre><p>This means that the conditional probability of random variable <code>v</code> given its parent random variables can be looked up in <code>Ƿ</code> by doing <code>Ƿ(v)</code>.</p>
+<p>Implicit in this notation is that fact that each expression has some set of free variables. In order to evaluate an expression to a value, we must specify values for each of these free variables. In other words, we can think of each of these expressions <code>E_i</code> as a mapping from a value of a free variable to a parameter value. By construction, the set of parents <code>parents(v)</code> is nothing but the free variables in <code>ℙ(v)</code> except <code>v</code>. We can imagine this as the probability of <code>v</code> conditioned on its ancestor/parent random variables in the graph.</p>
+<pre><code>parents(v) = FREE-VARS(ℙ(v)) \ {v}
+</code></pre><p>Recall that <code>ℙ</code> is a map from vertices to deterministic expressions that specify the probability density or mass function for each random variable. <strong>The expression <code>ℙ(v)</code> can hence be thought of as a function that maps the random variable <code>v</code> and its parents <code>parents(v)</code> to a probability or a probability density that is the probability of <code>v</code> conditioned on its parents</strong>. Therefore, we will treat these two as equivalent:</p>
+<pre><code>p(v | parents(v)) ≡ ℙ(v)
+</code></pre><p>This means that the conditional probability of random variable <code>v</code> given its parent random variables can be looked up in <code>ℙ</code> by doing <code>ℙ(v)</code>.</p>
 <p>We can decompose the joint probability <code>p(V)</code> into a prior and a likelihood term.</p>
 <ul>
 <li>
@@ -712,13 +722,347 @@ SCORE(E, v) = ⊥
 
 where
 
-p(Y|X) = ∏  p(y | parents(y))     p(X) = ∏ p(x | parents(x))
-        y∈Y                             x∈X
+p(Y | X) = ∏  p(y | parents(y))     p(X) = ∏ p(x | parents(x))
+          y∈Y                             x∈X
 </code></pre><p>In this manner, a probabilistic program defines a joint distribution <code>p(Y, X)</code>.</p>
 <p>The goal of probabilistic program <em>inference</em> is to characterize the posterior distribution:</p>
 <pre><code>p(X | Y) = p(X, Y)/p(Y)     p(Y) = ∫ p(X, Y) dX
 </code></pre><h6 id="321-conditioning-with-factors">3.2.1 Conditioning with Factors</h6>
-<p>Not all inference problems for probabilistic programs target a posterior <code>p(X | Y)</code> that is defined in terms of unobserved and observed random variables.</p>
+<p>Not all inference problems for probabilistic programs target a posterior <code>p(X | Y)</code> that is defined in terms of unobserved and observed random variables. There are inference problems in which there is no notion of observed data <code>Y</code> but it is possible to define some notion of loss, reward, or fitness, given a choice of an unobserved variable <code>X</code>.</p>
+<p>In a probabilistic program:</p>
+<ul>
+<li>The <strong><code>sample</code></strong> statements define a prior <code>p(X)</code> on the random variables.</li>
+<li>The <strong><code>observe</code></strong> statements define a likelihood <code>p(Y | X)</code> on the random variables.</li>
+</ul>
+<p>To support a more general notion of soft constraints, we can replace the likelihood <code>p(Y | X)</code> with a strictly positive potential <code>ψ(X)</code> to define an unnormalized density <code>γ(X)</code>:</p>
+<pre><code>γ(X) = ψ(X)p(X)
+</code></pre><p>In this more general setting, the goal of inference is to characterize a target density <code>π(x)</code>, which is defined as:</p>
+<pre><code>π(X) =   γ(X)       Z = ∫ γ(X) dX
+        ──────
+          Z
+
+     =  ψ(X)p(X)
+        ───────
+           Z
+</code></pre><p>Here:</p>
+<ul>
+<li>The target density <code>π(X)</code> is analogous to the posterior <code>p(X | Y)</code>.</li>
+<li>The strictly positive potential <code>ψ(X)</code> is analogous to the likelihood <code>p(Y | X)</code>.</li>
+<li>The unnormalized density <code>γ(X)</code> is analogous to the joint distribution <code>p(Y, X)</code>.</li>
+<li>The normalizing constant <code>Z</code> is analogous to the marginal likelihood <code>p(Y)</code>.</li>
+</ul>
+<p>From a language design perspective, we can now ask how the FOPPL would need to be extended in order to support this more general form of soft constraint.</p>
+<p>For a probabilistic program in the FOPPL, the potential function is a product over terms:</p>
+<pre><code>ψ(X) = ∏ ψ_y(X_y)
+      y∈Y
+
+where
+  ψ_y(X_y) := p(y = Ƴ(y) | parents(y)) ≡ ℙ(y)[y := Ƴ(y)]
+  X_y      := FREE-VARS(ℙ(y)) \ {y} = parents(y)
+</code></pre><p>Here, <code>ψ_y(X_y)</code> is the potential that &ldquo;<code>p(y = Ƴ(y) | parents(y))</code>, i.e. the probability of random variable <code>y</code> being the value <code>Ƴ(y)</code> (where <code>Ƴ</code> is the mapping of random variables to values) given the parent nodes of <code>y</code>&rdquo; is equal to &ldquo;<code>ℙ(y)[y := Ƴ(y)]</code>, i.e. the probability density function of <code>y</code> where we specify the value <code>Ƴ(y)</code> for its free variables <code>X_y</code>&rdquo;.</p>
+<p>One way to support arbitrary potential functions is to provide a special form <strong><code>factor log-p</code></strong> that takes an arbitrary log probability <code>log-p</code> as an argument. The <code>factor</code> expression lets the user manually set a probability for a new random variable, as opposed to <code>observe</code> which sets the probability based on a distribution and a value of an observed variable.</p>
+<p>We can then define a translation rule for the <strong><code>factor log-p</code></strong> expression, which:</p>
+<ol>
+<li>Inserts a new node <code>v</code> with probability <code>ℙ(v) = exp log-p</code>, where applying <code>exp</code> to a log probability will convert it into a non-log form.</li>
+<li>Inserts an observed value <code>nil</code> for the random variable <code>v</code> into the graph.</li>
+</ol>
+<pre><code>  ρ, φ, e ⇓ (V, A, ℙ, Ƴ), E       F = (if φ then (exp E) else 1)
+  Choose a fresh variable v
+───────────────────────────────────────────────────────────────────────────────────────
+  ρ, φ, (factor e) ⇓ (V, A, ℙ ⊕ [v → f], Ƴ ⊕ [v → nil]), nil
+</code></pre><p><em>Comparing <code>observe</code> with <code>factor</code></em>:</p>
+<p>Recall that the <code>observe</code> expression represents the likelihood <code>P(Y|X)</code>. The potential function <code>ψ(X)</code> is analogous to the likelihood <code>P(Y|X)</code>. Hence <code>factor</code> is analogous to <code>observe</code> &ndash; the difference is that <code>observe</code> conditions using both observed and unobserved random variables, whereas <code>factor</code> conditions using only unobserved random variables. This is why we set the value of <code>v</code> in  <code>Ƴ</code> to <code>nil</code> &ndash; we haven&rsquo;t observed a value. However, we set the probability density of the value of <code>v</code> to be the exponential of the log probability <code>e</code>. We can imagine that <code>factor e</code> is hence manually setting the probability of a random variable.</p>
+<p>In practice, we don&rsquo;t need to provide separate special forms for <code>factor</code> and <code>observe</code>, since each can be implement as a special case of the other.</p>
+<p>One way of doing so is to define <code>factor [log-p]</code> as a procedure which calls <code>observe</code> on a pseudo distribution <code>factor-dist</code> parameterized by <code>log-p</code>, and a <code>nil</code> value:</p>
+<pre><code>defn factor [log-p]
+  observe (factor-dist log-p) nil
+</code></pre><p>where <code>factor-dist</code> is a constructor for a pseudo distribution object with corresponding potential:</p>
+<pre><code>p_factor-dist(y ; log-p) := if   y = nil
+                            then exp log-p  
+                            else 0
+</code></pre><p>Another way of doing this is by defining <code>observe [dist v]</code> as a procedure which calls <code>factor</code> with the log probability <code>log-prob dist v</code>, where <code>log-prob</code> is a primitive procedure that returns the log probability density for a value <code>v</code> under a distribution <code>dist</code>:</p>
+<pre><code>defn observe [dist v]
+  factor (log-prob dist v)
+  v
+</code></pre><h6 id="322-partial-evaluation">3.2.2 Partial Evaluation</h6>
+<p>A necessary optimization for our compilation procedure is to perform a partial evaluation step. The partial evaluation step pre-evaluates expressions <code>E</code> in the target language that do not contain any free variables, which means that they take on the same value in every execution of the program. Partial evaluation of these expressions is necessary to avoid the appearance of false edges between variables that are in fact not connected, in the sense that the value of the parent does not affect the conditional density of the child.</p>
+<p>Our target language is very simple, so we only need to update the rules for <code>if</code>-expressions and procedure calls to include a partial evaluation step.</p>
+<ul>
+<li>If-expressions</li>
+</ul>
+<pre><code>                         ρ, φ, e_1 ⇓ G_1, E_1   
+ ρ, EVAL(φ &amp;&amp; E_1), e_2 ⇓ G_2, E_2   ρ, EVAL(φ &amp;&amp; not E_1), e_3 ⇓ G_3, E_3
+───────────────────────────────────────────────────────────────────────────────────────
+ ρ, φ, (if e_1 then e_2 else e_3) ⇓ (G_1 ⊕ G_2 ⊕ G_3), EVAL(if E_1 then E_2 else E_3)
+</code></pre><ul>
+<li>Procedure calls</li>
+</ul>
+<pre><code>                  ρ, φ, e_i ⇓ G_i, E_i   forall i ∈ [1 ... n] 
+───────────────────────────────────────────────────────────────────────────────────────
+ ρ, φ, (c e_1 ... e_n) ⇓ (G_1 ⊕ ... ⊕ G_n), EVAL(c E_1 ... E_n)
+</code></pre><p>The expression <code>EVAL(e)</code> is the partial evaluation operation, and can incorporate any number of rules for simplifying expressions. We will begin with these rules:</p>
+<ul>
+<li>EVAL</li>
+</ul>
+<pre><code>EVAL(if c_1 then E_2 else E_3) = E_2
+  when c_1 = true
+
+EVAL(if c_1 then E_2 else E_3) = E_3
+  when c_1 = false
+
+EVAL(c c_1 ... c_n) = c'
+  when calling c with arguments c_1 ... c_n evaluates to c'
+
+EVAL(E) = E
+  in all other cases
+</code></pre><p>These rules state:</p>
+<ul>
+<li>An <code>if</code>-statement <code>if E_1 then E_2 else E_3</code> can be simplified when <code>E_1 = c_1</code> can be fully evaluated, by selecting the expression for the appropriate branch.</li>
+<li>A primitive procedure call can be evaluated when all arguments can be fully evaluated.</li>
+</ul>
+<p>We additionally need to modify the definition of the <code>SCORE</code> function.</p>
+<p>Recall that <code>SCORE</code> converts an expression representing a distribution into its corresponding probability density function:</p>
+<pre><code>score(if E_1 then E_2 else E_3, v) = if E_1 then F_2 else F_3
+  when F_i = score(E_i, v) for i ∈ {2, 3} and it is not ⊥
+
+score(c E1 . . . En, v) = p_c v E1 . . . En
+  when c is a constructor for distribution and p_c its pdf or pmf
+
+score(E, v) = ⊥
+  when E is not one of the above cases
+</code></pre><p>We need to add one more rule:</p>
+<pre><code>SCORE(c, v) = p_c v
+  when c is a distribution and p_c is its pdf or pmf
+</code></pre><p>To see how partial evaluation also lets us reduce the number of edges in the network, let&rsquo;s consider the expression <code>if true then v_1 else v_2</code>. This expression references two random variables <code>v_1</code> and <code>v_2</code> by name. After partial evaluation, this expression simplifies to <code>v_1</code>, which eliminates the false dependence on <code>v_2</code>.</p>
+<p>Another practical advantage of partial evaluation is that it gives us a simple way to identify expressions in a program that are fully deterministic, since deterministic expressions will be partially evaluated to constants. This is useful when translating <code>observe e1 e2</code> statements, in which the expression <code>e_2</code> <em>must</em> be deterministic as it is the value of a random variable. In programs that use <code>loop c v e e_1 ... e_n</code>, we can now substitute any fully deterministic expression for the number of loop iterations <code>c</code>.</p>
+<p><strong>Lists, Vectors, and Hash Maps</strong></p>
+<p>Eliminating false edges/dependencies in the dependency graph becomes particularly important in programs that make use of data structures.</p>
+<p>Consider the following example which defines a 3-state Markov chain.</p>
+<pre><code>let A   = [[0.9 0.1]
+           [0.1 0.9]]
+    x_1 = sample (discrete [0.5 0.5])
+    x_2 = sample (discrete (get A x_1))
+    x_3 = sample (discrete (get A x_2))
+in  [x_1, x_2, x_3]
+</code></pre><p>Compiling this to a network will yield three variable nodes. If we refer to these nodes as <code>v_1</code>, <code>v_2</code>, and <code>v_3</code>, then there will be arcs from <code>v_1</code> to <code>v_2</code>, and from <code>v_2</code> to v_3`.</p>
+<p>Suppose we now rewrite this program using the <code>loop</code> construct:</p>
+<pre><code>defn markov-step [n xs A]
+  let k   = last xs
+      A_k = get A k
+  in  append xs (sample (discrete A_k))
+
+let A   = [[0.9 0.1]
+           [0.1 0.9]]
+    x_1 = sample (discrete [0.5 0.5])
+in  loop 2 markov-step [x_1] A
+</code></pre><p>In this version, each call to <code>markov-step</code>:</p>
+<ol>
+<li>Accepts a vector of states <code>xs</code></li>
+<li>Gets the most recent state <code>k = last xs</code> (which will be either 0 or 1)</li>
+<li>Then gets <code>A_k</code>, which is the <code>k</code>&lsquo;th array from <code>A</code></li>
+<li>Uses <code>sample (discrete A_k)</code> to sample a value from a discrete distribution of values <code>[0, 1]</code> with corresponding probabilities found in array <code>A_k</code></li>
+<li>Appends this sampled value as the new state to the vector of states <code>xs</code></li>
+</ol>
+<p>This program version generates the same sequence of random variables as the previous program, and has the advantage of allowing us to generalize to sequences of arbitrary length by varying the loop iteration constant. However, under the partial evaluation rules that we have specified so far, we would obtain a different set of edges. Just like the previous version of the program, this version will evaluate three <code>sample</code> statements.</p>
+<ul>
+<li>For the first statement, <code>sample (discrete [0.5 0.5])</code>, there will be no arcs created (only the initial node <code>v_1</code>).</li>
+<li>For the second sample statement, <code>sample (discrete A_k)</code>, this will result in an arc from <code>v_1</code> to <code>v_2</code> since the expression for <code>A_k</code>  expands to:
+<pre><code>get [[0.9 0.1]
+     [0.1 0.9]] (last [v_1])
+</code></pre></li>
+<li>However, for the third sample statement, there will be arcs from <em>both</em> <code>v_1</code> and <code>v_2</code> to <code>v_3</code>, since the expression for <code>A_k</code> expands to:
+<pre><code>get [[0.9 0.1]
+     [0.1 0.5]] (last (append [v_1] v_2))
+</code></pre></li>
+</ul>
+<p>The extra arc from <code>v_1</code> to <code>v_3</code> is of course not necessary here, since the expression <code>last (append [v_1] v_2)</code> will always evaluate to <code>v_2</code>. What&rsquo;s more, if we run this program to generate more than 3 states, the node <code>v_n</code> for the <code>n</code>th state will have incoming arcs from <em>all</em> preceding variables <code>v_1 ... v_{n-1}</code>, whereas the only real arc in the Bayesian network is the one from <code>v_{n-1}</code>.</p>
+<p>We can eliminate these false arcs by implementing an additional set of partial evaluation rules for data structures <code>vector</code> and <code>hash-map</code>:</p>
+<pre><code>EVAL(vector E_1 ... E_n)
+  = [E_1 ... E_n]
+
+EVAL(hash-map c_1 E_1 ... c_n E_n)
+  = {c_1 E_1 ... c_n E_n}
+</code></pre><p>These rules ensure that expressions which construct data structures are partially evaluated to data structures containing expressions. We can similarly partially evaluate functions that add, get, or replace entries.</p>
+<pre><code>EVAL(append [E_1 ... E_n] E_{n+1}) 
+  = [E_1 ... E_n E_{n+1}]
+
+EVAL(put {c_1 E_1 ... c_n E_n} c_k E'_k) 
+  = {c_1 E_1 ... c_k E'_k ... c_n E_n}
+
+EVAL(last [E_1 . . . E_n])
+  = E_n
+
+EVAL(get [E_1 . . . En_] k)
+  = E_k
+
+EVAL(get {c_1 E_1 . . . c_n E_n} c_k)
+  = E_k
+</code></pre><p>In the Markov chain example, the expression for <code>A_k</code> in the third sample statement then can be simplified:</p>
+<pre><code>get [[0.9 0.1]
+     [0.1 0.5]] (last (append [v_1] v_2))
+
+~&gt;
+
+get [[0.9 0.1]
+     [0.1 0.9]] (last [v_1 v_2])
+
+~&gt;
+
+get [[0.9 0.1]
+     [0.1 0.9]] v_2
+</code></pre><p>This yields the correct dependency structure for the Bayesian network.</p>
+<h5 id="33-gibbs-sampling">3.3 Gibbs Sampling</h5>
+<p>So far, we have just defined a way to translate probabilistic programs into a data structure for finite graphical models. One important reason for doing so is that many existing inference algorithms are defined explicitly in terms of finite graphical models, and can now be applied directly to probabilistic programs written in the FOPPL.</p>
+<p>We will consider such inference algorithms now, starting with a general family of Markov chain Monte Carlo (MCMC) algorithms. MCMC algorithms perform Bayesian inference by drawing samples from the posterior distribution <code>P(X | Y)</code>, that is, the conditional distribution of the latent variables <code>X ⊆ V</code> given the observed variables <code>Y ⊆ V</code>. This is accomplished by simulating from a Markov chain whose transition function is defined such that the stationary distribution is the target posterior <code>P(X | Y)</code>. These samples are then used to characterize the distribution of the return value <code>r(X)</code>.</p>
+<p>Procedurally, MCMC algorithms begin by initializing latent variables to some value <code>X_0</code>, and repeatedly sampling from a Markov transition density to produce a dependent sequence of samples <code>X_1, ... X_s</code>. We will describe how these algorithms can be applied in the context of inference in graphs produced by compiling a <code>FOPPL</code>.</p>
+<p><strong>Metropolis-Hastings</strong></p>
+<p>The Metropolis-Hastings algorithm provides a general recipe for producing appropriate MCMC transition functions, by combining a proposal step with an accept/reject step. Given some proposal distribution <code>q(X' | V)</code>, the MH algorithm simulates a candidate sample latent value <code>X'</code> from <code>q(X' | V)</code> conditioned on the value of the current sample <code>X</code>, and then evaluates the acceptance probability by considering the candidate sample <code>X'</code> and the current sample <code>X</code>:</p>
+<pre><code>α(X', X) = min { 1, p(Y, X')q(X | V') / p(Y, X)q(X' | V) }
+</code></pre><p>With probability <code>α(X', X)</code> we accept the transition <code>X → X'</code>. With probability <code>1 - α(X', X)</code> we reject the transition and retain the current sample <code>X → X</code>.</p>
+<p>When we repeatedly apply this transition function, we obtain a Markov process:</p>
+<pre><code>X' ∼ q(X' | V_{s - 1})    X_s = { X'          u ≤ α (X', X_{s - 1})
+u  ~ Uniform(0, 1)              { X_{s - 1}   u &gt; α (X', X_{s - 1})
+</code></pre><p><strong>Gibbs Sampling</strong></p>
+<p>The Gibbs sampling algorithms are an important special case of Metropolis-Hastings which cycle through all the latent variables in the model and iteratively sample from the full conditional distributions. The full conditional distribution is the probability distribution of a variable (node) in a probabilistic graphical model conditioned on the value of all the other variables in the probabilistic graphical model.</p>
+<pre><code>p(x | Y, X \ {x}) = p(x | V \ {x})
+</code></pre><ul>
+<li>
+<p><em>Alternative Explanation</em>:</p>
+<p>Gibbs sampling is a special case of Metropolis–Hastings in which the newly proposed state is always accepted with probability one. Consider a <code>D</code>-dimensional posterior with parameters <code>θ={θ_1, ... ,θ_D}</code>. The basic idea of Gibbs sampling is that for each time-step <code>t</code>, we sample <code>θ</code> by iteratively sampling a proposal for each of its dimensions <code>θ_d</code> from the conditional distribution <code>P(θ_d ∣ X, θ\{θ_d})</code> where <code>θ\{θ_d}</code> is <code>θ</code> without the <code>d</code>th parameter:</p>
+<p>Gibbs sampling:</p>
+<pre><code>for t = 1 ... T do
+  θ^(t+1)_1 := θ*_1 ∼ P( θ^{t}_1 ∣ X, θ^{t}_2  , θ^{t}_3, ...,θ^{t}_D)
+  θ^(t+1)_2 := θ*_2 ∼ P( θ^{t}_2 ∣ X, θ^{t+1}_1, θ^{t}_3, ...,θ^{t}_D)
+  ⋮
+  θ^(t+1)_d := θ*_d ∼ P( θ^{t}_d ∣ X, θ^{t+1}_1, ..., θ^{t+1}_{d−1}, θ^{t}_d, ...,θ^{t}D)
+  ⋮
+  θ^(t+1)_D := θ*_D ∼ P( θ^{t}_D ∣ X, θ^{t+1}_1, θ^{t+1}_2, ... ,θ^{t+1}_{D−1})
+</code></pre></li>
+</ul>
+<p>In some special cases of models, these conditional distributions can be derived analytically and sampled from exactly. However, this is not possible in general, and so as a general purpose solution, one turns to Metropolis-within-Gibbs algorithms, which instead apply a Metropolis-Hastings transition function which targets <code>p(x | V {x})</code>.</p>
+<p>From an implementation perspective, given our compiled graph <code>(V, A, ℙ, Ƴ)</code> we can compute the acceptance probability <code>α(X', X)</code> by evaluating the expressions <code>ℙ(v)</code> for each <code>v ∈ V</code>, and substituting the values for the current sample <code>X</code> and the proposal <code>X'</code>. More precisely, if we use <code>X</code> to refer to the set of unobserved variables, and <code>χ</code> to refer to the map from unobserved variables to their values,</p>
+<pre><code>X = (x_1, ..., x_N)       χ = [ x_1 → c_1, ..., x_N → c_N]
+</code></pre><p>then we can use <code>Ѵ = χ ⊕ Ƴ</code> to refer to the values of all variables (both unobserved and observed) and express the joint probability over the variables <code>V</code> as:</p>
+<pre><code>p(V = Ѵ) =  ∏ EVAL( ℙ(v)[V := Ѵ] )
+           v∈V
+</code></pre><p>When we update a single variable <code>x</code> using a kernel <code>q(x | V)</code>, we are propposing a new mapping <code>Ѵ' = Ѵ[x → c']</code>, where <code>c'</code> is the candidate value proposed for <code>x</code>.</p>
+<p>The acceptance probability for changing the value of <code>x</code> from <code>c</code> to <code>c'</code> then takes the form:</p>
+<pre><code>α(Ѵ', Ѵ) = min {1, p(V = Ѵ')q(x = c| V = Ѵ') / p(V = Ѵ)q(x = c| V = Ѵ)}
+</code></pre><p>The important thing to note is that many terms in this ratio will cancel out:</p>
+<ul>
+<li>
+<p>The joint probabilities <code>p(V = Ѵ)</code> are composed of a product of conditional density terms <code>∏ p(v | parents(v))</code>.</p>
+</li>
+<li>
+<p>The individual expressions <code>p(v | parents(v)) ≡ ℙ(v)</code> depend on the value <code>c</code> or its proposed alternative <code>c'</code> of the node <code>x</code> only if <code>v = x</code> or <code>x ∈ parents(v)</code>, in other words, if <code>x ∈ FREE-VARS(ℙ(v))</code>.</p>
+<p>If we define <code>V_x</code> to be the set of variables whose probability densities depend on <code>x</code>:</p>
+<pre><code>V_x := {v : x ∈ FREE-VARS(ℙ(v))}
+    = {x} ∪ {v : x ∈ parents(v)}
+</code></pre><p>Then we can decompose the joint distribution <code>p(V)</code> of all random variables into terms that depend on the variable <code>x</code> that we propose changing and terms that do not.</p>
+<pre><code>p(V) = (∏ p(w | parents(w))) (∏ p(v | parents(v)))
+       w∈V\V_x               v∈V_x
+</code></pre><p>We now note that all terms <code>w ∈ V \ V_x</code> in the acceptance ratio cancel, with the same value in both numerator and denominator. Denoting the values of a variable <code>v</code> as <code>c_v</code> and <code>c'_v</code> for the maps <code>Ѵ</code> and <code>Ѵ'</code> respectively, we can simplify the acceptance probability <code>α</code> to:</p>
+<pre><code>α(Ѵ',Ѵ) = min {1 , ∏    p(v = c'_v | parents(v))q(x = c | V = Ѵ') }
+                   v∈V_x
+                   ─────────────────────────────────────────────
+                    ∏    p(v = c_v  | parents(v))q(x = c' | V = Ѵ)
+                   v∈V_x
+</code></pre></li>
+</ul>
+<p>To implement a Gibbs sampler, we additionaly need to specify some form of proposal. We will here assume a map <code>ℚ</code> from <em>unobserved</em> variables <code>x</code> to expressions in the target language.</p>
+<pre><code>ℚ := [ x_1 → E_1 , ... , x_N → E_N ]
+</code></pre><p>For each variable <code>x</code>, the expression <code>E</code> defines a distribution, which can in principle depend on other unobserved variables <code>X</code>.</p>
+<p>We can then use this distribution to both generate samples, and evaluate the forward and reverse proposal densities <code>q(x = c' | V = Ѵ)</code> and <code>q(x = c' | V = Ѵ')</code>. To do so, we first evaluate the expression to a distribution:</p>
+<pre><code>d = EVAL(ℚ(x)[V := Ѵ])
+</code></pre><p>We then assume that we have an implementation for the functions:</p>
+<ul>
+<li><code>SAMPLE</code>, which allows us to generate samples</li>
+<li><code>LOG-PROB</code>, which allows us to evaluate the density function for the distribution</li>
+</ul>
+<pre><code>SAMPLE(d) = c'
+
+LOG-PROB(d, c') = q(x = c' | V)
+</code></pre><p>The below algorithm shows pseudo-code for a Gibbs sampler with this type of proposal.</p>
+<pre><code>global V, A, X, Y, ℙ, Ƴ    -- A directed graphical model
+global ℚ                   -- A map of proposal expressions
+
+function ACCEPT(x, χ', χ)
+
+function GIBBS-STEP(χ)
+  for x in X do
+    d     &lt;- EVAL(ℚ(x)[X := χ])
+    χ'    &lt;- χ
+    χ'(x) &lt;- SAMPLE(d)
+    α     &lt;- ACCEPT(x, χ', χ)
+    u     ~  Uniform(0, 1)
+    if u &lt; α
+      then χ &lt;- χ'
+    return χ
+
+function GIBBS(χ^0, T)
+  for t in 1 ... T do
+    χ^t   &lt;- GIBBS-STEP(χ^(t-1))
+  return χ^1, ..., χ^T
+ 
+</code></pre><ul>
+<li>V is the set of random variables</li>
+<li>A is the set of arcs between random variables</li>
+<li>X is the set of unobserved random variables</li>
+<li>Y is the set of observed random variables</li>
+<li>ℙ is the mapping of observed random variables to their probability density function</li>
+<li>Ƴ is the mapping of observed random variables to their value</li>
+<li>ℚ is the mapping of unobserved random variables to their proposal probability distribution</li>
+<li>χ is the mapping of unobserved variables to their value</li>
+</ul>
+<p>In the function <code>ACCEPT</code>, this computes the acceptance ratio of one of the unobserved variables <code>x</code> in <code>X</code>, given the current value found in <code>χ</code> and the new proposed value found in <code>χ'</code>:</p>
+<ol>
+<li>This takes one of the unobserved variables <code>x</code> in <code>X</code>, the current mapping <code>χ</code> of unobserved variables <code>X</code> to values, and the new proposed mapping <code>χ'</code> of unobserved variables <code>X</code> to values.</li>
+<li>Get the current distribution expression for unobserved variable <code>x</code> (where we set the values of the unobserved variables <code>X</code> to those found in the map <code>χ</code>), and evaluate this to a distribution <code>d</code>.</li>
+<li>Get the proposal distribution expression for unobserved variable <code>x</code> (where we set the values of the unobserved variables <code>X</code> to those found in the map <code>χ</code>), and evaluate this to a distribution <code>d</code>.</li>
+<li>Find the difference between the log probability of drawing the current value of <code>x</code> from the proposal distribution <code>d'</code> and the log probability of drawing the proposed value of <code>x</code> from current distribution <code>d</code>.</li>
+<li>Let <code>V_x</code> be the set of variables whose densities depend on <code>x</code>.</li>
+</ol>
+<p>In the function <code>GIBBS-STEP</code>, this updates the values of unobserved variables <code>X</code> at time <code>t</code>:</p>
+<ol>
+<li>This takes a mapping of unobserved variables <code>χ</code>.</li>
+<li>For each unobserved variable <code>x</code> in <code>χ</code>:
+<ol>
+<li>Get the current distribution expression for unobserved variable <code>x</code> from the map <code>ℚ</code>, (where we set the values of the unobserved variables <code>X</code> to the values found in the map <code>χ</code>) and evaluate this to a distribution <code>d</code>.</li>
+<li>Copy the current mapping <code>χ</code> of unobserved variables to values, yielding <code>χ'</code> which will represent the new proposal mapping.</li>
+<li>Sample from the current distribution <code>d</code> and set this as the value of unobserved variable <code>x</code> in the new proposal mapping <code>χ'</code>.</li>
+<li>Compute the acceptance ratio <code>α</code> by calling <code>ACCEPT</code> on the unobserved variable <code>x</code>, its current mapping <code>χ</code> of unobserved variables to values, and its new proposal mapping <code>χ'</code> of unobserved variables to values.</li>
+<li>Sample a value <code>u</code> from a uniform distribution from 0 to 1.</li>
+<li>If the acceptance ratio is bigger than the value <code>u</code>, then use the new proposed value for <code>x</code>, by returning the new proposal mapping <code>χ'</code>. Otherwise, retain the current value for <code>x</code> by returning the current mapping <code>χ</code>.</li>
+</ol>
+</li>
+</ol>
+<p>In the function <code>GIBBS</code>, this computes the values for the unobserved variables <code>χ</code> for <code>T</code> steps, i.e. <code>T</code> nodes in a Markov chain:</p>
+<ol>
+<li>This takes the initial mapping <code>χ^0</code> of unobserved variables to values at time <code>t = 0</code>, and the number of time steps <code>S</code>.</li>
+<li>For each time-step <code>t</code> in <code>1 ... T</code>, we compute the <code>t</code>&lsquo;th set of values for unobserved variables <code>χ^t</code>.</li>
+</ol>
+<h4 id="4-evaluation-based-inference-i">4. Evaluation-Based Inference I</h4>
+<p>In the previous chapter on Graph-Based Inference, our inference algorithms operated on a graph representation of a probabilistic model, which we created through a compilation of a program in our first-order probabilistic programming language. The construction of this graph is performed at compile time &ndash; we refer to graphs that can be constructed at compile time as having static support.</p>
+<p>Many models exist in which the graph of conditional dependencies is dynamic, in the sense that it cannot be constructed prior to performing inference. One way these graphs arise is when the number of random variables is itself not known at compile time. These types of models are refered to as having dynamic support.</p>
+<p>There are two basic strategies that we can employ to represent models with dynamic support.</p>
+<!-- raw HTML omitted -->
+<p>The strategy we will use is to implement inference methods that dynamically instantiate random variables. For example, at each time step, an inference algorithm could decide whether there are any new objects have appeared in the field of view, and then create random variables for the position of these objects as needed.</p>
+<p>A particular strategy for dynamic instantiation of variables is to generate values for variables by simply running a program. We refer to such strategies as <em>evaluation-based inference methods</em>.</p>
+<p>Evaluation-based methods differ from their compilation-based counterparts in that they do not require a representation of the dependency graph to be known prior to execution. Rather, the graph is either built up dynamically, or never explicitly constructed at all. This means  that many evaluation-based strategies can be applied to models that can be applied to models that can in principle instantiate an unbounded number of random variables.</p>
+<p>One of the main things we will need to change in evaluation-based methods is how we deal with <code>if</code>-expressions. In Graph-Based Inference, we realized that <code>if</code>-expressions required special consideration in probabilistic programs: the question that we identified was whether lazy or eager evaluation should be used in <code>if</code> expressions that contain <code>sample</code> and/or <code>observe</code> expressions. We showed that lazy evaluation is necessary for <code>observe</code> expressions, since these expressions affect the posterior distribution on the program output as a side effect. However, for <code>sample</code> expressions, we have a choice between evaluation strategies, because we can always treat variables in unused branches as auxiliary variables. Hence, we adopted an eager evaluation strategy in which both branches of the <code>if</code>-expression are evaluated, but a symbolic flow control predicate determines when <code>observe</code> expressions need to be incorporated into the likelihood.</p>
+<p>The language we previously introduced was designed to ensure that programs always evaluate a bounded set of <code>sample</code> and <code>observe</code> expressions &ndash; because of this, programs that are written in the FOPPL can be safely eagerly evaluated. It is very easy to create a language in which this is no longer the case. For example, if we let function definitions be recursive:</p>
+<pre><code>defn sample-geometric [alpha]
+  let p = sample (bernoulli alpha)
+  in  if (p == 1)
+      then 1
+      else (1 + sample-geometric p)
+
+let alpha = sample (uniform 0 1)
+    k     = sample-geometric alpha
+in  observe (poisson k) 15
+    alpha
+</code></pre><p>Then eager evaluation of <code>if</code>-expressions would result in infinite reucrsion. The expression <code>sample (bernoulli p)</code> can in principle be evaluated an unbounded number of times, implying that the number of random variables in the graph is unbounded as well.</p>
+<p>Although we can&rsquo;t compile the above program to a static graph, it turns out that we can still perform inference in order to characterize the posterior on the program output.</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
