@@ -35,7 +35,7 @@ Usually, if one is confused about something in the core, it is best to compare i
 regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="10555">
+<meta itemprop="wordCount" content="10650">
 
 
 
@@ -1015,6 +1015,22 @@ the instance must be present when the SAME value is made
 1</p>
 <p>8:24
 and whenever we pattern match on SAME the instance is available</p>
+<p>Minh  8:31 PM
+is it possible to place that constraint on the a of Defunc?</p>
+<p>Jamie Willis  8:32 PM
+In a constructor sure
+8:32
+not on the main a at the top I don&rsquo;t think no</p>
+<hr>
+<p>Minh  4:10 PM
+is it possible to do this somehow:
+instance Show s =&gt; Pretty s where
+pretty = show
+For default types which don&rsquo;t have a specific Pretty instance, but do have a Show instance</p>
+<p>Jamie Willis  10:28 AM
+I think you can mark it as incoherent
+10:28
+which means it&rsquo;s only chosen if there isn&rsquo;t another alternative</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
@@ -1045,6 +1061,7 @@ Published on 13 Nov 2020
   
 <ul class="sub-menu">
 <li class=""><a href="https://probabilistic-effects.github.io/papers/asymptotic-improvement/">Asymptotic Improvement of Computations over Free Monads</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/anglican/">Design and Implementation of Probabilistic Programming Language Anglican</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/">Faster Coroutine Pipelines</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>
@@ -1099,6 +1116,7 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/background/">Background</a>
   
 <ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/background/embedding/">Embedding DSLs</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/staging/">Staging</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/smc-pmmh/">SMC and PMMH</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/handrolling/">Handrolling Monad Transformer Stacks</a></li>

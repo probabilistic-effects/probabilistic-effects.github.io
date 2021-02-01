@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Design and Implementation of Probabilistic Programming Language Anglican - Probabilistic Effects.  λθ</title>
+<meta name="generator" content="Hugo 0.80.0" />
+<link href="https://probabilistic-effects.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="https://probabilistic-effects.github.io/papers/anglican/">
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="https://probabilistic-effects.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="Design and Implementation of Probabilistic Programming Language Anglican" />
+<meta property="og:description" content="1. Introduction Probabilitic programming systems represent generative models as programs (given an observable variable X and a target variable Y, a generative model is a statistical model of the joint probability distribution on X × Y) written in a language that provides syntax for the definition and conditioning of random variables. Typically, inference can be performed for any probabilistic program using inference techniques provided by the system back-end, such as Metropolis-Hastings, Hamiltonian Monte Carlo, Sequential Monte Carlo, and expectation progation." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://probabilistic-effects.github.io/papers/anglican/" />
+<meta property="article:published_time" content="2020-11-13T14:05:41+00:00" />
+<meta property="article:modified_time" content="2020-11-13T14:05:41+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Design and Implementation of Probabilistic Programming Language Anglican"/>
+<meta name="twitter:description" content="1. Introduction Probabilitic programming systems represent generative models as programs (given an observable variable X and a target variable Y, a generative model is a statistical model of the joint probability distribution on X × Y) written in a language that provides syntax for the definition and conditioning of random variables. Typically, inference can be performed for any probabilistic program using inference techniques provided by the system back-end, such as Metropolis-Hastings, Hamiltonian Monte Carlo, Sequential Monte Carlo, and expectation progation."/>
+<meta itemprop="name" content="Design and Implementation of Probabilistic Programming Language Anglican">
+<meta itemprop="description" content="1. Introduction Probabilitic programming systems represent generative models as programs (given an observable variable X and a target variable Y, a generative model is a statistical model of the joint probability distribution on X × Y) written in a language that provides syntax for the definition and conditioning of random variables. Typically, inference can be performed for any probabilistic program using inference techniques provided by the system back-end, such as Metropolis-Hastings, Hamiltonian Monte Carlo, Sequential Monte Carlo, and expectation progation.">
+<meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
+<meta itemprop="wordCount" content="1149">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>Probabilistic Effects.  λθ</h1>
+</header>
+
+<div class="content-container">
+<main><h1>Design and Implementation of Probabilistic Programming Language Anglican</h1>
+<h4 id="1-introduction">1. Introduction</h4>
+<p>Probabilitic programming systems represent generative models as programs (given an observable variable X and a target variable Y, a generative model is a statistical model of the joint probability distribution on X × Y) written in a language that provides syntax for the definition and conditioning of random variables. Typically, inference can be performed for any probabilistic program using inference techniques provided by the system back-end, such as Metropolis-Hastings, Hamiltonian Monte Carlo, Sequential Monte Carlo, and expectation progation.</p>
+<p>There are several ways to build a programming language on top of or besides another language.</p>
+<ol>
+<li>The easiest way is to implement an interpreter &ndash; a program that reads a program in its entirety, and executes it by applying operational semantics of a certain kind to the language.</li>
+<li>Another way is to write a compiler &ndash; here the whole program is translated from the higher-level source language to a lower-level object language, which can be directly executed either by hardware or an interpreter which can be made simpler and more efficient than an interpreter for the source language.</li>
+<li>A third approach is where a new language is implemented inside another language of the same level of abstraction. Different languages provide different means for this; Lisp has a macro facility that allows one to extend the language &ndash; by writing macros, one adds new constructs to the existing language. There are several uses of macros &ndash; one is to extend the language syntax; another is to keep the existing syntax but alter the operational semantics (the way programs are executed and how their outputs are computed).</li>
+</ol>
+<p>Anglican takes the third approach. A macro facility provided by Clojure is used to both extend Clojure with constructs that delimit probabilistic code, and alter the operational semantics (the state changes defined by coded algorithms) of Clojure expressions inside probabilistic code fragments.</p>
+<p>Inference algorithms execute Anglican programs while trying to answer probabilistic queries queries on those programs. This execution is significantly different from the one described in the standard operational semantics. These algorithms typically run Anglican programs multiple times for a single inference task. The algorithms may make random choices that do not correspond to any statements in the program, and decide which parts of the program code are executed, and how often.</p>
+<h4 id="3-design-outline">3. Design Outline</h4>
+<p>An Anglican program, or <em>query</em>, is compiled into a Clojure function. When inference is performed with a provided algorithm, this produces a sequence of samples.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-clojure" data-lang="clojure">(<span style="color:#a6e22e">defquery</span> model <span style="color:#e6db74">&#34;model selection&#34;</span> data
+  (<span style="color:#66d9ef">let </span>[ dist (<span style="color:#a6e22e">sample</span> (<span style="color:#a6e22e">categorical</span> [[normal <span style="color:#ae81ff">0.5</span>]
+                                    [gamma  <span style="color:#ae81ff">0.5</span>]]))
+         a    (<span style="color:#a6e22e">sample</span> (<span style="color:#a6e22e">gamma</span> <span style="color:#ae81ff">1</span> <span style="color:#ae81ff">1</span>))
+         b    (<span style="color:#a6e22e">sample</span> (<span style="color:#a6e22e">gamma</span> <span style="color:#ae81ff">1</span> <span style="color:#ae81ff">1</span>))
+         d    (<span style="color:#a6e22e">dist</span> a b)]
+      (<span style="color:#66d9ef">loop </span>[observations data]
+        (when (<span style="color:#a6e22e">not-empty</span> observations)
+          (<span style="color:#66d9ef">let </span>[ o (first observations)]
+            (<span style="color:#a6e22e">observe</span> d o)
+          )
+          (<span style="color:#a6e22e">recur</span> (rest observations))
+        )
+      )
+      [d a b]
+  )
+)
+</code></pre></div><p>This query builds a model for the input <code>data</code>, a sequence of data points.</p>
+<ul>
+<li>It defines a probability distribution on three variables, <code>d ∈ {normal, gamma}</code> for a distribution type, and <code>a</code> and <code>b</code> for positive parameters for the type.</li>
+<li>Using the <code>sample</code> forms, the query first defines a prior distribution on these three variables.</li>
+<li>Using the <code>observe</code> form, the query then adjusts the prior distribution based on observations in <code>data</code>.</li>
+<li>Samples from this conditioned distribution (i.e. the posterior distribution) can be obtained by running the query under one of Anglican&rsquo;s inference algorithms.</li>
+</ul>
+<p>A probabilistic program (or query) mostly runs deterministic code, aside from the special forms <code>sample</code> and <code>observe</code> at which normal deterministic execution is interrupted and Anglican programs must allow the inference algorithm to step in, recording information and affecting control flow. We refer to these points in the execution as checkpoints &ndash; handling of checkpoints can be implemented through coroutines, parallel execution, as well as explicit maintenance of program continuations. Anglican uses explicit maintenance of program continuations.</p>
+<h4 id="4-probability-of-a-program-execution">4. Probability of a Program Execution</h4>
+<p>Anglican programs define probability distributions over sequences of values, implicitly through program execution. A good way to understand this is to imagine the following interpreter of Anglican programs:</p>
+<p>Starting from a fixed initial state, the interpreter runs the deterministic parts of a program according to the standard semantics, executes the <code>sample</code> form by generating a random sample, and treats the <code>observe</code> form by skipping.</p>
+<p>More importantly, the interpreter keeps a log that records information about all the <code>sample</code> and <code>observe</code> forms encountered during execution.</p>
+<ul>
+<li>The information recorded for <code>sample</code> is a triple <code>(F, x, α)</code> consisting of:
+<ul>
+<li>A primitive probability distribution <code>F</code>, for which we have the probability density <code>pF</code>.</li>
+<li>A value <code>x</code> sampled from the distribution <code>F</code>.</li>
+<li>A label <code>α</code> that uniquely and systematically identifies the random choice made.</li>
+</ul>
+</li>
+<li>The information recorded for <code>observe</code> is a pair <code>(G, y)</code> consisting of:
+<ul>
+<li>A primitive probability distribution <code>G</code>, just like <code>F</code>.</li>
+<li>An observed value <code>y</code>.
+Thus the log is a sequence of triples <code>(F, x, α)</code> and pairs <code>(G, y)</code>.</li>
+</ul>
+</li>
+</ul>
+<p>An important property of logs is that they are determined by their projection to triples: when two logs project to the same sequence of triples, they must be the same. This is because the triples in a log contain all the information about random choices made during execution and all the non-sample forms in Anglican programs are deterministic.</p>
+<p>We define a <em>trace</em> <strong>x</strong> to be a sequence of triples <code>(F, x, α)</code>, and say that <strong>x</strong> is feasible if the trace is precisely the triple part of the log of some execution. A feasible trace uniquely determines the rest of the execution and its log. In particular, it decides the pair part of the log i.e. the sequence of <code>(G, y)</code> for observed values. We define the <em>image</em> <strong>y</strong> of a <em>trace</em> <strong>x</strong> to be the sequence of <code>(G, y)</code>.</p>
+<p>A probabilistic program defines a probability distribution over finite feasible traces <strong>x</strong> .</p>
+<h4 id="5-syntax">5. Syntax</h4>
+<h5 id="53-special-forms">5.3 Special Forms</h5>
+<p>Anglican provides special forms for probabilistic inference:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-clojure" data-lang="clojure">(<span style="color:#a6e22e">sample</span> distribution)
+
+(<span style="color:#a6e22e">observe</span> distribution value)
+</code></pre></div><p>A good way to understand the <code>sample</code> and <code>observe</code> forms  is to consider the imaginary interpreter previously described. Under this interpreter, the idealised semantics are:</p>
+<ul>
+<li>The <code>sample</code> form draws a value <code>x</code> from its parameter distribution <code>F</code> and generates a unique label <code>α</code> for this random draw. Then it appends <code>(F, x, α)</code>, the record of this random draw, to the log of the current execution.</li>
+<li>For the <code>observe</code> form, the interpreter just appends its two parameters, the distribution <code>G</code> and observed value <code>v</code>, to the log of the current execution, and returns <code>nil</code>.</li>
+</ul>
+<p>The <em>actual</em> computation involved in handling <code>sample</code> and <code>observe</code> depends on the inference algorithm. Different inference algorithms may treat <code>sample</code> and <code>observe</code> differently, as long as they compute the same distribution on traces (sequences of sampled values).</p>
+<p>The forms <code>sample</code> and <code>observe</code> may appear anywhere in the code of an Anglican program. To support these forms, the inference engine must be able to intervene into execution of the program, perform computations related to inference, and control further execution of the program.</p>
+<div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/papers/asymptotic-improvement/" title="Asymptotic Improvement of Computations over Free Monads"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Asymptotic Improvement of Computations over Free Monads</a>
+<a class="nav nav-next" href="https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/" title="Faster Coroutine Pipelines">Next - Faster Coroutine Pipelines <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<nav class="open-menu">
+<ul>
+<li class=""><a href="https://probabilistic-effects.github.io/">Home</a></li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/activity/">Activity</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/activity/cpsing-monad-bayes/">CPSing Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/activity/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
+</ul>
+  
+</li>
+
+<li class="parent"><a href="https://probabilistic-effects.github.io/papers/">Papers</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/papers/asymptotic-improvement/">Asymptotic Improvement of Computations over Free Monads</a></li>
+<li class="active"><a href="https://probabilistic-effects.github.io/papers/anglican/">Design and Implementation of Probabilistic Programming Language Anglican</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/">Faster Coroutine Pipelines</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/probabilistic-programming/">Introduction To Probabilistic Programming</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/lightweight-implementations-prob-languages/">Lightweight Implementations of Probabilistic Programming Languages</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/research/">Research</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/research/research-journal/">Research Journal</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/">Potential Approaches to Improving Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/literature-review/">Literature Review</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/parsley-case-study/">Case Study: Optimising Parsley</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/optimising-core/">Optimising Core</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/">Monad Bayes</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/inference-transformers/">Inference Transformers</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/pmmh-hmm/">Implementing HMM Simulation and Inference (using PMMH)</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/documentation/">Documentation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/conditioning-scoring/">How Conditioning and Scoring Works</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/">Tooling</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/cabal/">Cabal Projects</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/">Benchmarking</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmark-log/">Benchmark Log</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmarking-profiling/">How to Benchmark and Profile</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/monad-bayes-components/">Relevant Components of Monad Bayes for Profiling</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/background/">Background</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/background/embedding/">Embedding DSLs</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/staging/">Staging</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/smc-pmmh/">SMC and PMMH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/handrolling/">Handrolling Monad Transformer Stacks</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mtl/">MTL</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mcmc-mh/">MCMC and MH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/markov-chain/">Markov Chains</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/hidden-markov-model/">Hidden Markov Model</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/delimited-continuations/">Delimited Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/haskell-core/">Haskell Core</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/coroutines/">Coroutines</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/monad-transformers/"></a></li>
+</ul>
+  
+</li>
+</ul>
+</nav>
+
+
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>

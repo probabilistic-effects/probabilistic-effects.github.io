@@ -17,6 +17,15 @@
     </item>
     
     <item>
+      <title>Design and Implementation of Probabilistic Programming Language Anglican</title>
+      <link>https://probabilistic-effects.github.io/papers/anglican/</link>
+      <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/papers/anglican/</guid>
+      <description>1. Introduction Probabilitic programming systems represent generative models as programs (given an observable variable X and a target variable Y, a generative model is a statistical model of the joint probability distribution on X × Y) written in a language that provides syntax for the definition and conditioning of random variables. Typically, inference can be performed for any probabilistic program using inference techniques provided by the system back-end, such as Metropolis-Hastings, Hamiltonian Monte Carlo, Sequential Monte Carlo, and expectation progation.</description>
+    </item>
+    
+    <item>
       <title>Faster Coroutine Pipelines</title>
       <link>https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/</link>
       <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
