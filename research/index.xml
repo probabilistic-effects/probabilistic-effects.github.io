@@ -14,7 +14,7 @@
       
       <guid>https://probabilistic-effects.github.io/research/research-journal/</guid>
       <description>Activity (MN)
- Implementing FOPPL from Intro to probabilistic programming Reading Design and Implementation of Probabilistic Programming Language Anglican Reading Folding Domain-Specific Languages: Deep and Shallow Embeddings, and Tagless final style  Activity (MN) 19/01/2021 - 22/01/2021
+ Implementing FOPPL from &amp;ldquo;Intro to Probabilistic Programming&amp;rdquo; Reading &amp;ldquo;Design and Implementation of Probabilistic Programming Language Anglican&amp;rdquo; Reading &amp;ldquo;Folding Domain-Specific Languages: Deep and Shallow Embeddings&amp;rdquo;, and &amp;ldquo;Tagless final style&amp;rdquo;   Activity (MN) 19/01/2021 - 22/01/2021
  Reading and writing up introduction to probabilistic programming. Meeting with Alessio on understanding how the free monad transformer tree is constructed and executed as a random decision function. Things to look at: Tagless final style, Embedded probabilistic programming, PλωNK: Functional Probabilistic NetKAT, Algebraic effects  Activity (MN) 18/01/2021</description>
     </item>
     
