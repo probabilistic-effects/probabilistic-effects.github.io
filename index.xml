@@ -275,7 +275,7 @@ type Environment = [(String, Int)] type Counter = Int newtype M a = M (ReaderT E
       <pubDate>Fri, 13 Nov 2020 13:58:28 +0000</pubDate>
       
       <guid>https://probabilistic-effects.github.io/background/mcmc-mh/</guid>
-      <description>Monte Carlo Monte Carlo methods, are a broad class of computational algorithms that rely on repeated random sampling to obtain numerical results.
+      <description>Monte Carlo Monte Carlo methods, are a broad class of computational algorithms that rely on repeated random sampling to obtain numerical results. These are used to approximate the posterior distribution p(X|Y) with a set of (weighted) samples.
 These methods vary, but tend to follow a particular pattern:
  Define a domain of possible inputs Generate inputs randomly from a probability distribution over the domain Perform a deterministic computation on the inputs Aggregate the results   Markov Chain Monte Carlo (MCMC) Markov Chain Monte Carlo (MCMC) methods are from a class of techniques known as approximate inference which are a range of algorithms for computing posteriors when the likelihood is intractable.</description>
     </item>
@@ -352,6 +352,15 @@ The difficulty with inlining is that on its own it is not a beneficial code tran
       <guid>https://probabilistic-effects.github.io/background/specialisation/</guid>
       <description>Type class constraints in Haskell are implemented via dictionary passing. A function accepting a type class constraint is passed a record which provides evidence for the constraint. Therefore despite the fact that all instances have been statically resolved before runtime, the dictionaries are still passed to functions which can incur significant overhead.
 Since type classes are ubiquitous, getting rid of this overhead is critical for any high-performance Haskell programs. Therefore one of the most important optimisations in the compiler is specialisation which rewrites functions to remove the overhead of passing a statically known dictionary.</description>
+    </item>
+    
+    <item>
+      <title>Bayesian</title>
+      <link>https://probabilistic-effects.github.io/background/bayesian/</link>
+      <pubDate>Fri, 13 Nov 2020 13:40:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/background/bayesian/</guid>
+      <description>Basic Procedure of Bayesian Statistics  Model setup: state the parameters of interest θ that we are interested in finding the value of. Prior distribution: Assign a prior probability distribution to parameters θ, which represent our degree of belief with respect to θ. Posterior distribution: Update our degree of belief with respect to θ, based on data. The new degree of belief is called our posterior probability distribution of θ.  An observed result changes our degrees of belief in parameter values by changing a prior distribution into a posterior distribution.</description>
     </item>
     
     <item>

@@ -35,7 +35,7 @@ data Exp = Lit Int | Neg Exp | Add Exp Exp Our running example is written as fol
 data Exp = Lit Int | Neg Exp | Add Exp Exp Our running example is written as follows:">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="356">
+<meta itemprop="wordCount" content="931">
 
 
 
@@ -82,13 +82,56 @@ data Exp = Lit Int | Neg Exp | Add Exp Exp Our running example is written as fol
 </code></pre></div><p>The computation is <em>compositional</em>: the meaning of addition is computed from the meaning of the summands (i.e. the value of the summands).</p>
 <p>Our running example then has form:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">tf1</span> <span style="color:#f92672">=</span> add (lit <span style="color:#ae81ff">8</span>) (neg (add (lit <span style="color:#ae81ff">1</span>) (lit <span style="color:#ae81ff">2</span>)))
-</code></pre></div><p>Comparing the initial embedding <code>ti1</code> to the final embedding <code>tf1</code>, they differ only in terms of the identifiers.
-The initial embedding seems more general as it permits other interpretations of the language, for example, pretty-printing.</p>
+</code></pre></div><p>Comparing the initial embedding <code>ti1</code> to the final embedding <code>tf1</code>, they differ in terms of the identifiers.</p>
+<ul>
+<li>
+<p>The initial embedding seems more general as it permits other interpretations of the language, for example, pretty-printing.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">view</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Exp</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">String</span>
 <span style="color:#a6e22e">view</span> (<span style="color:#66d9ef">Lit</span> n) <span style="color:#f92672">=</span> show n
 <span style="color:#a6e22e">view</span> (<span style="color:#66d9ef">Neg</span> e) <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;(-&#34;</span> <span style="color:#f92672">++</span> view e <span style="color:#f92672">++</span> <span style="color:#e6db74">&#34;)&#34;</span>
 <span style="color:#a6e22e">view</span> (<span style="color:#66d9ef">Add</span> e1 e2) <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;(&#34;</span> <span style="color:#f92672">++</span> view e1 <span style="color:#f92672">++</span> <span style="color:#e6db74">&#34; + &#34;</span> <span style="color:#f92672">++</span> view e2 <span style="color:#f92672">++</span> <span style="color:#e6db74">&#34;)&#34;</span>
-</code></pre></div><div class="edit-meta">
+</code></pre></div></li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li>The final embedding, on the other hand, hardwires the evaluator into the representation <code>tf1</code>, making it impossible to interpret the object term as something other than an integer.</li>
+</ul>
+<p><em>Using type classes in final embedding</em></p>
+<p>We want final embedding to permit multiple interpretations too; therefore we must find a way to parameterize the &ldquo;constructor functions&rdquo; such as <code>lit</code> and <code>neg</code> by the result type. We can use Haskell&rsquo;s type class system as a means of parameterization.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">class</span> <span style="color:#66d9ef">ExpSYM</span> repr <span style="color:#66d9ef">where</span>
+  lit <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span>  <span style="color:#f92672">-&gt;</span> repr
+  neg <span style="color:#f92672">::</span> repr <span style="color:#f92672">-&gt;</span> repr
+  add <span style="color:#f92672">::</span> repr <span style="color:#f92672">-&gt;</span> repr
+</code></pre></div><!-- raw HTML omitted -->
+<p><em>Denotational Semantics of Final Style</em></p>
+<p>The declaration of <code>ExpSYM</code> should remind us of denotational semantics, over the semantic domain <code>repr</code>. As befits denotational semantics, the meaning of an expression (whatever <code>repr</code> happens to be) is computed from the meaning of the components.</p>
+<p>The running example has the same final embedded form as before, but the inferred type is different: it is no longer <code>Repr</code> (that is, <code>Int</code>), but rather it is <code>ExpSYM repr =&gt; repr</code>, hence being polymorphic over the semantic domain. An object term is not represented by its abstract syntax, but by its meaning (its denotation in a semantic domain).</p>
+<p><em>Interpreting Final-Encoded Expressions</em></p>
+<p>To interpret finally-encoded expressions, we write an instance for <code>ExpSYM</code>, specifying the semantic domain. For example, we may interpret expressions as integers, by mapping object language integers to Haskell integers, and object language negation to Haskell negation, etc:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">ExpSYM</span> <span style="color:#66d9ef">Int</span> <span style="color:#66d9ef">where</span>
+  lit n     <span style="color:#f92672">=</span> n
+  neg e     <span style="color:#f92672">=</span> <span style="color:#f92672">-</span> e
+  add e1 e2 <span style="color:#f92672">=</span> e1 <span style="color:#f92672">+</span> e2
+</code></pre></div><p>We write the evaluator as the identity function, so that <code>eval tf1</code> has the value <code>5</code>:</p>
+<pre><code>eval :: Int -&gt; Int
+eval = id
+</code></pre><p>The function <code>eval</code> has a strange type for an evaluator, and an even stranger definition (the identity function). It is more proper to call <code>eval</code> a &ldquo;selector&rdquo; of an interpretation &ndash; a finally-encoded expression has an indefinite number of interpretations; <code>eval</code> selects one of them. In this case, it selects an interpretation as an integer.</p>
+<p>Unlike the initial interpreter, the final interpreter has no pattern-matching on abstract syntax, and so has no syntax-dispatch overhead.</p>
+<p>The <code>SYM</code> in <code>ExpSYM</code> stands for <em>Symantics</em>: the class declaration defines the syntax of the embedded language (its expression forms); the class instances define the semantics (the interpretations). Multiple interpretations are now possible through defining different type class instances and corresponding interpreters where their type definition is what selects which instance is used.</p>
+<p><em>Comparing Properties of Initial vs Final Encoded Objects</em></p>
+<p>In the initial embedding, encoded object terms and their interpreters are ordinary monomorphic Haskell values, and hence are first-class. We may collect terms into a list, of the type <code>[Exp]</code>, and interpret uniformly by mapping an evaluator.</p>
+<pre><code>til1 = [Lit 1, Add (Lit 1) (Lit 3)]
+
+&gt; map eval til1 
+&gt; [1, 4]
+</code></pre><p>In the final embedding, encoded object terms are represented as polymorphic Haskell values, which are not fully first-class: storing them in data structures or passing them as arguments generally loses polymorphism.</p>
+<h5 id="22-extensibility-and-the-expression-problem">2.2 Extensibility and the Expression Problem</h5>
+<p>We have already considered one kind of extensibility: defining different interpreters for the same object language. Now, consider extending the object language itself, by adding a new syntactic form, multiplication.</p>
+<p>The initial encoding represents the object language as an algebraic data type. To add new forms to the language, we have to add new variants to the data type.</p>
+<pre><code>data Exp = Lit Int
+         | ...
+         | Mul Exp Exp
+</code></pre><div class="edit-meta">
 Last updated on 13 Nov 2020
 
 
@@ -185,6 +228,7 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/background/haskell-core/">Haskell Core</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/bayesian/">Bayesian</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/coroutines/">Coroutines</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/monad-transformers/"></a></li>

@@ -29,7 +29,7 @@
 <meta itemprop="description" content="1. Introduction Probabilitic programming systems represent generative models as programs (given an observable variable X and a target variable Y, a generative model is a statistical model of the joint probability distribution on X × Y) written in a language that provides syntax for the definition and conditioning of random variables. Typically, inference can be performed for any probabilistic program using inference techniques provided by the system back-end, such as Metropolis-Hastings, Hamiltonian Monte Carlo, Sequential Monte Carlo, and expectation progation.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="1149">
+<meta itemprop="wordCount" content="1156">
 
 
 
@@ -49,7 +49,7 @@
 <li>Another way is to write a compiler &ndash; here the whole program is translated from the higher-level source language to a lower-level object language, which can be directly executed either by hardware or an interpreter which can be made simpler and more efficient than an interpreter for the source language.</li>
 <li>A third approach is where a new language is implemented inside another language of the same level of abstraction. Different languages provide different means for this; Lisp has a macro facility that allows one to extend the language &ndash; by writing macros, one adds new constructs to the existing language. There are several uses of macros &ndash; one is to extend the language syntax; another is to keep the existing syntax but alter the operational semantics (the way programs are executed and how their outputs are computed).</li>
 </ol>
-<p>Anglican takes the third approach. A macro facility provided by Clojure is used to both extend Clojure with constructs that delimit probabilistic code, and alter the operational semantics (the state changes defined by coded algorithms) of Clojure expressions inside probabilistic code fragments.</p>
+<p>Anglican takes the third approach. A macro facility provided by Clojure is used to both extend Clojure with constructs that delimit probabilistic code, and alter the operational semantics (operational semantics ties any type of operation (arithmetic, assignment, etc.) to the computation involved) of Clojure expressions inside probabilistic code fragments.</p>
 <p>Inference algorithms execute Anglican programs while trying to answer probabilistic queries queries on those programs. This execution is significantly different from the one described in the standard operational semantics. These algorithms typically run Anglican programs multiple times for a single inference task. The algorithms may make random choices that do not correspond to any statements in the program, and decide which parts of the program code are executed, and how often.</p>
 <h4 id="3-design-outline">3. Design Outline</h4>
 <p>An Anglican program, or <em>query</em>, is compiled into a Clojure function. When inference is performed with a provided algorithm, this produces a sequence of samples.</p>
@@ -211,6 +211,7 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/background/haskell-core/">Haskell Core</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/bayesian/">Bayesian</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/coroutines/">Coroutines</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/monad-transformers/"></a></li>

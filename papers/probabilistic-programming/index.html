@@ -29,7 +29,7 @@
 <meta itemprop="description" content="1.1 Model-based Reasoning A model is an artifical construct designed to respond in the same way as the system we would like to understand. As computers have evolved, numerical models have come to the forefront and computer simulations have replaced physical models. Numerical models emulate stochasticity, i.e. they use pseudorandom number generators to simulate actually random phenomena and other uncertainties. Running a simulator with stochastic value generation leads to an explosion of possible simulation outcomes.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="13283">
+<meta itemprop="wordCount" content="16782">
 
 
 
@@ -1009,10 +1009,11 @@ function GIBBS(χ^0, T)
 <li>A is the set of arcs between random variables</li>
 <li>X is the set of unobserved random variables</li>
 <li>Y is the set of observed random variables</li>
-<li>ℙ is the mapping of observed random variables to their probability density function</li>
+<li>ℙ is the mapping of random variables V to their probability density function</li>
 <li>Ƴ is the mapping of observed random variables to their value</li>
 <li>ℚ is the mapping of unobserved random variables to their proposal probability distribution</li>
 <li>χ is the mapping of unobserved variables to their value</li>
+<li>Ѵ is the mapping of all random variables to their value (Ѵ = χ ⊕ Ƴ)</li>
 </ul>
 <p>In the function <code>ACCEPT</code>, this computes the acceptance ratio of one of the unobserved variables <code>x</code> in <code>X</code>, given the current value found in <code>χ</code> and the new proposed value found in <code>χ'</code>:</p>
 <ol>
@@ -1041,6 +1042,7 @@ function GIBBS(χ^0, T)
 <li>This takes the initial mapping <code>χ^0</code> of unobserved variables to values at time <code>t = 0</code>, and the number of time steps <code>S</code>.</li>
 <li>For each time-step <code>t</code> in <code>1 ... T</code>, we compute the <code>t</code>&lsquo;th set of values for unobserved variables <code>χ^t</code>.</li>
 </ol>
+<p>Note: each <code>sample</code> statement in our original program corresponds to sampling a parameter from the prior. The values (samples) produced from Gibbs inference are the same parameters but sampled from the posterior.</p>
 <h4 id="4-evaluation-based-inference-i">4. Evaluation-Based Inference I</h4>
 <p>In the previous chapter on Graph-Based Inference, our inference algorithms operated on a graph representation of a probabilistic model, which we created through a compilation of a program in our first-order probabilistic programming language. The construction of this graph is performed at compile time &ndash; we refer to graphs that can be constructed at compile time as having static support.</p>
 <p>Many models exist in which the graph of conditional dependencies is dynamic, in the sense that it cannot be constructed prior to performing inference. One way these graphs arise is when the number of random variables is itself not known at compile time. These types of models are refered to as having dynamic support.</p>
@@ -1062,7 +1064,261 @@ let alpha = sample (uniform 0 1)
 in  observe (poisson k) 15
     alpha
 </code></pre><p>Then eager evaluation of <code>if</code>-expressions would result in infinite reucrsion. The expression <code>sample (bernoulli p)</code> can in principle be evaluated an unbounded number of times, implying that the number of random variables in the graph is unbounded as well.</p>
-<p>Although we can&rsquo;t compile the above program to a static graph, it turns out that we can still perform inference in order to characterize the posterior on the program output.</p>
+<p>Although we can&rsquo;t compile the above program to a static graph, it turns out that we can still perform inference in order to characterize the posterior on the program output. To do so, we rely on the fact that we can always simply run a program (using lazy evaluation for <code>if</code> expressions) to generate a sample from the prior. Even though we might not be able to characterize the support of a probabilistic program, we can still generate a sample that by construction is guaranteed to be part of the support.</p>
+<p>If we additionally keep track of the probabilities associated with each of the observe expressions that is evaluated in a program, then we can implement sampling algorithms that either evaluate a Metropolis-Hastings acceptance ratio, or assume an importance weight to each sample.</p>
+<p>In this chapter, we will assume that programs are defined using the FOPPL previously described, but that a lazy evaluation strategy is used for <code>if</code>-expressions.</p>
+<h5 id="41-likelihood-weighting">4.1 Likelihood Weighting</h5>
+<p>The simplest evaluation-based method is likelihood weighting, which is a form of <em>importance sampling</em> in which the proposal distribution <code>Q</code> matches the prior distribution. The idea is to weight the samples produced during inference, where the weights reflect the probability that a sample would not be rejected. This is an alternative to rejecting samples.</p>
+<h6 id="411-background-importance-sampling">4.1.1 Background: Importance Sampling</h6>
+<p>Monte Carlo methods are a broad class of computational algorithms that rely on repeated random sampling to obtain numerical results &ndash; during inference, these are used to approximate the posterior distribution <code>p(X|Y)</code> with a set of (weighted) samples.</p>
+<p>Importance sampling is one of these Monte Carlo techniques. The trick that importance sampling methods rely upon is that we can replace an expectation over the posterior <code>p(X|Y)</code>, which is generally hard to sample from, with an expectation over a proposal distribution <code>q(X)</code>, which is chosen to be easy to sample from.</p>
+<ul>
+<li><code>𝔼[X]</code> denotes the expectation of random variable <code>X</code>.</li>
+<li>If <code>X</code> is a random variable with outcomes <code>x_1, x_2, ..., x_k</code> with probabilities <code>p_1, p_2, ..., p_k</code>, then the expectation of <code>X</code> is defined as <code>𝔼[X] = Σ x_i, p_i</code>.</li>
+<li>If <code>X</code> is a random variable with probability density function <code>f(x)</code>, then the expected value is defined as <code>𝔼[X] = ∫ x f(x) dx</code>, or <code>𝔼_f(X)[X] = ∫ x f(x) dx</code>.</li>
+</ul>
+<p>Below shows how the expectation of our returned random variable <code>r(X)</code> over our posterior <code>p(X|Y)</code> can be replaced with the expectation of a different random variable <code>r(X) * p(X|Y)/q(X)</code> over a proposal distribution <code>q(X)</code>.</p>
+<pre><code>𝔼_p(X|Y)[r(X)] = ∫ p(X|Y)r(X) dX
+               = ∫ q(X) p(X|Y)/q(X) r(X) dX
+               = 𝔼_q(X) [p(X|Y)/q(X) * r(X)]
+</code></pre><blockquote>
+<p><em>What is <code>r(X)</code>?</em> Recall that in MCMC, Bayesian inference is performed by drawing samples from the posterior distribution, which is accomplished by simulating from a Markov chain whose stationary distribution is the target distribution <code>π</code>, being the posterior in this case. These samples are then used to characterize the distribution of the return value <code>r(X)</code> (i.e. the samples produced by inference).</p>
+</blockquote>
+<p><strong>What is Importance Sampling/Likelihood Weighting</strong>
+The idea behind importance sampling is that certain values of random variables <code>X</code> in a simulation have more impact on the parameter being estimated than others. If these important values are emphasized by sampling more frequently, then the estimator variance can be reduced. Hence, the basic methodology in importance sampling is to choose a &ldquo;bias&rdquo; distribution which encourages the important values. In order to prevent the use of the &ldquo;bias&rdquo; distribution resulting in a biased estimator, the simulation outputs are weighted for the correct use of the biased distribution.</p>
+<p>Instead of creating a sample and then rejecting it, it is possible to mix sampling with inference to reason about the probability that a sample would be rejected. In importance sampling methods, each sample has a weight, and the sample average is computed using the weighted average of samples. Likelihood weighting is a form of importance sampling where the variables are sampled in the order defined by a belief network, and evidence is used to update the weights. The weights reflect the probability that a sample would not be rejected.</p>
+<p><strong>General Procedure of Likelihood Weighting</strong>
+If we:</p>
+<ul>
+<li>Draw samples <code>X^l ~ q(X)</code> from the proposal distribution <code>q(X)</code></li>
+<li>Define importance weights as <code>w^l := p(X^l|Y)/q(X^l)</code>
+Then we can express our Monte Carlo estimate as an average over the weighted samples <code>{(w^l, X^l)} for l ϵ L</code>.</li>
+</ul>
+<pre><code>𝔼_q(X) [p(X|Y)/q(X) * r(X)]  ≃ 1/L Σ (w^l * r(X^l))
+</code></pre><p>Unfortunately, we cannot calculate the importance weights <code>w^l := p(X^l|Y)/q(X^l)</code> (i.e. the importance ratio <code>p(X|Y)/q(X)</code>) because this requires evaluating the posterior <code>p(X|Y)</code> which is what we did not know how to do in the first place. However, we can evaluate the joint distribution <code>p(Y, X)</code> which allows us to define an unnormalized weight. The unnormalized weights <code>W^l</code> are quantities that we can calculate directly, unlike the normalized weights <code>w^l</code>.</p>
+<pre><code>W^l := p(Y, X^l) / q(X^l)
+    := p(Y) * w^l
+</code></pre><p>We still have a remaining problem: we don&rsquo;t know how to calculate the normalization constant <code>p(Y)</code>. However, we can derive an approximation to <code>p(Y)</code> using the same unnormalized weights <code>W^l</code> by considering the special case <code>r(X) = 1</code>.</p>
+<pre><code>p(Y) = 𝔼_q(X) [p(X|Y)/q(X) * 1] ≃ 1/L Σ (W^l)
+</code></pre><p>&hellip;
+<em>some unfinished information</em>
+&hellip;</p>
+<p>To summarize, as long as we can evaluate the joint <code>p(Y, X^l)</code> for a sample <code>X^l ~ q(X)</code>, then we can perform importance sampling using unnormalized weights <code>W^l</code>.</p>
+<pre><code>𝔼_q(X) [p(X|Y)/q(X) * r(X)]  ≃ Σ (W^l / Σ W^k ) * r(X^l)
+</code></pre><h6 id="412-graph-based-implementation">4.1.2 Graph-based Implementation</h6>
+<p>Suppose that we compiled our program to a graphical model. We could then implement likelihood weighting using the following steps:</p>
+<ol>
+<li>For each sampled random variable <code>x ∈ X</code>, sample from the prior <code>x^l ~ p(x | parents(x))</code> (i.e. its corresponding distribution).</li>
+<li>For each observed random variable <code>y ∈ Y</code>, calculate the weights <code>W^l_y = p(y | parents(y)).</code> (i.e. the probability of observing it from its corresponding distribution).</li>
+<li>Return the weighted set of return values <code>r(X^l)</code>.
+<pre><code>Σ (W^l/Σ(W^k)) * δ_r(X^l) 
+where W^l := ∏ W^l_y
+</code></pre></li>
+</ol>
+<ul>
+<li>Sampling from the prior for each <code>x ∈ X</code> is more or less trivial. The only thing we need to make sure of is that we sample all parents <code>parents(x)</code> before sampling <code>x</code>, which is to say that we need to loop over nodes <code>x ∈ X</code> according to their topological order.</li>
+<li>The terms <code>W^l_y</code> can be calculated by evaluating the target language expression <code>ℙ(y)[y := Ƴ(y)]</code>, substituting the sampled value <code>x^l</code> for any <code>x ∈ parents(y)</code>.</li>
+</ul>
+<h6 id="413-evaluation-based-implementation">4.1.3 Evaluation-based Implementation</h6>
+<p>The basic idea in implementing the same algorithm using an evaluation-based strategy, is that:</p>
+<ol>
+<li>We can generate samples by simply running the program. More precisely, we will sample a value <code>x ~ d</code> whenever we encounter an expression <code>sample d</code>; by definition, this will generate samples from the prior.</li>
+<li>We can then calculate the likelihood <code>p(Y|X)</code> as a side-effect of running the program. To do so, we initialise a state variable <code>σ</code> with a single entry <code>log W = 0</code>, which tracks the log of the unnormalized importance weight. Each time we encounter an expression <code>observe d y</code>, we calculate the log likelihood <code>log_p(d, y)</code> and update the log weight to <code>log W &lt;- log W + log_p(d, y)</code>, ensuring that <code>log W = log p(Y|X)</code> at the end of the execution.</li>
+</ol>
+<p>To define this method more formally, let us specify what we mean by &ldquo;running&rdquo; the program.</p>
+<p>Previously, we defined a program <code>q</code> as:</p>
+<pre><code>q ::= e | (defn f [x1 ... xn] e) q
+</code></pre><p>And our language contained eight expression types.</p>
+<pre><code>e ::= c | v | (let [v e1] e2) | (if e1 e2 e3) | (f e1 ... en)
+    | (c e1 ... en) | (sample e) | (observe e1 e2)
+</code></pre><p>In order to &ldquo;run&rdquo; a FOPPL program, we will define a function that evaluates an expression <code>e</code> to a value <code>c</code> (as opposed to graph-based implementation that evaluates an expression <code>e</code> to a graph <code>G</code> and a deterministic expression <code>E</code>).</p>
+<pre><code>global ρf
+
+function EVAL(e, σ, ρx)
+  match e
+    case (sample d)
+      &gt; algorithm specific
+    case (observe d y)
+      &gt; algorithm specific
+    case c
+      return c, σ
+    case (let [v1 e1] e2)
+      c1, σ ← EVAL(e1, σ, ρx)
+      return EVAL(e2, σ, ρx[v1 → c1])
+    case (if e1 e2 e3)
+      c1, σ ← eval(e1, σ, ρx)
+      if c1 
+        then return EVAL(e2, σ, ρx)
+        else return EVAL(e3, σ, ρx)
+    case (e0 e1 . .. en)
+      for i in [1, ..., n] do
+        ci, σ ← EVAL(ei, σ, ρx)
+      match e0
+        case f
+          (v1, ..., vn), e0' ← ρf(f)
+          return EVAL(e0', σ, ρx[v1 → c1, ..., vn → cn])
+        case c
+          return (c (c1, ..., cn), σ)
+</code></pre><p>The meaning of the variables used:</p>
+<ul>
+<li><code>ρf</code> - a global environment for user-defined procedures.</li>
+<li><code>ρx</code> - a local environment mapping variables <code>v</code> to constants <code>c</code>.</li>
+<li><code>σ</code> - a mapping of inference state variables to the log of the unnormalized importance weight <code>W</code>. This allows us to store variables needed for inference, which are computed as a side-effect of the computation.</li>
+</ul>
+<p>It remains to define evaluation for <code>sample</code> and <code>observe</code> forms. As we described at a high-level, these evaluation rules are algorithm-dependent. For <em>likelihood weighting</em>, we want to draw from the prior when evaluating <code>sample</code> expressions, and update the importance weight when evaluating <code>observe</code> expressions. Below, we show pseudo-code for an implementation of these operations for <em>likelihood weighting</em>.</p>
+<pre><code>global ρf, e
+
+function EVAL(e, σ, ρx)
+  match e
+    case (sample e')
+      d, σ ← EVAL(e', σ, ρx)
+      return (SAMPLE(d), σ)
+    case (observe e1 e2)
+      d1, σ ← EVAL(e1, σ, ρx)
+      c2, σ ← EVAL(e2, σ, ρx)
+      σ(log W) ← σ(log W) + LOG-PROB(d1, c2)
+      return c2
+
+function LIKELIHOOD-WEIGHTING(L)
+  σ ← [logW → 0]
+  for l in 1, ..., L do
+    r^l, σ^l ← EVAL(e, σ, [])
+    logW^l   ← σ(logW)
+  return ((r^1, logW^1), ..., (r^L, logW^L))
+</code></pre><p>This algorithm generates a sequence of weighted samples by simply running the program repeatedly. Unlike the algorithms that were defined in the graphical inference chapter, this algorithm does not require any explicit representation of the graph of conditional dependencies between variables. This implementation of likelihood weighting does not even track how many <code>sample</code> and <code>observe</code> statements a program evaluates. Instead, it draws from the prior as needed, and accumulates log probabilities when evaluating <code>observe</code> expressions.</p>
+<p><strong>Aside 1: Relationship between Evaluation and Inference Rules</strong></p>
+<p>In order to evaluate an expression <code>e</code>, we first evaluate its sub-expressions and then compute the value of the expression of the values of its sub-expressions. When defining the translation (inference) rules for graphical models, we implicitly followed the same pattern.</p>
+<p>Inference rules do not only formally specify how our translation should behave, but also give us a recipe for how to implement a recursive <code>TRANSLATE</code> operation for each expression type.</p>
+<p>We can similarly use inference rules to define our evaluation-based likelihood weighting model.</p>
+<p><strong>Aside 2: Side Effects and Referential Transparency</strong></p>
+<p>If we do not include <code>sample</code> and <code>observe</code> in our syntax, then our FOPPL is not only deterministic, but it also pure in a functional sense, i.e. there are no side effects. An implication of this is that it would referentially transparent. Once we incorporate <code>sample</code> and <code>observe</code> into our language, our language is no longer functionally pure.</p>
+<p>A <code>sample</code> expression does not always evaluate to the same value, and is therefore referentially opaque; by extension, any expression containing a <code>sample</code> form as a sub-expression is also opaque.</p>
+<p>An <code>observe</code> expression <code>observe e1 e2</code> always evaluates to the same value as long as <code>e2</code> is referentially transparent. However, <code>observe</code> expressions have a side effect which is that they increment the log weight stored in the inference state <code>σ(logW)</code>.</p>
+<p>The distinction between referentially transparent and opaque expressions also implicitly showed up in our compilation procedure for graphical models &ndash; there, we translate an opaque program into a set of target-language expressions for conditional probabilities which were referentially transparent. In these target-language expressions, each sub-expression corresponding to <code>sample</code> or <code>observe</code> was replaced with a free variable <code>v</code>. If a translated expression has no free variables, then the original untranslated expression is referentially transparent. Partial evaluation exploited this property to replace all target-language expressions without free variables with their values. We also relied on this property to ensure that <code>observe</code> forms <code>observe e1 e2</code> always contained a referentially transparent expresssion for the observed value <code>e2</code>.</p>
+<h4 id="42-metropolis-hastings">4.2 Metropolis-Hastings</h4>
+<p>Previously, we used evaluation to generate samples from the program prior while calculating the likelihood associated with these samples as a side-effect of computation. We can use this same strategy to define MCMC algorithms. With Gibbs sampling, we explicitly made use of the conditional dependency graph in order to identify the minimal set of variables needed to compute the acceptance ratio.</p>
+<p>Metropolis-Hastings methods generate a Markov chain of program return values by accepting or rejecting a newly proposed sample according to the following algorithm:</p>
+<ol>
+<li>Initialise the current sample <code>X</code>. Return <code>X^1</code> ← <code>X</code>.</li>
+<li>For each subsequent sample <code>s = 2, ..., S</code>:
+<ul>
+<li>Generate a proposal <code>X' ~ q(X' | X)</code></li>
+<li>Calculate the acceptance ratio</li>
+</ul>
+<pre><code>α = p(Y', X')q(X | X') / p(Y, X)q(X' | X)
+</code></pre><ul>
+<li>Update the current sample <code>X ← X'</code> with probability <code>max(1, α)</code>, otherwise keep <code>X</code>. Return <code>X^s ← X</code>.</li>
+</ul>
+</li>
+</ol>
+<p>An evaluation-based <code>MH</code> sampler needs to do two things.</p>
+<ol>
+<li>It needs to be able to run the program to generate a proposal, conditioned on the values <code>Ⲭ</code> of <code>sample</code> expressions that were previously evaluated.</li>
+<li>It needs to be able to compute the acceptance ratio <code>α</code> as a side effect.</li>
+</ol>
+<p><em>Lets consider a simplified version of this algorithm: Independent proposals from the prior</em></p>
+<p>Suppose that we defined <code>q(X'|X) = p(X')</code>, in other words, the probability of the proposed latent variable <code>X'</code> given the previous latent variable <code>X</code> according to the proposal distribution <code>q</code> is equal to the probability of the proposed latent variable <code>X'</code> according to the prior distribution. In other words, at each step we generate a proposal sample <code>X' ~ p(X)</code> from the program prior, which is independent of the previous sample <code>X</code>.</p>
+<p>The acceptance ratio simplifies to:</p>
+<pre><code>α = p(Y' | X') / p(Y | X)
+</code></pre><p>In other words, when we propose <code>X'</code> from the prior, the acceptance ratio is simply the ratio of the likelihoods. Since our likelihood weighting algorithm computes <code>σ(log W) = log p(Y|X)</code> as a side effect, we can re-use the evaluator previously implemented, and simply evaluate the acceptance ratio as <code>p(Y'|X')/p(Y|X)</code>, where <code>p(Y'|X')</code> is the likelihood of the proposal and <code>p(Y|X)</code> is the likelihood of the previous sample.</p>
+<h6 id="421-single-site-proposals">4.2.1 Single-site Proposals</h6>
+<p>The previous algorithm was so simple because we have side-stepped the difficult operations in the more general MH algorithm, and assumed that <code>q(X'|X) = p(X')</code>.</p>
+<p>In order to generate a proposal, we have to:</p>
+<ol>
+<li>Run our program in a manner that generates a sample <code>X' ~ q(X'|X)</code> which is conditioned on the values associated with our previous sample.</li>
+<li>Calculate the probability of the reverse proposal <code>q(X|X')</code> in order to evaluate the acceptance ratio.</li>
+</ol>
+<p>Both of these operations are complicated by the fact that <code>X</code> and <code>X'</code> potentially refer to different subsets of sample expressions.</p>
+<pre><code>let z  = sample ( bernoulli 0.5)
+    µ  = if (z == 0)
+         then sample (normal -1.0 1.0)
+         else sample (normal  1.0 1.0)
+    d  = normal µ 1.0
+    y  = 0.5
+in  observe d y
+    z 
+</code></pre><p>With graphical models, we would compile this model to a Bayesian network containing:</p>
+<ul>
+<li><code>X = {z, µ0, µ1}</code> - three latent variables</li>
+<li><code>Y = {y}</code> - one observed variable</li>
+</ul>
+<p>If we now evaluate <code>if</code>-expressions lazily in evaluation-based inference, this means that we will either sample <code>µ0</code> when <code>z == 0</code> or <code>µ1</code> when <code>z == 1</code>, but not both. This introduces a complication: what happens if we update <code>z = 0</code> to <code>z = 1</code> in the proposal? This now implies that <code>X</code> contains a variable <code>µ0</code> which is not defined for <code>X'</code>, so <code>q(X'|X)</code> cannot be evaluated. Conversely, <code>X'</code> needs to instantiate a value for the variable <code>µ1</code> which was not defined for <code>X</code>.</p>
+<p>In order to define an evaluation-based algorithm for constructing a proposal, we will need to construct a map <code>σ(Ⲭ)</code>, such that <code>Ⲭ(x)</code> refers to the value of a latent variable <code>x</code>.
+In order to calculate the acceptance ratio, we will also need to construct a map <code>σ(logℙ)</code>. With graphical-based inference, we used a map <code>ℙ(v)</code> that evaluates the density for each random variable <code>v ∈ X ∪ Y</code>. In our evaluation-based algorithm, we will use <code>σ(logℙ(v))</code> to store the log density <code>σ(logℙ(x)) = LOG-PROB(d, Ⲭ(x))</code> for each sample expression <code>(sample d)</code> and to store the log density <code>σ(logℙ(y)) = LOG-PROB(d, c)</code> for each observe expression <code>(observe d c)</code>.</p>
+<p><em>Lets now define the most commonly used evaluation-based proposal for probabilistic programming systems: the single-site Metropolis-Hastings update.</em></p>
+<p>In this algorithm, we change the value for one variable <code>x0</code>, keeping the values of other variables fixed whenever possible. To do so, we sample <code>x0</code> from the program prior (as well as any any variables which aren&rsquo;t yet in the current <code>Ⲭ</code>, i.e. they haven&rsquo;t been instantiated). For all other latent variables, we reuse the values <code>Ⲭ(x)</code>.</p>
+<p>This strategy can be summarized in the following algorithm:</p>
+<ol>
+<li>Pick a variable <code>x0 ∈ Ⲭ</code> at random from the current sample.</li>
+<li>Construct a proposal <code>Ⲭ'</code>, <code>ℙ'</code> by rerunning the program
+<ul>
+<li>For expressions <code>sample d</code> with variable <code>x</code>:
+<ul>
+<li>If <code>x = x0</code> or <code>x ¬∈ dom(Ⲭ)</code>, then sample <code>Ⲭ'(x) ~ d</code>
+Otherwise, reuse the value <code>Ⲭ'(x) ← Ⲭ(x)</code>.</li>
+<li>Calculate the probability <code>ℙ'(x) ← PROB(d, Ⲭ'(x))</code>.</li>
+</ul>
+</li>
+<li>For expressions <code>observe d c</code> with variable <code>y</code>:
+<ul>
+<li>Calculate the probability <code>ℙ'(y) ← PROB(d, c)</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<p>To calculate the acceptance ratio, this is given by:</p>
+<pre><code>α = p(Y', X')q(X|X') / P(Y, X)q(X'|X)
+  = p(Y', X')/q(X' | X, x0) * q(X | X', x0)/p(Y, X) * q(x0 | X')/q(x0 | X)
+</code></pre><ol>
+<li>
+<p>The ratio <code>q(x0 | X'0) / q(x0 | X)</code> accounts for the relative probability of selecting the initial site. Since <code>x0</code> is chosen at random, this is the size of set <code>X</code> divided by the size of set <code>X'</code>:</p>
+<pre><code>q(x0 | X') / q(x0 | X) = |X| / |X'| 
+</code></pre></li>
+<li>
+<p>The joint probability <code>p(Y', X')</code> is simply the product of probabilities of latent and observed variables found in <code>ℙ'</code>:</p>
+<pre><code>p(Y', X') = Π ℙ'(y) Π ℙ'(x)
+           y∈Y'    x∈X' 
+</code></pre><p>where X&rsquo; = dom(Ⲭ&rsquo;) and Y' = dom(ℙ') \ X'</p>
+</li>
+<li>
+<p>To calculate the probability <code>q(X' | X, x0)</code>, we decompose the set of variables <code>X' = X'sampled ∪ X'reused</code> into the set of sampled variables <code>X'sampled</code> and the set of reused variables <code>X'reused</code>. The set of sampled variables is given by <code>X'sampled = {x0} ∪ (dom(Ⲭ')\dom(Ⲭ))</code>, i.e. the randomly chosen variable <code>x0</code> that we resample, and any latent variables in <code>Ⲭ'</code> that <em>aren&rsquo;t</em> in the domain of <code>Ⲭ</code>. Conversely, <code>Xsampled = {x0} ∪ (dom(Ⲭ)\dom(Ⲭ'))</code>.</p>
+</li>
+</ol>
+<p>Since all variables in <code>X'sampled</code> were sampled from the program prior, the proposal probability is:</p>
+<pre><code>```
+q(X' | X, x0) = Π ℙ'(x)
+              x∈X'sampled
+```
+</code></pre>
+<ol start="4">
+<li>
+<p>The ratio <code>p(Y', X')/q(X'|X, x0)</code> simplifies to:</p>
+<pre><code>p(Y', X')/q(X'|X, x0) =  Π ℙ'(y) Π ℙ'(x)  /  Π ℙ'(x)
+                        y∈Y'    x∈X'        x∈X'sampled
+                      =  Π ℙ'(y) Π ℙ'(x)
+                        y∈Y'    x∈X'reused 
+</code></pre><p>The ratio <code>p(Y, X)/q(X|X, x0)</code> is similarly:</p>
+<pre><code>p(Y, X)/q(X|X, x0) =  Π ℙ(y) Π ℙ(x)  /  Π ℙ(x)
+                     y∈Y    x∈X        x∈Xsampled
+                   =  Π ℙ(y) Π ℙ(x)
+                     y∈Y    x∈Xreused 
+</code></pre><p>The set of reused variables <code>Xreused</code> is identical to that of <code>X'reused</code>:</p>
+<pre><code>X'reused = (dom(Ⲭ') ∩ dom(Ⲭ)) \ {x0} = Xreused
+</code></pre></li>
+<li>
+<p>Putting all the terms together, the acceptance ratio becomes:</p>
+<pre><code>|dom(Ⲭ)|  Π ℙ'(y) Π ℙ'(x)       /  |dom(Ⲭ)|  Π ℙ'(y) Π ℙ'(x) 
+         y∈Y'    x∈X'reused                 y∈Y'    x∈X'reused 
+</code></pre></li>
+</ol>
+<p><strong>Addressing Transformation</strong></p>
+<p>In defining the acceptance ratio, we have assumed that we can associate a variable <code>x</code> or <code>y</code> with each <code>sample</code> or <code>observe</code> expression. We did this in our compilation of a graphical model. In the context of evalution-based methods, this type of unique identifier for a <code>sample</code>/<code>observe</code> expression is commonly referred to as an address.</p>
+<p>If needed, unique addresses can be constructed dynamically at run-time. For programs in the FOPPL, we can create addresses using a source code transformation that is similar to our compilation in graph-based inference. In this, we replace all expressions <code>sample</code> with <code>sample v e</code> in which <code>v</code> is a newly created variable. Similarly, we replace <code>observe e1 e2</code> with <code>observe v e1 e2</code>.</p>
+<h5 id="43-sequential-monte-carlo">4.3 Sequential Monte Carlo</h5>
+<p>Previously in Metropolis-Hastings, we used a likelihood-weighting algorithm where in each run of the program, we <em>guess</em> by sampling a <code>X^i</code> from the program prior, and then <em>check</em> whether this is in fact a good proposal by calculating a weight <code>W^l = p(Y|X^l)</code> according to the probabilities
+of <code>observe</code> expressions in the program. Unfortunately, this is not necessarily efficient. In order
+to end up with high weighted samples, we have to generate reasonable values for <em>all</em> random variables <code>X</code>. Even if we are always improving our proposed sample at each program run, it may actually take ages to actually end up with samples which are weighted high enough to consider them good, because the frequency with which we generate good proposals decreases exponentially with the number of <code>sample</code> statements.</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
@@ -1160,6 +1416,7 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/background/haskell-core/">Haskell Core</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/bayesian/">Bayesian</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/coroutines/">Coroutines</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/monad-transformers/"></a></li>
