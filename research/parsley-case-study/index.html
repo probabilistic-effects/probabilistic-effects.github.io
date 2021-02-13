@@ -35,7 +35,7 @@ Usually, if one is confused about something in the core, it is best to compare i
 regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="10650">
+<meta itemprop="wordCount" content="11308">
 
 
 
@@ -1031,6 +1031,138 @@ For default types which don&rsquo;t have a specific Pretty instance, but do have
 I think you can mark it as incoherent
 10:28
 which means it&rsquo;s only chosen if there isn&rsquo;t another alternative</p>
+<hr>
+<p>Minh  1:43 PM
+i&rsquo;m wondering how when works in the following example for callCC:
+&ndash; Returns a string depending on the length of the name parameter.
+&ndash; If the provided string is empty, returns an error.
+&ndash; Otherwise, returns a welcome message.
+whatsYourName :: String -&gt; String
+whatsYourName name =
+(<code>runCont</code> id) $ do                      &ndash; 1
+response &lt;- callCC $ \exit -&gt; do       &ndash; 2
+validateName name exit               &ndash; 3
+return $ &ldquo;Welcome, &quot; ++ name ++ &ldquo;!&rdquo;  &ndash; 4
+return response                        &ndash; 5
+validateName name exit = do
+when (null name) (exit &ldquo;You forgot to tell me your name!&quot;)
+i&rsquo;m confused about the possible return values of when, and how validateName name exit can be ignored as a return value if null name is false in validateName</p>
+<p>Jamie Willis  1:45 PM
+think of exit as an early return statement
+1:45
+and when as an if without an else</p>
+<p>Minh  1:45 PM
+wouldn&rsquo;t exit just be id in this case</p>
+<p>Jamie Willis  1:45 PM
+I feel like you got confused about this before</p>
+<p>Minh  1:45 PM
+yeah im reading over our old conversation</p>
+<p>Jamie Willis  1:46 PM
+exit is return
+1:46
+from line 5 (edited)
+1:46
+I would just inline the definitions and see how they fall together
+1:47
+exit is essentially goto line 5
+1:47
+except it has a value, which becomes response</p>
+<p>Minh  1:47 PM
+right, i get how it can exit early, similarly to when you have the following:
+do return 5
+return 6
+this will just return 5</p>
+<p>Jamie Willis  1:47 PM
+if it&rsquo;s not called then whatever was the last expression in the callCC &ldquo;body&rdquo; is returned
+1:47
+that will return 6</p>
+<p>Minh  1:47 PM
+what</p>
+<p>Jamie Willis  1:47 PM
+return isn&rsquo;t like an imperative return
+1:48
+but callCC&rsquo;s function is
+1:48
+it&rsquo;s a goto
+1:48
+you goto whatever follows the callCC
+1:48
+this is why I don&rsquo;t like return
+1:48
+I like pure for this very reason
+1:49
+it&rsquo;s clear that
+do pure 5
+pure 6
+1:49
+returns 6
+1:49
+and it&rsquo;s identical to using return
+1:49
+the callCC has, in your example
+1:50
+created a continuation called exit with the shape \response -&gt; return response (edited)
+1:50
+if you call exit at any time, your continuation is ignored
+1:50
+and you do exit instead
+New
+1:50
+again, just inline it and see
+1:51
+computations in Cont don&rsquo;t return, they just go somewhere else</p>
+<p>Minh  1:51 PM
+okay thanks, will do so</p>
+<p>Jamie Willis  1:51 PM
+do notation just makes &ldquo;go somewhere else&rdquo; look like sequentiality</p>
+<p>Minh  2:27 PM
+right, so inlining it looks like
+whatsYourName' :: String -&gt; Cont r String
+whatsYourName' name = do
+response &lt;- cont (\k -&gt; runCont (do validateName name (\x -&gt; cont (_ -&gt; k x))
+return $ &ldquo;welcome, &quot; ++ name
+) k
+)
+return response
+2:27
+so im guessing that the exit is always (\x -&gt; cont (_ -&gt; k x))</p>
+<p>Jamie Willis  2:27 PM
+it is here
+2:27
+not in general
+2:28
+oh wait
+2:28
+no it is
+2:28
+I thought you&rsquo;d inlined k</p>
+<p>Minh  2:29 PM
+i see, so the line return $ &ldquo;welcome, _&rdquo; ++ name  acts as the continuation _ which is ignored</p>
+<p>Jamie Willis  2:29 PM
+yup</p>
+<p>Minh  2:30 PM
+but otherwise, when will just return pure ()
+New</p>
+<p>Jamie Willis  2:31 PM
+sure</p>
+<p>Minh  4:36 PM
+this is weird, in the following:
+validateName name exit = do
+when (null name) (exit &ldquo;you forgot to tell me your name&rdquo;)
+if when has type Bool -&gt; f () -&gt; f (),  how does exit let us produce a type f () (edited)
+4:38
+assuming that exit is always (\x -&gt; cont (_ -&gt; k x))
+New</p>
+<p>Jamie Willis  4:39 PM
+look at the type of callCC
+4:39
+exit doesn&rsquo;t return
+4:39
+it never produces a valid to the context that calls it
+4:40
+so it can return any type you want, call it b
+4:40
+in when&rsquo;s case, that&rsquo;s ()</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 

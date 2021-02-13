@@ -29,7 +29,7 @@
 <meta itemprop="description" content="1.1 Model-based Reasoning A model is an artifical construct designed to respond in the same way as the system we would like to understand. As computers have evolved, numerical models have come to the forefront and computer simulations have replaced physical models. Numerical models emulate stochasticity, i.e. they use pseudorandom number generators to simulate actually random phenomena and other uncertainties. Running a simulator with stochastic value generation leads to an explosion of possible simulation outcomes.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="16782">
+<meta itemprop="wordCount" content="18152">
 
 
 
@@ -1319,7 +1319,131 @@ q(X' | X, x0) = Π ℙ'(x)
 <p>Previously in Metropolis-Hastings, we used a likelihood-weighting algorithm where in each run of the program, we <em>guess</em> by sampling a <code>X^i</code> from the program prior, and then <em>check</em> whether this is in fact a good proposal by calculating a weight <code>W^l = p(Y|X^l)</code> according to the probabilities
 of <code>observe</code> expressions in the program. Unfortunately, this is not necessarily efficient. In order
 to end up with high weighted samples, we have to generate reasonable values for <em>all</em> random variables <code>X</code>. Even if we are always improving our proposed sample at each program run, it may actually take ages to actually end up with samples which are weighted high enough to consider them good, because the frequency with which we generate good proposals decreases exponentially with the number of <code>sample</code> statements.</p>
-<div class="edit-meta">
+<p>Sequential Monte Carlo (SMC) methods solve this problem by turning a sampling problem for high dimensional distributions into a sequence of sampling problems for lower dimensional distributions. In their most general form, SMC methods consider a sequence of <code>N</code> unnormalized densities <code>γ1(X1), ..., γN(XN)</code>.</p>
+<pre><code>γ(X) = ψ(X)p(X)
+     = p(Y, X)
+</code></pre><p>where <code>ψ(X)</code> is a strictly positive potential which replaces the likelihood <code>p(Y|X)</code>. Hence,</p>
+<p>Here, γ1(X1) is typically a low dimensional distribution for which it is easy to peform importance sampling, whereas <code>γN(XN)</code> is a high dimensional distribution, for which we want to generate samples. Each <code>γn(Xn)</code> in between increases in dimensionality to interpolate between these two distributions. For a FOPPL program, <strong>we can define <code>γN(XN)</code> (for which we want to generate samples from) as <code>γ(X) = p(Y, X)</code></strong>, i.e. the joint density associated with the program.</p>
+<p>Given a set of unnormalized densities <code>γn(Xn)</code>, SMC sequentially generates <code>L</code> weighted samples:</p>
+<pre><code>{(Xˡₙ, Wˡₙ)}
+</code></pre><p>by performing importance sampling for each of the <code>N</code> normalized densities:</p>
+<pre><code>πₙ(Xₙ) = γₙ(Xₙ)/Zₙ
+</code></pre><p>To do this, we:</p>
+<ol>
+<li>
+<p>Initialise a weighted set of particles <code>{(Xˡₙ, Wˡₙ)}ᴸₗ₌₁</code> using importance sampling:</p>
+<p>For <code>l = 1, ..., L</code> where <code>L</code> is the number of particles:</p>
+<pre><code>Xˡ₁ ~ q₁(X₁)      Wˡ₁ := γ₁(Xˡ₁)/q₁(Xˡ₁)
+</code></pre><p>where the weight is the unnormalized density divided by the proposal density.</p>
+</li>
+<li>
+<p>For each subsequent generation <code>n = 2, ..., N</code>:</p>
+<p>For <code>l = 1, ..., L</code> where <code>L</code> is the number of particles:</p>
+<ol>
+<li><strong>Resampling Step</strong>: Select a particle <code>Xᵏₙ₋₁</code> from the preceding set, where the index <code>k</code> is found by sampling an ancestor index <code>k = aˡₙ₋₁</code> with probability proportional to <code>Wᵏₙ₋₁</code>. In other words, given the previous set of weighted samples <code>{(Xˡₙ₋₁, Wˡₙ₋₁)}ᴸₗ₌₁</code>, select a sample <code>Xᵏₙ₋₁</code> from the set with probability according to its weight in the set.</li>
+</ol>
+<pre><code>Xᵏₙ₋₁, where k = aˡₙ₋₁ ~ Discrete (W¹ₙ₋₁ / Σₗ Wˡₙ₋₁ , . . . , Wᴸₙ₋₁ / Σₗ Wˡₙ₋₁ )
+</code></pre><ol start="2">
+<li><strong>Construct New Proposals</strong>: Generate a proposal <code>Xˡₙ</code> conditioned on the selected particle <code>Xᵏₙ₋₁</code> from the preceding set:</li>
+</ol>
+<pre><code>Xˡₙ ~ qₙ(Xˡₙ | Xᵏₙ₋₁)
+</code></pre><p>And define the importance weights</p>
+<pre><code>Wˡₙ = γₙ(Xˡₙ) / ( γₙ₋₁(Xᵏₙ₋₁) * qₙ(Xˡₙ | Xᵏₙ₋₁) * Ẑₙ₋₁ )
+</code></pre><ul>
+<li><code>γₙ(Xˡₙ)</code> is the unnormalized density of the proposal Xˡₙ.</li>
+<li><code>γₙ₋₁(Xᵏₙ₋₁)</code> is the unnormalized density of the selected particle <code>Xᵏₙ₋₁</code> from the preceding set.</li>
+<li><code>qₙ(Xˡₙ | Xᵏₙ₋₁)</code> is the proposal density of the proposal <code>Xˡₙ</code> conditioned on the selected particle <code>Xᵏₙ₋₁</code> from the preceding set.</li>
+<li><code>Ẑₙ₋₁</code> is the average weight of the preceding set of particles, <code>1/L ΣWˡₙ₋₁</code></li>
+</ul>
+</li>
+</ol>
+<p>We can think of a resampling step as performing natural selection on the particle set: particles <code>Xᵏₙ₋₁</code> with a high weight <code>Wᵏₙ₋₁</code> will be used more often to construct proposals. In other words, SMC uses the weight of a sample at generation <code>n - 1</code> as a heuristic for the weight that</p>
+<h6 id="431-defining-intermediate-densities-with-breackpoints">4.3.1 Defining Intermediate Densities with Breackpoints</h6>
+<p>A FOPPL program defines an unnormalized distribution <strong><code>γ(X) = p(Y, X)</code></strong>.
+When inference is performed with SMC, we define the final density as <code> γN (XN) = γ(X)</code>.</p>
+<p>In order to define intermediate densities <code>γₙ(Xₙ) = p(Yₙ, Xₙ)</code>, we consider a sequence of <em>truncated</em> programs that evaluate successively larger subsets of <code>sample</code> and <code>observe</code> expressions.</p>
+<pre><code>X1 ⊆ X2 ⊆ . . . ⊆ XN = X
+Y1 ⊆ Y2 ⊆ . . . ⊆ YN = Y
+</code></pre><p>The definition of a <em>truncated</em> program is a program that halts at a breakpoint. Breakpoints can be specified explicitly by the user, constructed using program analysis, or even dynamically defined at run-time. The sequence of breakpoints needs to satisfy the following two properties in order:</p>
+<ol>
+<li>The breakpoint for generation <code>n</code> must always occur after the breakpoint for generation <code>n - 1</code>.</li>
+<li>Each breakpoint needs to occur at an expression that is evaluated in every execution of a program. This means that breakpoints should not be associated with expressions inside branches of <code>if</code>-expressions.</li>
+</ol>
+<p>In this section, we will assume that we first apply the addressing transformation (assigning fresh variables to <code>sample</code> and <code>observe</code> statements) to the FOPPL program duringdesugaring. We then assume that the user identifies a sequence of symbols <code>y1, ... y{N-1}</code> for <code>observe</code> expressions that satisfy the two above properties.</p>
+<h6 id="432-calculating-the-importance-weight">4.3.2 Calculating the Importance Weight</h6>
+<p>So far we have defined a notion of intermediate densities <code>γₙ(Xₙ)</code> for FOPPL programs.</p>
+<p>We now need to specify a mechanism for generating proposals from a distribution <code>qₙ(Xₙ|Xₙ₋₁)</code>. The SMC analogue of likelihood weighting is to simple sample from the program prior <code>p(Xₙ|Xₙ₋₁)</code>, which is sometimes known as a bootstrapped proposal. Hence, we state that:</p>
+<pre><code>qₙ(Xₙ|Xₙ₋₁)      = p(Xₙ|Xₙ₋₁)
+Xₙ ~ qₙ(Xₙ|Xₙ₋₁) = Xₙ ~ p(Xₙ|Xₙ₋₁)
+</code></pre><p>We know that the unnormalized density is <code>γₙ(Xₙ) = p(Yₙ, Xₙ)</code>. For this proposal, we can express the unnormalized density <code>γₙ(Xₙ)</code> in terms of <code>γₙ₋₁(Xₙ₋₁)</code>:</p>
+<pre><code>γₙ(Xₙ) = p(Yₙ, Xₙ)
+       = p(Yₙ | Yₙ₋₁, Xₙ) * p(Xₙ | Xₙ₋₁) * p(Yₙ₋₁, Xₙ₋₁)
+       = p(Yₙ | Yₙ₋₁, Xₙ) * p(Xₙ | Xₙ₋₁) * γₙ₋₁(Xₙ₋₁)
+</code></pre><p>If we substitute this expression into the equation for calculating the importance weights for a new proposal for particle <code>l</code> at particle set <code>n</code>:</p>
+<pre><code>Wˡₙ = Π p(y|Xˡₙ)
+     y∈Yˡₙ\ₙ₋₁
+</code></pre><p>In other words, the importance weight at each generation is defined in terms of the joint probability of <code>observe</code>s that have been evaluated at breakpoint <code>n</code> but not at <code>n - 1</code>.</p>
+<h6 id="433-evaluating-proposals">4.3.3 Evaluating Proposals</h6>
+<p>To implement SMC, we will introduce a function <code>PROPOSE(Ⲭₙ₋₁|yₙ)</code>.
+This function:</p>
+<ul>
+<li>Evaluates the program that truncates at the <code>observe</code> expression with address <code>yₙ</code>, conditioned on previously sampled values <code>Ⲭₙ₋₁</code></li>
+<li>Returns a pair <code>(Ⲭₙ, logΛₙ)</code> containing a map <code>Ⲭₙ</code> of values associated with each <code>sample</code> expression, and the log likelihood <code>logΛₙ = logp(Yₙ|Xₙ)</code>. To construct the proposal for the final generation, we will call <code>PROPOSE(Ⲭₙ₋₁, nil, yₙ)</code> which returns a pair <code>(r, logΛ)</code> in which the return value <code>r</code> replaces the values <code>Ⲭ</code>.</li>
+</ul>
+<p>Below the define the <code>PROPOSE</code> function and its evaluator.</p>
+<pre><code>global ρ, e
+function eval(e, σ, `)
+  match e
+    case (sample v e)
+      d, σ ← eval(e, σ, `)
+      if v 6∈ dom(σ(X )) then
+        σ(X (v)) ← sample(d)
+      return σ(X (v)), σ
+
+    case (observe v e1 e2)
+      d, σ ← eval(e1, σ, `)
+      c, σ ← eval(e2, σ, `)
+      σ(log Λ) ← σ(logΛ) + log-prob(d, c)
+      if v = σ(yn) 
+        then error resample-breakpoint( )
+      return c, σ
+
+function propose(Ⲭ , y)
+  σ ← [yn → y, Ⲭ → Ⲭ , logΛ → 0]
+  try
+    r, σ ← eval(e, σ, [ ])
+    return r, σ(logΛ)
+  catch resample-breakpoint( )
+    return σ(X ), σ(logΛ)
+</code></pre><ul>
+<li>For <code>sample</code> expressions, weuse previously sampled values <code>Ⲭ(v)</code> for previously sampled variables <code>v</code> and sample from the prior for new variables <code>v</code>.</li>
+<li>For <code>observe</code> expressions, we accumulate log probability into a state variable <code>logΛ</code>. When we reach the <code>observe</code> expression with a specified symbol <code>yᵣ</code>, we terminate the program by throwing a special-purpose <code>RESAMPLE-BREAKPOINT</code> error.</li>
+<li>In <code>propose</code>, there is an implicit index <code>n</code> for <code>1 ... n</code> attached to <code>yn</code>. For <code>n &lt; N</code> (<code>N</code> being the number of unnormalized densities in the sequence of unnormalized densities <code>γ1(X1), ... , γN(XN)</code>), we evaluate a truncated form of the program up to the <code>n</code>&lsquo;th <code>observe</code> expression, and simply return the sampled variables <code>Ⲭ</code> up until that point. For <code>n = N</code>, we finally return the value <code>r</code> outputted from the entire program (which represents a sample from the final unnormalized density <code>γN(XN)</code>.</li>
+</ul>
+<p>Below is Sequential Monte Carlo:</p>
+<ul>
+<li>l in L is the index of the particle in a particle set.</li>
+<li>n in N is the index of the particle set, corresponding to the nth unnormalized density in the sequence of truncated unnormalized densities.</li>
+</ul>
+<p>{(Xˡₙ, Wˡₙ)}</p>
+<pre><code>function SMC(L, y₁, ..., y_{N-1})
+  -- Set the log average weight to 0
+  logẐ₀ ← 0
+
+  -- Generate the initial set of L particles and their weights for n = 1
+  for l in 1, ..., L
+    Ⲭˡ₁, logΛˡ₁ ← PROPOSE([], y₁)
+    logWˡ₁      ← logΛˡ₁
+
+  -- For n = 2, ... N-1, generate a weighted set {(Xˡₙ, Wˡₙ)} for l = 1, ..., L 
+  -- When having reached n = N, generate a final weighted set {(rˡ, Wˡ)} for l = 1, ..., L 
+  for n in 2, ..., N
+    logẐₙ₋₁     ← LOG-MEAN-EXP(logWₙ₋₁) 
+    -- For l = 1, ..., L
+    for l in 1, ..., L
+      k ~ Discrete (W¹ₙ₋₁ / Σₗ Wˡₙ₋₁ , . . . , Wᴸₙ₋₁ / Σₗ Wˡₙ₋₁ )
+
+```Xᵏₙ₋₁</code></pre><div class="edit-meta">
 Last updated on 13 Nov 2020
 
 

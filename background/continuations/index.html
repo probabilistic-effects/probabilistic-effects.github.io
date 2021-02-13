@@ -35,7 +35,7 @@ The direct-style factorial fac takes a single argument.
 fac :: Integral a =&gt; a -&gt; a fac 0 = 1 fac n = n * fac (n - 1) Continuation-passing-style functions are suspended computations with general type a -&gt; (b -&gt; r) -&gt; r, which represent direct-style functions with type a -&gt; b.">
 <meta itemprop="datePublished" content="2020-11-13T13:40:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:40:41+00:00" />
-<meta itemprop="wordCount" content="4416">
+<meta itemprop="wordCount" content="4813">
 
 
 
@@ -382,6 +382,47 @@ which will invoke <code>f3</code> which will invoke <code>k3</code>.</li>
 
 <span style="color:#a6e22e">executeMachine</span> <span style="color:#66d9ef">Halt</span> exit <span style="color:#f92672">=</span> exit ()
 </code></pre></div><p>And this lets us magically escape. We can implement exceptions this way - <code>callCC</code> is a <code>try/catch</code> mechanism and is very powerful.</p>
+<p><strong>Example of CallCC</strong></p>
+<p>The following program:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">validateName</span> name exit <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+  when (null name) (exit <span style="color:#e6db74">&#34;you forgot to tell me your name&#34;</span>)
+
+<span style="color:#a6e22e">whatsYourName</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">String</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Cont</span> r <span style="color:#66d9ef">String</span>
+<span style="color:#a6e22e">whatsYourName</span> name <span style="color:#f92672">=</span>   <span style="color:#66d9ef">do</span> 
+  response <span style="color:#f92672">&lt;-</span> callCC <span style="color:#f92672">$</span> <span style="color:#a6e22e">\</span>exit <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">do</span>
+    validateName name exit
+    return <span style="color:#f92672">$</span> <span style="color:#e6db74">&#34;welcome, &#34;</span> <span style="color:#f92672">++</span> name
+  return response
+</code></pre></div><p>Inlines to:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">whatsYourName</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">String</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Cont</span> r <span style="color:#66d9ef">String</span>
+<span style="color:#a6e22e">whatsYourName</span> name <span style="color:#f92672">=</span> 
+  cont (<span style="color:#a6e22e">\</span>k <span style="color:#f92672">-&gt;</span> runCont (<span style="color:#66d9ef">do</span> validateName name (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> cont (<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> k x))
+                          return <span style="color:#f92672">$</span> <span style="color:#e6db74">&#34;welcome, &#34;</span> <span style="color:#f92672">++</span> name
+                      ) k
+       )
+</code></pre></div><p>In other words, the <code>exit</code> mechanism that <code>callCC</code> produces is always <code>(\x -&gt; cont (\_ -&gt; k x))</code>.
+Therefore, calling <code>exit</code> on some value <code>x</code> will always ignore the following continuation in the <code>do</code> block (i.e. <code>return $ &quot;welcome, &quot; ++ name</code>); this is shown by the snippet <code>\_ -&gt; k x</code>. The continuation <code>k</code> is the final continuation that we want to apply, and it is passed to the <code>runCont</code> used to run the entire computation: for example <code>id</code> in <code>runCont (whatsYourName &quot;minh&quot;) id</code>.</p>
+<p>Here&rsquo;s an example where we <em>always</em> exit with the string &ldquo;exited&rdquo;, and never return the name.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">whatsYourName</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">String</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Cont</span> r <span style="color:#66d9ef">String</span>
+<span style="color:#a6e22e">whatsYourName</span> name <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+  response <span style="color:#f92672">&lt;-</span> cont (<span style="color:#a6e22e">\</span>k <span style="color:#f92672">-&gt;</span> runCont (<span style="color:#66d9ef">do</span> (<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> cont (<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> k x)) <span style="color:#e6db74">&#34;exited&#34;</span>
+                                      return <span style="color:#f92672">$</span>  name
+                                  ) k
+                   )
+  return response
+
+<span style="color:#75715e">-- Below is type `Cont r a` because `cont` takes a parameter of type (a -&gt; m r),</span>
+<span style="color:#75715e">-- but since the type `a` is ignored in `\_ -&gt; id x`, we can&#39;t concretise it.</span>
+(<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> cont (<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> x)) <span style="color:#f92672">::</span> r <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Cont</span> r a
+<span style="color:#75715e">-- If we then pass it a type `String` as `r`, then `r` becomes concretised.</span>
+(<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> cont (<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> id x)) <span style="color:#e6db74">&#34;name&#34;</span>             <span style="color:#f92672">::</span> <span style="color:#66d9ef">Cont</span> <span style="color:#66d9ef">String</span> a
+<span style="color:#75715e">-- Below is type `Cont String ()` because `when` has type (Bool -&gt; f () -&gt; f ()), so </span>
+<span style="color:#75715e">-- we can infer that the type `a` must be concretised as `()`.</span>
+<span style="color:#a6e22e">when</span> <span style="color:#66d9ef">True</span> ((<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> cont (<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> id x)) <span style="color:#e6db74">&#34;name&#34;</span>) <span style="color:#f92672">::</span> <span style="color:#66d9ef">Cont</span> <span style="color:#66d9ef">String</span> ()
+<span style="color:#75715e">-- If we pass `undefined` to the exit mechanism, then we haven&#39;t yet defined what the</span>
+<span style="color:#75715e">-- type of the result is yet.</span>
+<span style="color:#a6e22e">when</span> <span style="color:#66d9ef">True</span> ((<span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> cont (<span style="color:#a6e22e">\</span><span style="color:#66d9ef">_</span> <span style="color:#f92672">-&gt;</span> id x)) undefined) <span style="color:#f92672">::</span> <span style="color:#66d9ef">Cont</span> r ()
+</code></pre></div><p>Because <code>k :: String -&gt; r</code>, we force the value that is passed to <code>exit</code> to be a string.</p>
 <p><strong>• <code>CallCC</code> and <code>When</code>: Implementing imperative-style <code>return</code> statements</strong></p>
 <p>We can also use <code>callCC</code> to implement &ldquo;imperative style&rdquo; return statements.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">import</span> Control.Monad.Cont
