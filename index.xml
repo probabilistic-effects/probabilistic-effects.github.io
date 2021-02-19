@@ -149,8 +149,8 @@ Summary  Real world benchmarks make it difficult to isolate costs Microbenchmark
       <pubDate>Fri, 13 Nov 2020 14:05:31 +0000</pubDate>
       
       <guid>https://probabilistic-effects.github.io/research/literature-review/</guid>
-      <description>‣ Papers Probabilistic Programming
- An Introduction To Probabilistic Programming Lightweight Implementations of Probabilistic Programming Languages Via Transformational Compilation - David Wingate, Andreas Stuhlmüller, and Noah Goodman. 2011. Practical Probabilistic Programming with Monads - Ścibior, Adam, Zoubin Ghahramani, and Andrew D. Gordon. Proceedings of the 2015 ACM SIGPLAN Symposium on Haskell. 2015. Denotational Validation of Higher-Order Bayesian Inference - Ścibior, Adam. 2018. Functional Programming for Modular Bayesian Inference - Ścibior, Adam, Ohad Kammar, and Zoubin Ghahramani.</description>
+      <description>‣ Relevant Existing Probabilistic Programming Libraries/Languages      ‣ Papers Probabilistic Programming
+ An Introduction To Probabilistic Programming Lightweight Implementations of Probabilistic Programming Languages Via Transformational Compilation - David Wingate, Andreas Stuhlmüller, and Noah Goodman. 2011. Practical Probabilistic Programming with Monads - Ścibior, Adam, Zoubin Ghahramani, and Andrew D. Gordon. Proceedings of the 2015 ACM SIGPLAN Symposium on Haskell. 2015. Denotational Validation of Higher-Order Bayesian Inference - Ścibior, Adam.</description>
     </item>
     
     <item>
@@ -361,6 +361,18 @@ Since type classes are ubiquitous, getting rid of this overhead is critical for 
       
       <guid>https://probabilistic-effects.github.io/background/bayesian/</guid>
       <description>Basic Procedure of Bayesian Statistics  Model setup: state the parameters of interest θ that we are interested in finding the value of. Prior distribution: Assign a prior probability distribution to parameters θ, which represent our degree of belief with respect to θ. Posterior distribution: Update our degree of belief with respect to θ, based on data. The new degree of belief is called our posterior probability distribution of θ.  An observed result changes our degrees of belief in parameter values by changing a prior distribution into a posterior distribution.</description>
+    </item>
+    
+    <item>
+      <title>Concurrency</title>
+      <link>https://probabilistic-effects.github.io/background/concurrency/</link>
+      <pubDate>Fri, 13 Nov 2020 13:40:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/background/concurrency/</guid>
+      <description>Forking a new thread of control is achieved with the forkIO operation.
+forkIO :: IO () -&amp;gt; IO ThreadId This takes a computation of type IO () as its argument, and executes this computation in a new thread that runs concurrently with other threads in the system.
+The basic communication mechanism is MVar:
+data MVar a An MVar can be thought of as a box that is either empty or full.</description>
     </item>
     
     <item>

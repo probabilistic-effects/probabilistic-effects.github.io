@@ -145,6 +145,18 @@ Since type classes are ubiquitous, getting rid of this overhead is critical for 
     </item>
     
     <item>
+      <title>Concurrency</title>
+      <link>https://probabilistic-effects.github.io/background/concurrency/</link>
+      <pubDate>Fri, 13 Nov 2020 13:40:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/background/concurrency/</guid>
+      <description>Forking a new thread of control is achieved with the forkIO operation.
+forkIO :: IO () -&amp;gt; IO ThreadId This takes a computation of type IO () as its argument, and executes this computation in a new thread that runs concurrently with other threads in the system.
+The basic communication mechanism is MVar:
+data MVar a An MVar can be thought of as a box that is either empty or full.</description>
+    </item>
+    
+    <item>
       <title>Continuations</title>
       <link>https://probabilistic-effects.github.io/background/continuations/</link>
       <pubDate>Fri, 13 Nov 2020 13:40:41 +0000</pubDate>

@@ -29,7 +29,7 @@
 <meta itemprop="description" content="1.1 Model-based Reasoning A model is an artifical construct designed to respond in the same way as the system we would like to understand. As computers have evolved, numerical models have come to the forefront and computer simulations have replaced physical models. Numerical models emulate stochasticity, i.e. they use pseudorandom number generators to simulate actually random phenomena and other uncertainties. Running a simulator with stochastic value generation leads to an explosion of possible simulation outcomes.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="18152">
+<meta itemprop="wordCount" content="20504">
 
 
 
@@ -1380,7 +1380,9 @@ Xₙ ~ qₙ(Xₙ|Xₙ₋₁) = Xₙ ~ p(Xₙ|Xₙ₋₁)
        = p(Yₙ | Yₙ₋₁, Xₙ) * p(Xₙ | Xₙ₋₁) * p(Yₙ₋₁, Xₙ₋₁)
        = p(Yₙ | Yₙ₋₁, Xₙ) * p(Xₙ | Xₙ₋₁) * γₙ₋₁(Xₙ₋₁)
 </code></pre><p>If we substitute this expression into the equation for calculating the importance weights for a new proposal for particle <code>l</code> at particle set <code>n</code>:</p>
-<pre><code>Wˡₙ = Π p(y|Xˡₙ)
+<pre><code>Wˡₙ = γₙ(Xˡₙ) / ( γₙ₋₁(Xᵏₙ₋₁) * qₙ(Xˡₙ | Xᵏₙ₋₁) * Ẑₙ₋₁ )
+    = p(Yˡₙ | Xˡₙ)/p(Yᵏₙ₋₁ | Xᵏₙ₋₁)
+    = Π p(y|Xˡₙ)
      y∈Yˡₙ\ₙ₋₁
 </code></pre><p>In other words, the importance weight at each generation is defined in terms of the joint probability of <code>observe</code>s that have been evaluated at breakpoint <code>n</code> but not at <code>n - 1</code>.</p>
 <h6 id="433-evaluating-proposals">4.3.3 Evaluating Proposals</h6>
@@ -1442,8 +1444,138 @@ function propose(Ⲭ , y)
     -- For l = 1, ..., L
     for l in 1, ..., L
       k ~ Discrete (W¹ₙ₋₁ / Σₗ Wˡₙ₋₁ , . . . , Wᴸₙ₋₁ / Σₗ Wˡₙ₋₁ )
+      if n &lt; N
+        (Ⲭˡₙ, logΛˡₙ) ← PROPOSE(Ⲭᵏₙ₋₁, yₙ)
+      else
+        (rˡ, logΛˡN)  ← PROPOSE(Ⲭᵏ_N₋₁, y_N)
+      logWˡₙ ← logΛˡₙ - logΛᵏₙ₋₁ + logẐₙ₋₁
 
-```Xᵏₙ₋₁</code></pre><div class="edit-meta">
+return ((r¹, logW¹_N), ..., (r^L, logW^L_N))
+</code></pre><h4 id="5-probabilistic-programming-with-recursion">5. Probabilistic Programming with Recursion</h4>
+<p>The use of infinitely many random variables arises with the introduction of stochastic recursion.</p>
+<h4 id="6-evaluation-based-inference-with-hoppl">6. Evaluation-Based Inference with HOPPL</h4>
+<p>The inference algorithms in this chapter use program evaluation as one of their core subroutines; however, to more clearly illustrate how evaluation-based inference can be implemented by extending existing languages, we abandon the definition of inference algorithms in terms of evaluators, and instead favor a more language-agnostic formulation.</p>
+<p>We hence define inference methods as non-standard schedulers of HOPPL programs. The guiding intuition in this formulation is that the majority of operations in HOPPL programs are deterministic and referentially transparent with the exception of <code>sample</code> and <code>observe</code> which are stochastic and have side-effects. In the evaluators we previously defined for the FOPPL, this is reflected in the fact that only <code>sample</code> and <code>observe</code> expressions are algorithm specific.</p>
+<p>The abstraction we employ is that a program as a deterministic computation can be interrupted at <code>sample</code> and <code>observe</code> expressions. Here, the program cedes control to an inference controller which implements probabilistic and stochastic operations in an algorithm-specific manner.</p>
+<h5 id="61-explicit-separation-of-model-and-inference-code">6.1 Explicit Separation of Model and Inference Code</h5>
+<p>We assume a probabilistic program is a deterministic computation that is interrupted at every <code>sample</code> and <code>observe</code> expression. Inference is carried out using a controller process. The controller needs to be able to start executions of a program, receive the return value when an execution terminates, and finally control program execution at each <code>sample</code> and <code>observe</code> expression.</p>
+<p>The inference controller interacts with program executions via a messaging protocol. When a program reaches a <code>sample</code>/<code>observe</code> expression, it sends a message back to the controller and waits for a response. This message will typically include an address for the random variable, and a representation of the fully evaluated arguments to <code>sample</code> and <code>observe</code>. The controller then performs any operations necessary for inference, and sends a message back to the running program. The message indicates whether the program should continue execution, fork itself and execute multiple times, or halt.</p>
+<p>This interface defines an abstraction boundary between program execution and inference.</p>
+<p><strong>Example: Likelihood Weighting</strong></p>
+<p>In evaluation-based implementation of likelihood weighting previously using a FOPPL, we evaluate <code>sample</code> expressions by drawing from the prior, and increment the log importance weight at every <code>observe</code> expression.</p>
+<p>The inference controller for this inference strategy would repeat the following operations:</p>
+<ul>
+<li>The controller starts a new execution of the HOPPL program and initialises its log weight <code>logW = 0.0</code>.</li>
+<li>The controller repeatedly receives messages from the running program, and dispatches based on type:
+<ul>
+<li>At a <code>sample d</code> form,  the controller samples <code>x</code> from the distribution <code>d</code> and sends the sampled value <code>x</code> back to the program to continue execution.</li>
+<li>At an <code>observe d c</code> form, the controller increments <code>logW</code> with the log probability of <code>c</code> under <code>d</code> and sends a message to continue execution.</li>
+<li>If the program has terminated with value <code>c</code>, the controller stores a weighted sample <code>(c, logW)</code> and exits the loop.</li>
+</ul>
+</li>
+</ul>
+<p><strong>Messaging Interface</strong></p>
+<p>In the above inference algorithm (likelihood weighting), the response which the inference controller sends back is always to continue execution.</p>
+<p>To support algorithms such as SMC, the program execution process will additionally need to implement a <code>forking</code> operation, which starts multiple independent processes that each resume from the same point in the execution.</p>
+<p>To support these operations, we will define an interface in which an inference process can send four messages to the execution process.</p>
+<ol>
+<li><code>(start, σ)</code> : Start a new execution with process id <code>σ</code>.</li>
+<li><code>(continue, σ, c)</code>: Continue execution for the process with id <code>σ</code>, using <code>c</code> as the argument value.</li>
+<li><code>(fork, σ, σ', c)</code>: Fork the process with id <code>σ</code> into a new process with id <code>σ'</code> and continue execution with argument <code>c</code>.</li>
+<li><code>(kill, σ)</code>: Terminate the process with id <code>σ</code>.</li>
+</ol>
+<p>We assume that the program execution process can send three types of messages to the inference controller:</p>
+<ol>
+<li><code>(sample, σ, α, d)</code>: The execution with id <code>σ</code> has reached a <code>sample</code> expression with address <code>α</code> and distribution <code>d</code>.</li>
+<li><code>(observe, σ, α, d, c)</code>: The execution with id <code>σ</code> has reached an <code>observe</code> expression with address <code>α</code>, distribution <code>d</code>, and value <code>c</code>.</li>
+<li><code>(return, σ, c)</code>: The execution with id <code>σ</code> has terminated with return value <code>c</code>.</li>
+</ol>
+<p><strong>Implementations of Interruption and Forking</strong></p>
+<p>To implement this interface, program execution needs to support interruption, resuming, and forking.</p>
+<ul>
+<li><em>Interruption</em> is relatively straightforward. In the case of the HOPPL, we will assume two primitives <code>(send µ)</code> and <code>(receive σ)</code>. At every <code>sample</code> and <code>observe</code>, we send a message <code>µ</code> to the inference process, and then receive a response with process id <code>σ</code>. The call to <code>receive</code> then effectively pauses the execution until a response arrives.</li>
+<li><em>Forking</em> can be implemented in multiple ways.
+<ul>
+<li>Previously in the FOPPL, we wrote evaluators that could be conditioned on a trace of random values to re-execute a program in a deterministic manner (i.e. reusing recently sampled values). This strategy can also be used to implement forking; we could simply re-execute the program from the start, conditioning on values of <code>sample</code> expressions that were already evaluated in the parent execution. This implementation is not particularly efficient, since it requires that we re-execute the program once for every <code>observe</code> in the program, resulting in a computational cost that is quadratic in the number of observe expressions rather, than linear.</li>
+<li>An alternative strategy is to implement an evaluator which keeps track of the current execution state of the machine; that is, it explicitly manages all memory which the program is able to access, and keeps track of the current point of execution. To interrupt a running program, we simply store the memory state. The program can then be forked by making a deep copy of the saved memory back into the interpreter and resuming execution.</li>
+<li>Forking becomes much more straightforward when we restrict the modeling language to prohibit mutable state. We have exactly two stateful operations: <code>sample</code> and <code>observe</code>: all other operations are guaranteed to have no side effects. In languages without mutable state, there is no need to copy the memory associated with a process during forking, since a variable cannot be modified in place once it h as been defined.</li>
+</ul>
+</li>
+</ul>
+<p>In the HOPPL, we will implement support for interruption and forking of program executions by way of transformation to CPS, which is a standard technique for supporting interruption of programs in purely functional languages.</p>
+<p>We now describe two source code transformations for the HOPPL. The first is an addressing transformation, assigning a unique address with the messages that need to be sent at each <code>sample</code> and <code>observe</code> expression.  The second converts the HOPPL program to CPS. Unlike the graph compiler and the custom evaluators, these code transformations take HOPPL programs as input and produces HOPPL programs as output - they do not change the language.</p>
+<h5 id="62-addressing-transformation">6.2 Addressing Transformation</h5>
+<p>An addressing transformation modifies the source code of the program to a new program that performs the original computation whilst keeping track of an address &ndash; a representation of the current execution point of the program.</p>
+<p>This address uniquely identifies any <code>sample</code> or <code>observe</code> expression that can be reached in the course of an execution of a program. Since HOPPL can evaluate an unbounded number of these expressions, the transformation used previously to introduce addresses is not applicable here, since that transformation inlines the bodies of all function applications to create an exhaustive list of <code>sample</code> and <code>observe</code> statements.</p>
+<p>The most familiar notion of an address is a stack trace, which is encountered whenever debugging a program that has prematurely terminated. In functional programming languages, a stack trace effectively provides a unique identifier for the current location in the program execution. This allows us to associate a unique address with each <code>sample</code> and <code>observe</code> expression at run-time, which we can then use in our implementations of inference methods.</p>
+<p>The addressing transformation follows the given design:</p>
+<ul>
+<li>All function calls, <code>sample</code> statements, and <code>observe</code> statements, are modified to take an additional argument which provides the current address. We will use the symbol <code>α</code> to refer to the address argument, which must be a fresh variable.</li>
+</ul>
+<p>The addressing transformation is the relation:</p>
+<pre><code>e α ⇓addr e'
+</code></pre><p>which translate a HOPPL expression <code>e</code> and a variable <code>α</code> to a new expression which incorporates addresses.</p>
+<p>We additionally define a second relation:</p>
+<pre><code>↓addr
+</code></pre><p>that operates on the top-level HOPPL program <code>q</code>. This secondary evaluator serves to define the top-level outer address, that is, the base of the stack trace.</p>
+<p><strong>Variables, procedure names, constants, if</strong></p>
+<p>Addresses track the call stack. Hence evaluation of expressions that do not increase the depth of the call stack leave the address unaffected. This includes constants <code>c</code>, variables <code>v</code> and procedure names <code>f</code>.</p>
+<pre><code>c is a constant value
+─────────────────────    ────────────         ─────────── 
+     c, α ⇓addr c        v, α ⇓addr v         f, α⇓addr f
+</code></pre><p>Primitive procedures are transformed to accept an address argument. Since we are not able to &ldquo;step in&rdquo; primitive procedure calls, these calls do not increase the depth of the call stack. This means that the address argument to primitive procedure calls can be ignored in the function body.</p>
+<pre><code> c is a primitive function with n arguments
+────────────────────────────────────────────
+c, α  ⇓addr  (fn [α v1 ... vn] (c v1 ... vn))
+</code></pre><p>User-defined functions are also transformed to accept an address argument, which may be referenced in the function body. The translated expression of the function body, <code>e'</code>, may contain a free variable <code>α</code>, which must be a unique symbol that cannot occur anywhere in the original expression <code>e</code>.</p>
+<pre><code>                e, α   ⇓addr  e'
+──────────────────────────────────────────────────
+(fn [v1 ... vn] e), α  ⇓addr  (fn [α v1 ... vn] e')
+</code></pre><p>Evaluation of <code>if</code> expression also does not modify the address in our implementation, so we only need to translate each of the sub-expression forms.</p>
+<pre><code>e1, α ⇓addr e1'   e2, α ⇓addr e2'  e3, α ⇓addr e3'
+──────────────────────────────────────────────────
+   (if e1 e2 e3), α  ⇓addr  (if e1' e2' e3')
+</code></pre><p><strong>Functions, sample, and observe</strong></p>
+<p>So far, we have simply threaded an address through the entire program, but this address has not been modified in any of the expression forms above. We increase the depth of the call stack at every function call:</p>
+<pre><code>  ei, α ⇓addr ei' for i = 0 ... n           c &lt;- fresh value
+───────────────────────────────────────────────────────────────
+(e0 e1 ... en), α    ⇓addr    (e0' (push-addr α c) e1' ... en')
+</code></pre><p>Here, we:</p>
+<ol>
+<li>Translate the expression <code>e0</code> which returns a transformed function <code>e0'</code> that now accepts an address argument <code>α</code>.</li>
+<li>This address argument <code>α</code> is updated to reflect that we are now nested one level deeper in the call stack. To do so, we assume a primitive <code>(push-addr α c)</code> which creates a new address by combining the current address <code>α</code> with some unique identifier <code>c</code> generated at translation time.
+The translated expression will contain a new free variable <code>α</code> since this variable is unbound in the expression <code>(push-addr α c)</code>. We will bind <code>α</code> to a top-level address using the <code>↓addr</code> relation.</li>
+</ol>
+<p>If we take the stack trace metaphor literally, then we can think of <code>α</code> like a list-like data structure, and <code>push-addr</code> as an operation that appends a new unique identifier <code>c</code> to the end of this list. Alternatively, <code>push-addr</code> could perform some sort of hash on <code>α</code> and <code>c</code> to yield an address of constant size, regardless of recursion depth.</p>
+<p>The translation rules <code>sample</code> and <code>observe</code> can be thought of as special cases of the rule for general function application.</p>
+<pre><code>       e, α ⇓addr e'       c &lt;- fresh 
+───────────────────────────────────────────────────────
+  (sample e)  ⇓addr  (sample (push-addr α c) e')
+
+    e1, α ⇓addr e1'    e2, α ⇓addr e2'  c &lt;- fresh 
+───────────────────────────────────────────────────────
+(observe e1 e2) ⇓addr (observe (push-addr α c) e1' e2')
+</code></pre><p>The result of this translation is that each <code>sample</code> and <code>observe</code> expression will now have a unique address associated with it. These are constructed dynamically at run time, but are well-defined in the sense that each <code>sample</code> or <code>observe</code> will have an address that is fully determined by its call stack.</p>
+<p><strong>Top-level-addresses and program translation</strong></p>
+<p>Translation of function calls introduces an unbound variable <code>α</code> into the expression. To associate a top-level address to a program execution, we define a relation that translates the program body <code>e</code> and wraps it in a function which accepts an address argument.</p>
+<pre><code>Choose a fresh variable α     e, α  ⇓addr e'
+───────────────────────────────────────────────────────
+        e, α   ↓addr  (fn [α] e')
+</code></pre><p>For programs which include functions that are user-defined at the top level, this relation also inserts the additional address argument into each of the function definitions.</p>
+<pre><code>  Choose a fresh variable α    e, α ⇓addr e'      q ↓addr q'
+───────────────────────────────────────────────────────────────
+(defn f [v1 ... vn] e) q   ↓addr   (defn f [α v1 ... vn] e') q'
+</code></pre><h5 id="63-continuation-passing-style-transformation">6.3 Continuation-Passing-Style Transformation</h5>
+<p>Now that each function call in the program has been augmented with an address that tracks the location in the program execution, we next need to transform the program into CPS style so that we can pause, resume, and potentially fork it multiple times if needed.</p>
+<p>We define the ⇓꜀ relation:</p>
+<pre><code>e, κ, σ ⇓꜀ e'
+</code></pre><p>Here, <code>e</code> is an expression, <code>κ</code> is a continuation, <code>e'</code> is the result of CPS-transforming <code>e</code> under the continuation <code>κ</code>. For purposes of generality, we incorporate an argument <code>σ</code> which serves to store mutable state, or any information that needs to be threaded through the computation.</p>
+<p>In Anglican <code>σ</code> holds any state that needs to be tracked by the inference algorithm, and hereby plays a role analogous to that the state variable <code>σ</code> we used in our evaluators.</p>
+<p>In the messaging interface that we define in this chapter, all inference state is stored by the controller process, moreover, there is no mutable state in the HOPPL. As a result, the only state that we need to pass to the execution is the process id. We use <code>σ</code> to refer to both the CPS state and the process id.</p>
+<p><strong>Variables, Procedure Names, and Constants</strong></p>
+<pre><code>
+</code></pre><h5 id="64-message-interface-implementation">6.4 Message Interface Implementation</h5>
+<div class="edit-meta">
 Last updated on 13 Nov 2020
 
 
@@ -1541,6 +1673,7 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/bayesian/">Bayesian</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/concurrency/">Concurrency</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/coroutines/">Coroutines</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/monad-transformers/"></a></li>

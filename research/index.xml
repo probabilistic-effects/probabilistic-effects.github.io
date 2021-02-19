@@ -44,8 +44,8 @@ Summary  Real world benchmarks make it difficult to isolate costs Microbenchmark
       <pubDate>Fri, 13 Nov 2020 14:05:31 +0000</pubDate>
       
       <guid>https://probabilistic-effects.github.io/research/literature-review/</guid>
-      <description>‣ Papers Probabilistic Programming
- An Introduction To Probabilistic Programming Lightweight Implementations of Probabilistic Programming Languages Via Transformational Compilation - David Wingate, Andreas Stuhlmüller, and Noah Goodman. 2011. Practical Probabilistic Programming with Monads - Ścibior, Adam, Zoubin Ghahramani, and Andrew D. Gordon. Proceedings of the 2015 ACM SIGPLAN Symposium on Haskell. 2015. Denotational Validation of Higher-Order Bayesian Inference - Ścibior, Adam. 2018. Functional Programming for Modular Bayesian Inference - Ścibior, Adam, Ohad Kammar, and Zoubin Ghahramani.</description>
+      <description>‣ Relevant Existing Probabilistic Programming Libraries/Languages      ‣ Papers Probabilistic Programming
+ An Introduction To Probabilistic Programming Lightweight Implementations of Probabilistic Programming Languages Via Transformational Compilation - David Wingate, Andreas Stuhlmüller, and Noah Goodman. 2011. Practical Probabilistic Programming with Monads - Ścibior, Adam, Zoubin Ghahramani, and Andrew D. Gordon. Proceedings of the 2015 ACM SIGPLAN Symposium on Haskell. 2015. Denotational Validation of Higher-Order Bayesian Inference - Ścibior, Adam.</description>
     </item>
     
     <item>

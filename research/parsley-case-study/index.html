@@ -35,7 +35,7 @@ Usually, if one is confused about something in the core, it is best to compare i
 regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="11308">
+<meta itemprop="wordCount" content="11684">
 
 
 
@@ -1163,6 +1163,76 @@ it never produces a valid to the context that calls it
 so it can return any type you want, call it b
 4:40
 in when&rsquo;s case, that&rsquo;s ()</p>
+<hr>
+<p>Minh  11:31 AM
+I&rsquo;ve got a problem that i&rsquo;m not sure how to solve elegantly, i wonder if you&rsquo;ve ever tried anything like this? I have a small DSL, and i want to perform a source-to-source language translation that allows me to attach a unique identifier to each current location in the program execution. But during this translation, the data type for the language must remain the same. This is like assigning a stack trace to each expression.</p>
+<p>New</p>
+<p>Jamie Willis  11:32 AM
+HasCallStack
+11:32
+Or StableName
+11:32
+I&rsquo;ve used StableNames
+:+1:
+1</p>
+<p>Minh  11:54 AM
+did you find that you had to make any modifications to your language to incorporate StableNames, e.g. add an extra parameter to a constructor to store an StableName identifier ?</p>
+<p>Jamie Willis  11:55 AM
+have a read of the staged selective parser combinators paper (edited)
+:+1:
+1</p>
+<p>Minh  12:02 PM
+ooh i see, so the names are held implicitly somewhere</p>
+<p>Jamie Willis  12:53 PM
+sure
+12:53
+or you can regenerate them</p>
+<p>12:53
+they give the same name every time</p>
+<p>Minh  12:54 PM
+im not sure if im understanding correctly, but do you use a hashmap to be able to resume your program from different points of execution? (edited)</p>
+<p>Jamie Willis  12:55 PM
+when?</p>
+<p>Minh  12:55 PM
+image.png
+image.png</p>
+<p>Jamie Willis  12:55 PM
+I don&rsquo;t &ldquo;resume&rdquo; anything there
+12:55
+I&rsquo;m tracking them
+12:56
+I keep the Map from StableNames to Ints
+12:56
+later
+12:56
+I reference them by their Ints</p>
+<p>Minh  12:56 PM
+right, is it possible to perform that functionality though
+12:56
+through what you&rsquo;ve done</p>
+<p>Jamie Willis  12:56 PM
+then I have a dependent Map from Int to Functions
+12:57
+and later when I see Call n I can run the function at mus DMap.! n
+12:57
+that&rsquo;s not in the paper though</p>
+<p>Minh  12:57 PM
+ooh i see, interesting
+12:57
+is there is a reason why you didn&rsquo;t use a map directly from stable names to their function</p>
+<p>Jamie Willis  12:58 PM
+a) Stable names require IO around
+12:58
+I wanted to get rid of that quickly
+12:58
+b) the entire tree is transformed multiple times, the StableNames wouldn&rsquo;t be right anymore by the end
+:+1:
+1</p>
+<p>New
+12:58
+they are right at the beginning though
+:+1:
+1</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
@@ -1261,6 +1331,7 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/bayesian/">Bayesian</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/concurrency/">Concurrency</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/coroutines/">Coroutines</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/monad-transformers/"></a></li>
