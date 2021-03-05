@@ -3,10 +3,10 @@
 <head><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Cabal Projects - Probabilistic Effects.  λθ</title>
+<title>Probabilistic Language Design - Probabilistic Effects.  λθ</title>
 <meta name="generator" content="Hugo 0.80.0" />
 <link href="https://probabilistic-effects.github.io//index.xml" rel="alternate" type="application/rss+xml">
-<link rel="canonical" href="https://probabilistic-effects.github.io/tooling/cabal/">
+<link rel="canonical" href="https://probabilistic-effects.github.io/research/probabilistic-design/">
 <link rel="stylesheet" href="https://probabilistic-effects.github.io/css/theme.min.css">
 <script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
 <link rel="stylesheet" href="https://probabilistic-effects.github.io/css/chroma.min.css">
@@ -16,23 +16,38 @@
 <script src="https://probabilistic-effects.github.io/js/bundle.js"></script><style>
 :root {}
 </style>
-<meta property="og:title" content="Cabal Projects" />
-<meta property="og:description" content="The executable field specifies the part of the package which can be executed with cabal run &lt;executable&gt;.
- main-is - The executable file containing a Main module and the function main. build-depends - Other library packages from which modules are imported. This can contain modules from the current package itself if they are found in the exposed-modules field of the library, by specifying the name of our package. hs-source-dirs - The local directories from which the executable can be found (leave empty if it isn&rsquo;t inside a directory) and any other local modules it imports (if they aren&rsquo;t found in the build-depends field)." />
+<meta property="og:title" content="Probabilistic Language Design" />
+<meta property="og:description" content="Relevant Existing Probabilistic Programming Libraries/Languages
+       Probabilistic Language Design
+The Design and Implementation of Probabilistic Programming Languages (Learning Resource) - Noah D. Goodman and Andreas Stuhlmüller
+Usability of Probabilistic Programming Languages
+Embedded Domain-Specific Languages for Probabilistic Programming - Oleg Kiselyov&rsquo;s Page
+Functional probabilistic programming for scalable Bayesian modelling - Jonathan Law, Darren J. Wilkinson, Alan Turing Institute, 2019
+Functional Programming for Modular Bayesian Inference - Adam Ścibior, ICFP 2018" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://probabilistic-effects.github.io/tooling/cabal/" />
+<meta property="og:url" content="https://probabilistic-effects.github.io/research/probabilistic-design/" />
 <meta property="article:published_time" content="2020-11-13T14:05:41+00:00" />
 <meta property="article:modified_time" content="2020-11-13T14:05:41+00:00" />
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="Cabal Projects"/>
-<meta name="twitter:description" content="The executable field specifies the part of the package which can be executed with cabal run &lt;executable&gt;.
- main-is - The executable file containing a Main module and the function main. build-depends - Other library packages from which modules are imported. This can contain modules from the current package itself if they are found in the exposed-modules field of the library, by specifying the name of our package. hs-source-dirs - The local directories from which the executable can be found (leave empty if it isn&rsquo;t inside a directory) and any other local modules it imports (if they aren&rsquo;t found in the build-depends field)."/>
-<meta itemprop="name" content="Cabal Projects">
-<meta itemprop="description" content="The executable field specifies the part of the package which can be executed with cabal run &lt;executable&gt;.
- main-is - The executable file containing a Main module and the function main. build-depends - Other library packages from which modules are imported. This can contain modules from the current package itself if they are found in the exposed-modules field of the library, by specifying the name of our package. hs-source-dirs - The local directories from which the executable can be found (leave empty if it isn&rsquo;t inside a directory) and any other local modules it imports (if they aren&rsquo;t found in the build-depends field).">
+<meta name="twitter:title" content="Probabilistic Language Design"/>
+<meta name="twitter:description" content="Relevant Existing Probabilistic Programming Libraries/Languages
+       Probabilistic Language Design
+The Design and Implementation of Probabilistic Programming Languages (Learning Resource) - Noah D. Goodman and Andreas Stuhlmüller
+Usability of Probabilistic Programming Languages
+Embedded Domain-Specific Languages for Probabilistic Programming - Oleg Kiselyov&rsquo;s Page
+Functional probabilistic programming for scalable Bayesian modelling - Jonathan Law, Darren J. Wilkinson, Alan Turing Institute, 2019
+Functional Programming for Modular Bayesian Inference - Adam Ścibior, ICFP 2018"/>
+<meta itemprop="name" content="Probabilistic Language Design">
+<meta itemprop="description" content="Relevant Existing Probabilistic Programming Libraries/Languages
+       Probabilistic Language Design
+The Design and Implementation of Probabilistic Programming Languages (Learning Resource) - Noah D. Goodman and Andreas Stuhlmüller
+Usability of Probabilistic Programming Languages
+Embedded Domain-Specific Languages for Probabilistic Programming - Oleg Kiselyov&rsquo;s Page
+Functional probabilistic programming for scalable Bayesian modelling - Jonathan Law, Darren J. Wilkinson, Alan Turing Institute, 2019
+Functional Programming for Modular Bayesian Inference - Adam Ścibior, ICFP 2018">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="370">
+<meta itemprop="wordCount" content="403">
 
 
 
@@ -43,48 +58,38 @@
 </header>
 
 <div class="content-container">
-<main><h1>Cabal Projects</h1>
-<p>The <code>executable</code> field specifies the part of the package which can be executed with <code>cabal run &lt;executable&gt;</code>.</p>
+<main><h1>Probabilistic Language Design</h1>
+<p><strong>Relevant Existing Probabilistic Programming Libraries/Languages</strong></p>
 <ul>
-<li><code>main-is</code> - The executable file containing a <code>Main</code> module and the function <code>main</code>.</li>
-<li><code>build-depends</code> - Other library packages from which modules are imported. This can contain modules from the current package itself if they are found in the <code>exposed-modules</code> field of the <code>library</code>, by specifying the name of our package.</li>
-<li><code>hs-source-dirs</code> - The local directories from which the executable can be found (leave empty if it isn&rsquo;t inside a directory) and any other local modules it imports (if they aren&rsquo;t found in the <code>build-depends</code> field).</li>
-<li><code>other-modules</code> -  Other modules included in the executable should be listed in the other-modules field.</li>
+<li><img src="https://hakaru-dev.github.io/" alt="Hakuru"></li>
+<li><img src="https://hackage.haskell.org/package/probability" alt="probability"></li>
+<li><img src="https://hackage.haskell.org/package/monad-bayes" alt="monad-bayes"></li>
+<li><img src="https://probprog.github.io/anglican/index.html" alt="Anglican"></li>
+<li><img src="https://github.com/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers" alt="PyMC"></li>
 </ul>
-<p>For an executable, <code>cabal init</code> does not try to guess which file contains your program’s <code>Main</code> module. You will need to fill in the <code>executable:main-is</code> field with the file name of your program’s <code>Main</code> module (including <code>.hs</code> or <code>.lhs</code> extension).</p>
-<p>The <code>library</code> field specifies the exposed modules of our package that make up the public interface of the library. The name of a library always matches the name of the package, so it is not specified in the library section.</p>
-<ul>
-<li><code>exposed-modules</code> - The modules we choose to export from our package and make available to be used as part of its public interface.</li>
-<li><code>hs-source-dirs</code> - The directories from which the exposed modules can be found.</li>
-<li><code>build-depends</code> - Other library packages from which modules. Most of the build information fields are the same between libraries and executables.</li>
-<li><code>other-modules</code> - For modules that do not form part of our package’s public interface, you can move those modules to the other-modules field. Either way, all modules in the library need to be listed.</li>
-</ul>
-<p>For a library, <code>cabal init</code> looks in the project directory for files that look like Haskell modules and adds all the modules to the <code>library:exposed-modules</code> field.</p>
-<p>For module names and organisation of directories, the module prefixes indicate the directory the module is found in. For example:</p>
-<pre><code class="language-cabal" data-lang="cabal">library
-    ...
-    hs-source-dirs:     src
-    exposed-modules:    PmmhHmm
-                        Monad.Coroutine
-                        Monad.Coroutine.Nested
-                        Monad.Coroutine.SuspensionFunctors
-    ...
-</code></pre><p>This indicates that our project must look like:</p>
-<pre><code>src/
-    PmmhHmm.hs                             -- module PmmhHmm
-    Monad/
-          Coroutine.hs                     -- module Monad.Coroutine
-          Coroutine/
-                    Nested.hs              -- module Monad.Coroutine.Nested
-                    SuspensionFunctors.hs  -- module Monad.Coroutine.SuspensionFunctors
-</code></pre><div class="edit-meta">
+<p><strong>Probabilistic Language Design</strong></p>
+<p><a href="http://dippl.org/">The Design and Implementation of Probabilistic Programming Languages (Learning Resource) - Noah D. Goodman and Andreas Stuhlmüller</a></p>
+<p><a href="https://www.cl.cam.ac.uk/~afb21/publications/PPIG2019-accepted.pdf">Usability of Probabilistic Programming Languages</a></p>
+<p><a href="http://okmij.org/ftp/kakuritu/">Embedded Domain-Specific Languages for Probabilistic Programming - Oleg Kiselyov&rsquo;s Page</a></p>
+<p><a href="https://arxiv.org/pdf/1908.02062.pdf">Functional probabilistic programming for scalable Bayesian modelling - Jonathan Law, Darren J. Wilkinson, Alan Turing Institute, 2019</a></p>
+<p><a href="http://www.denotational.co.uk/publications/scibior-kammar-ghahramani-funcitonal-programming-for-modular-bayesian-inference.pdf">Functional Programming for Modular Bayesian Inference - Adam Ścibior, ICFP 2018</a></p>
+<p><a href="http://www.cs.ox.ac.uk/people/hongseok.yang/paper/ifl16-full.pdf">Design and Implementation of Probabilistic Programming Language Anglican - David Tolpin, Jan-Willem van de Meent, Hongseok Yang, Frank Wood, IFL 2016</a></p>
+<p><a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=8576406&amp;casa_token=ykFuETQWfDQAAAAA:yUjdDPPjS_Vpf25HewgDWzpUtE6w7jBTHCpvMeFbXf4fx7y6Jk_lwlEJfCUHJhWgZdtutQ4xSeg&amp;tag=1">Semantics for probabilistic programming: higher-order functions, continuous distributions, and soft constraints, Sam Staton, Hongseok Yang, Frank Wood, LICS 2016</a></p>
+<p><a href="http://proceedings.mlr.press/v38/vandemeent15.pdf">Particle Gibbs with Ancestor Sampling for Probabilistic Programs - Jan-Willem van de Meent, Hongseok Yang, Vikash Mansinghka, Frank Wood, AISTATS 2015</a></p>
+<p><a href="https://arxiv.org/pdf/1507.00996.pdf">A New Approach to Probabilistic Programming Inference (Particle MCMC) - Frank Wood, Jan-Willem van de Meent, Vikash Mansinghka, AISTATS 2014</a></p>
+<p><a href="https://link.springer.com/content/pdf/10.1007/978-3-642-03034-5_17.pdf">Embedded Probabilistic Programming - Oleg Kiselyov, IFIP 2009</a></p>
+<h5 id="embedded-probabilistic-programming---oleg-kiselyov-ifip-2009">Embedded Probabilistic Programming - Oleg Kiselyov, IFIP 2009</h5>
+<p>Two general techniques for implementing a DSL with less overhead are the <em>finally-tagless</em> (shallow) embedding of object programs, and the <em>direct-style</em> representation of side effects. They use these techniques to build a DSL for probabilistic programming, embedded as an ordinary OCalm library, and represent probability distributions as ordinary OCaml programs. They use delimited continuations to reify probabilistic programs as lazy search trees, which inference algorithms may traverse without imposing overhead on deterministic parts of a model. Inference algorithms can be easily embedded in probabilistic programs themselves.</p>
+<p>They aim to build a DSL for probability distributions. A fundamental and popular way to represent a probability distribution is as a graphical model (a Bayesian network) whose nodes represent random variables and edges indicate conditional dependencies. However graphical models do not scale well to real problems involving thousands or more of random variables and dependencies.</p>
+<p>It helps to embed a language of probability distributions in a host language such as Haskell - the embedded language is called  a toolkit for probabilistic reasoning, because it is structured as a library of data types of graphical models and random variables along with inference procedures that operate on them. Similarly, distributions can be represented and reasoned about in a logic using formulas that talk about probabilities. However, a toolkit defines its own data types; e.g. random integers are distinct from regular integers, and cannot be added using the addition operation of the host language.</p>
+<div class="edit-meta">
 Last updated on 13 Nov 2020
 
 
 <br>
 Published on 13 Nov 2020
-<br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/tooling/" title="Tooling"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Tooling</a>
-<a class="nav nav-next" href="https://probabilistic-effects.github.io/benchmarking/" title="Benchmarking">Next - Benchmarking <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+<br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/" title="Potential Approaches to Improving Monad Bayes"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Potential Approaches to Improving Monad Bayes</a>
+<a class="nav nav-next" href="https://probabilistic-effects.github.io/research/effects-for-less/" title="Effects for Less">Next - Effects for Less <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
 </nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
 </footer>
 </main>
@@ -117,12 +122,12 @@ Published on 13 Nov 2020
   
 </li>
 
-<li class=""><a href="https://probabilistic-effects.github.io/research/">Research</a>
+<li class="parent"><a href="https://probabilistic-effects.github.io/research/">Research</a>
   
 <ul class="sub-menu">
 <li class=""><a href="https://probabilistic-effects.github.io/research/research-journal/">Research Journal</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/">Potential Approaches to Improving Monad Bayes</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/research/probabilistic-design/">Probabilistic Language Design</a></li>
+<li class="active"><a href="https://probabilistic-effects.github.io/research/probabilistic-design/">Probabilistic Language Design</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/research/literature-review/">Literature Review</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/research/parsley-case-study/">Case Study: Optimising Parsley</a></li>
@@ -142,10 +147,10 @@ Published on 13 Nov 2020
   
 </li>
 
-<li class="parent"><a href="https://probabilistic-effects.github.io/tooling/">Tooling</a>
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/">Tooling</a>
   
 <ul class="sub-menu">
-<li class="active"><a href="https://probabilistic-effects.github.io/tooling/cabal/">Cabal Projects</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/cabal/">Cabal Projects</a></li>
 </ul>
   
 </li>

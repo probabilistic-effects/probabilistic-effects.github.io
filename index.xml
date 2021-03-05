@@ -132,6 +132,21 @@ Probabilistic programming languages simplify the development of probabilistic mo
     </item>
     
     <item>
+      <title>Probabilistic Language Design</title>
+      <link>https://probabilistic-effects.github.io/research/probabilistic-design/</link>
+      <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/research/probabilistic-design/</guid>
+      <description>Relevant Existing Probabilistic Programming Libraries/Languages
+       Probabilistic Language Design
+The Design and Implementation of Probabilistic Programming Languages (Learning Resource) - Noah D. Goodman and Andreas Stuhlmüller
+Usability of Probabilistic Programming Languages
+Embedded Domain-Specific Languages for Probabilistic Programming - Oleg Kiselyov&amp;rsquo;s Page
+Functional probabilistic programming for scalable Bayesian modelling - Jonathan Law, Darren J. Wilkinson, Alan Turing Institute, 2019
+Functional Programming for Modular Bayesian Inference - Adam Ścibior, ICFP 2018</description>
+    </item>
+    
+    <item>
       <title>Effects for Less</title>
       <link>https://probabilistic-effects.github.io/research/effects-for-less/</link>
       <pubDate>Fri, 13 Nov 2020 14:05:31 +0000</pubDate>
