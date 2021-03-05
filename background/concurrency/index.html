@@ -38,7 +38,7 @@ The basic communication mechanism is MVar:
 data MVar a An MVar can be thought of as a box that is either empty or full.">
 <meta itemprop="datePublished" content="2020-11-13T13:40:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:40:41+00:00" />
-<meta itemprop="wordCount" content="1171">
+<meta itemprop="wordCount" content="1652">
 
 
 
@@ -256,7 +256,104 @@ data MVar a An MVar can be thought of as a box that is either empty or full.">
 <li><code>logStop</code> can now continue by taking <code>()</code> from <code>MVar s</code>. This results in <code>m</code> being the value <code>Stop s</code> where <code>s</code> is empty.</li>
 <li><code>main</code> then takes <code>Stop s</code> from <code>m</code>, pattern matches this as <code>Stop s</code>, and then tries to take from <code>s</code>, but blocks because <code>s</code> is empty.</li>
 </ul>
-<div class="edit-meta">
+<p>Making an MVar <code>m</code> contain another MVar <code>s</code> (which is initially empty) is a useful way of sending messages (using <code>putMVar m</code>) and then waiting for a response (using <code>takeMVar s</code>), without blocking another thread.</p>
+<p>For example:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Logger</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">Logger</span> (<span style="color:#66d9ef">MVar</span> <span style="color:#66d9ef">LogCommand</span>)
+
+<span style="color:#66d9ef">data</span> <span style="color:#66d9ef">LogCommand</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">Message</span> <span style="color:#66d9ef">String</span> <span style="color:#f92672">|</span> <span style="color:#66d9ef">Stop</span> (<span style="color:#66d9ef">MVar</span> ())
+
+<span style="color:#a6e22e">logStop</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Logger</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> ()
+<span style="color:#a6e22e">logStop</span> (<span style="color:#66d9ef">Logger</span> m) <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+  s <span style="color:#f92672">&lt;-</span> newEmptyMVar
+  putMVar m (<span style="color:#66d9ef">Stop</span> s)
+  takeMVar s
+
+<span style="color:#a6e22e">logger</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Logger</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> ()
+<span style="color:#a6e22e">logger</span> (<span style="color:#66d9ef">Logger</span> m) <span style="color:#f92672">=</span> loop
+ <span style="color:#66d9ef">where</span>
+  loop <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+    cmd <span style="color:#f92672">&lt;-</span> takeMVar m
+    <span style="color:#66d9ef">case</span> cmd <span style="color:#66d9ef">of</span>
+      <span style="color:#66d9ef">Message</span> msg <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">do</span>
+        putStrLn msg
+        loop
+      <span style="color:#66d9ef">Stop</span> s <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">do</span>
+        putStrLn <span style="color:#e6db74">&#34;logger: stop&#34;</span>
+        putMVar s ()
+</code></pre></div><p>Thread A calling <code>logStop</code> sets <code>m</code> to be <code>Stop s</code> where <code>s</code> is empty.
+Thread B running <code>logger</code> can then take from <code>m</code>, and then let Thread A know that it is finished by putting <code>s</code> to <code>()</code>, at which point <code>ThreadA</code> can take from <code>s</code>.</p>
+<p>It is important to note that the program terminates when <code>main</code> returns, even if there are other threads still running. (Behaviour differs in ghci in comparison to executing a program via ghc; ghci will tend to let the other threads run, whereas ghc will terminate after the main thread finishes).</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">logger</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Logger</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> ()
+<span style="color:#a6e22e">logger</span> (<span style="color:#66d9ef">Logger</span> m) <span style="color:#f92672">=</span> loop
+ <span style="color:#66d9ef">where</span>
+  loop <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+    cmd <span style="color:#f92672">&lt;-</span> takeMVar m
+    <span style="color:#66d9ef">case</span> cmd <span style="color:#66d9ef">of</span>
+      <span style="color:#66d9ef">Message</span> msg <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">do</span>
+        id <span style="color:#f92672">&lt;-</span> myThreadId
+        putStrLn (show id <span style="color:#f92672">++</span> <span style="color:#e6db74">&#34;: &#34;</span> <span style="color:#f92672">++</span> msg )
+        loop
+      <span style="color:#66d9ef">Stop</span> s <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">do</span>
+        putStrLn <span style="color:#e6db74">&#34;logger: stop&#34;</span>
+        putMVar s ()
+
+<span style="color:#a6e22e">logMessage</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Logger</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">String</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> ()
+<span style="color:#a6e22e">logMessage</span> (<span style="color:#66d9ef">Logger</span> m) s <span style="color:#f92672">=</span> putMVar m (<span style="color:#66d9ef">Message</span> s)
+
+<span style="color:#a6e22e">logStop</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Logger</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> ()
+<span style="color:#a6e22e">logStop</span> (<span style="color:#66d9ef">Logger</span> m) <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+  s <span style="color:#f92672">&lt;-</span> newEmptyMVar
+  putMVar m (<span style="color:#66d9ef">Stop</span> s)
+  takeMVar s
+
+<span style="color:#a6e22e">putter</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Logger</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> ()
+<span style="color:#a6e22e">putter</span> l <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+  logMessage l <span style="color:#e6db74">&#34;hello&#34;</span>
+  logMessage l <span style="color:#e6db74">&#34;bye&#34;</span>
+  logStop l
+  return ()
+
+<span style="color:#a6e22e">main</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">IO</span> ()
+<span style="color:#a6e22e">main</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+  m <span style="color:#f92672">&lt;-</span> newEmptyMVar
+  <span style="color:#66d9ef">let</span> l <span style="color:#f92672">=</span> <span style="color:#66d9ef">Logger</span> m
+  forkIO (logger l)
+  forkIO (putter l)
+  return ()
+</code></pre></div><p>Running this (via ghc) will return without any output, as the main thread finishes early.</p>
+<p>If we inline <code>putter</code> into the main thread, then this will run to termination (in ghc).</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">logger</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Logger</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> ()
+<span style="color:#a6e22e">logger</span> (<span style="color:#66d9ef">Logger</span> m) <span style="color:#f92672">=</span> loop
+ <span style="color:#66d9ef">where</span>
+  loop <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+    cmd <span style="color:#f92672">&lt;-</span> takeMVar m
+    <span style="color:#66d9ef">case</span> cmd <span style="color:#66d9ef">of</span>
+      <span style="color:#66d9ef">Message</span> msg <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">do</span>
+        id <span style="color:#f92672">&lt;-</span> myThreadId
+        putStrLn (show id <span style="color:#f92672">++</span> <span style="color:#e6db74">&#34;: &#34;</span> <span style="color:#f92672">++</span> msg )
+        loop
+      <span style="color:#66d9ef">Stop</span> s <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">do</span>
+        putStrLn <span style="color:#e6db74">&#34;logger: stop&#34;</span>
+        putMVar s ()
+<span style="color:#a6e22e">logMessage</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Logger</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">String</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> ()
+<span style="color:#a6e22e">logMessage</span> (<span style="color:#66d9ef">Logger</span> m) s <span style="color:#f92672">=</span> putMVar m (<span style="color:#66d9ef">Message</span> s)
+
+<span style="color:#a6e22e">logStop</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Logger</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">IO</span> ()
+<span style="color:#a6e22e">logStop</span> (<span style="color:#66d9ef">Logger</span> m) <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+  s <span style="color:#f92672">&lt;-</span> newEmptyMVar
+  putMVar m (<span style="color:#66d9ef">Stop</span> s)
+  takeMVar s
+
+<span style="color:#a6e22e">main</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">IO</span> ()
+<span style="color:#a6e22e">main</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+  m <span style="color:#f92672">&lt;-</span> newEmptyMVar
+  <span style="color:#66d9ef">let</span> l <span style="color:#f92672">=</span> <span style="color:#66d9ef">Logger</span> m
+  forkIO (logger l)
+  logMessage l <span style="color:#e6db74">&#34;hello&#34;</span>
+  logMessage l <span style="color:#e6db74">&#34;bye&#34;</span>
+  logStop l
+  return ()
+</code></pre></div><div class="edit-meta">
 Last updated on 13 Nov 2020
 
 

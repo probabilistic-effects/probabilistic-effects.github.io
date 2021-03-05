@@ -17,25 +17,19 @@
 :root {}
 </style>
 <meta property="og:title" content="Research Journal" />
-<meta property="og:description" content="Activity (MN)
- Implementing FOPPL from &ldquo;Intro to Probabilistic Programming&rdquo; Reading &ldquo;Design and Implementation of Probabilistic Programming Language Anglican&rdquo; Reading &ldquo;Folding Domain-Specific Languages: Deep and Shallow Embeddings&rdquo;, and &ldquo;Tagless final style&rdquo;   Activity (MN) 19/01/2021 - 22/01/2021
- Reading and writing up introduction to probabilistic programming. Meeting with Alessio on understanding how the free monad transformer tree is constructed and executed as a random decision function. Things to look at: Tagless final style, Embedded probabilistic programming, PλωNK: Functional Probabilistic NetKAT, Algebraic effects  Activity (MN) 18/01/2021" />
+<meta property="og:description" content="Addressing 1: TraceT [Int, Int] Addressing 2: Adding fresh addresses to all expressions during compile time, and appending them during evaluation run time for increased call stack depth - i don&rsquo;t think this will work during evaluation - if we continue appending addresses for every function call, then the addresses of sample statements are affecting by the entire preceding call stack. Addressing 3: Addressing all sample statements during compile time, and indexing them by number of occurrences during evaluation run time (anglican approach) Addressing 4: Using stable names to provide addresses during eval time, and appending them as well during call stack depth  Activity (MN)" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://probabilistic-effects.github.io/research/research-journal/" />
 <meta property="article:published_time" content="2020-11-13T14:05:57+00:00" />
 <meta property="article:modified_time" content="2020-11-13T14:05:57+00:00" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Research Journal"/>
-<meta name="twitter:description" content="Activity (MN)
- Implementing FOPPL from &ldquo;Intro to Probabilistic Programming&rdquo; Reading &ldquo;Design and Implementation of Probabilistic Programming Language Anglican&rdquo; Reading &ldquo;Folding Domain-Specific Languages: Deep and Shallow Embeddings&rdquo;, and &ldquo;Tagless final style&rdquo;   Activity (MN) 19/01/2021 - 22/01/2021
- Reading and writing up introduction to probabilistic programming. Meeting with Alessio on understanding how the free monad transformer tree is constructed and executed as a random decision function. Things to look at: Tagless final style, Embedded probabilistic programming, PλωNK: Functional Probabilistic NetKAT, Algebraic effects  Activity (MN) 18/01/2021"/>
+<meta name="twitter:description" content="Addressing 1: TraceT [Int, Int] Addressing 2: Adding fresh addresses to all expressions during compile time, and appending them during evaluation run time for increased call stack depth - i don&rsquo;t think this will work during evaluation - if we continue appending addresses for every function call, then the addresses of sample statements are affecting by the entire preceding call stack. Addressing 3: Addressing all sample statements during compile time, and indexing them by number of occurrences during evaluation run time (anglican approach) Addressing 4: Using stable names to provide addresses during eval time, and appending them as well during call stack depth  Activity (MN)"/>
 <meta itemprop="name" content="Research Journal">
-<meta itemprop="description" content="Activity (MN)
- Implementing FOPPL from &ldquo;Intro to Probabilistic Programming&rdquo; Reading &ldquo;Design and Implementation of Probabilistic Programming Language Anglican&rdquo; Reading &ldquo;Folding Domain-Specific Languages: Deep and Shallow Embeddings&rdquo;, and &ldquo;Tagless final style&rdquo;   Activity (MN) 19/01/2021 - 22/01/2021
- Reading and writing up introduction to probabilistic programming. Meeting with Alessio on understanding how the free monad transformer tree is constructed and executed as a random decision function. Things to look at: Tagless final style, Embedded probabilistic programming, PλωNK: Functional Probabilistic NetKAT, Algebraic effects  Activity (MN) 18/01/2021">
+<meta itemprop="description" content="Addressing 1: TraceT [Int, Int] Addressing 2: Adding fresh addresses to all expressions during compile time, and appending them during evaluation run time for increased call stack depth - i don&rsquo;t think this will work during evaluation - if we continue appending addresses for every function call, then the addresses of sample statements are affecting by the entire preceding call stack. Addressing 3: Addressing all sample statements during compile time, and indexing them by number of occurrences during evaluation run time (anglican approach) Addressing 4: Using stable names to provide addresses during eval time, and appending them as well during call stack depth  Activity (MN)">
 <meta itemprop="datePublished" content="2020-11-13T14:05:57+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:57+00:00" />
-<meta itemprop="wordCount" content="7653">
+<meta itemprop="wordCount" content="7756">
 
 
 
@@ -47,6 +41,12 @@
 
 <div class="content-container">
 <main><h1>Research Journal</h1>
+<ul>
+<li>Addressing 1: TraceT [Int, Int]</li>
+<li>Addressing 2: Adding fresh addresses to all expressions during compile time, and appending them during evaluation run time for increased call stack depth - i don&rsquo;t think this will work during evaluation - if we continue appending addresses for every function call, then the addresses of sample statements are affecting by the entire preceding call stack.</li>
+<li>Addressing 3: Addressing all sample statements during compile time, and indexing them by number of occurrences during evaluation run time (anglican approach)</li>
+<li>Addressing 4: Using stable names to provide addresses during eval time, and appending them as well during call stack depth</li>
+</ul>
 <p><strong>Activity (MN)</strong></p>
 <ul>
 <li>Implementing FOPPL from &ldquo;Intro to Probabilistic Programming&rdquo;</li>

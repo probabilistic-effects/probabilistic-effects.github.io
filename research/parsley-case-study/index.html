@@ -35,7 +35,7 @@ Usually, if one is confused about something in the core, it is best to compare i
 regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="11684">
+<meta itemprop="wordCount" content="11959">
 
 
 
@@ -1233,6 +1233,52 @@ b) the entire tree is transformed multiple times, the StableNames wouldn&rsquo;t
 they are right at the beginning though
 :+1:
 1</p>
+<p>Minh  12:38 PM
+Hi, im wondering about how to correctly evaluate the following example:
+g = let x = 5
+f   = \y -&gt; y + x
+x   = 10
+h f = \a -&gt; f a
+in  h f 15
+At line 2, i&rsquo;m assuming we&rsquo;ve previously evaluated f to a closure with an environment  {x → 5}  .
+However, the environment when evaluating h f 15 would be {x → 10} .
+When merging the two environments at h f 15, is it correct to say that the current environment takes precedence over the closure&rsquo;s environment?</p>
+<p>Jamie Willis  12:39 PM
+I think it&rsquo;s {x → 5}
+12:39
+but I would just test it</p>
+<p>Minh  12:39 PM
+it isn&rsquo;t haskell im doing it in, its just my own language
+12:39
+so i&rsquo;m wondering about whether this is a design choice
+12:39
+or if there&rsquo;s a single correct way</p>
+<p>Jamie Willis  12:40 PM
+I would check other languages
+12:40
+I think it boils down to by-name evaluation or not
+:+1:
+1</p>
+<p>12:40
+hard to tell
+12:40
+also, don&rsquo;t forget: you don&rsquo;t have to work weekends as a PhD student :slightly_smiling_face:</p>
+<hr>
+<p>Minh  2:58 PM
+is there a way to use the Cont monad to both exit early with a value (using callCC) as well as return the rest of the execution that wasn&rsquo;t carried out</p>
+<p>New</p>
+<p>Jamie Willis  2:58 PM
+two callCCs?
+2:59
+restOfWork &lt;- callCC (\exit -&gt;
+&hellip;
+leave exit)
+where
+leave = callCC (\rest -&gt; exit rest)
+3:00
+that implies the type of restOfWork is itself a continuation
+3:00
+it&rsquo;s the sort of thing you can do when you want to implement co-operative multi-tasking</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 

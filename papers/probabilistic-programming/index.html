@@ -29,7 +29,7 @@
 <meta itemprop="description" content="1.1 Model-based Reasoning A model is an artifical construct designed to respond in the same way as the system we would like to understand. As computers have evolved, numerical models have come to the forefront and computer simulations have replaced physical models. Numerical models emulate stochasticity, i.e. they use pseudorandom number generators to simulate actually random phenomena and other uncertainties. Running a simulator with stochastic value generation leads to an explosion of possible simulation outcomes.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="20504">
+<meta itemprop="wordCount" content="21505">
 
 
 
@@ -1316,6 +1316,24 @@ q(X' | X, x0) = Π ℙ'(x)
 <p>In defining the acceptance ratio, we have assumed that we can associate a variable <code>x</code> or <code>y</code> with each <code>sample</code> or <code>observe</code> expression. We did this in our compilation of a graphical model. In the context of evalution-based methods, this type of unique identifier for a <code>sample</code>/<code>observe</code> expression is commonly referred to as an address.</p>
 <p>If needed, unique addresses can be constructed dynamically at run-time. For programs in the FOPPL, we can create addresses using a source code transformation that is similar to our compilation in graph-based inference. In this, we replace all expressions <code>sample</code> with <code>sample v e</code> in which <code>v</code> is a newly created variable. Similarly, we replace <code>observe e1 e2</code> with <code>observe v e1 e2</code>.</p>
 <h5 id="43-sequential-monte-carlo">4.3 Sequential Monte Carlo</h5>
+<p><strong>SMC:</strong></p>
+<pre><code>sample(..)
+sample(..)
+observe(..)  -- y_0
+sample(..)
+sample(..)
+sample(..)
+observe(..)  -- y_1
+sample(..)
+...
+observe(..)  -- y_n
+</code></pre><p>We create <code>n</code> truncations of the program at every observe expression <code>y</code>.
+For <code>n = 1 ... N</code>:
+For <code>l = 1 ... L</code>:
+- We run the program <code>L</code> times to generate <code>L</code> sets of samples up to the <code>n</code>th observe expression <code>y_n</code>, (For sample expressions preceding <code>y_n-1</code>, we reuse sample values from the <code>k</code>th particle set of the previous run <code>n-1</code>, where <code>k</code> is selected from a discrete distribution weighted by each of the <code>L</code> particle sets' log probability. For sample expressions between <code>y_n-1</code> and <code>y_n</code>, we sample new values from the prior.). This creates <code>{(Xˡₙ)}ᴸₗ₌₁</code>.
+- We compute the log probability at the statement <code>y_n</code>, which is <code>logΛˡₙ - logΛᵏₙ₋₁</code> (the total log probability up to observe state <code>y_n</code> minus the total log probability up to observe statement <code>y_n-1</code>, reusing the sampled values from the <code>k</code>th particle set up to <code>y_n-1</code>).
+- The importance weight <code>logWˡₙ</code> is then calculated as <code>logWˡₙ = logΛˡₙ - logΛᵏₙ₋₁ + logẐₙ₋₁</code>, where <code>logẐₙ₋₁</code> is <code>log (1/L Σₗ Wˡₙ₋₁)</code> (the log mean of the weights of the previous particle sets). This creates <code>{(Wˡₙ)}ᴸₗ₌₁</code>.
+- This also means that the normalized weights up to observe statement <code>y_n</code> is <code>logẐₙ</code> = <code>logẐₙ₋₁ + log (1/L Σₗ Wˡₙ)</code>, i.e the total normalized weights from <code>y_0</code> up to observe statement <code>y_n-1</code>, plus the normalized weights computed from <code>y_n</code>.</p>
 <p>Previously in Metropolis-Hastings, we used a likelihood-weighting algorithm where in each run of the program, we <em>guess</em> by sampling a <code>X^i</code> from the program prior, and then <em>check</em> whether this is in fact a good proposal by calculating a weight <code>W^l = p(Y|X^l)</code> according to the probabilities
 of <code>observe</code> expressions in the program. Unfortunately, this is not necessarily efficient. In order
 to end up with high weighted samples, we have to generate reasonable values for <em>all</em> random variables <code>X</code>. Even if we are always improving our proposed sample at each program run, it may actually take ages to actually end up with samples which are weighted high enough to consider them good, because the frequency with which we generate good proposals decreases exponentially with the number of <code>sample</code> statements.</p>
@@ -1418,7 +1436,7 @@ function propose(Ⲭ , y)
   catch resample-breakpoint( )
     return σ(X ), σ(logΛ)
 </code></pre><ul>
-<li>For <code>sample</code> expressions, weuse previously sampled values <code>Ⲭ(v)</code> for previously sampled variables <code>v</code> and sample from the prior for new variables <code>v</code>.</li>
+<li>For <code>sample</code> expressions, we use previously sampled values <code>Ⲭ(v)</code> for previously sampled variables <code>v</code> and sample from the prior for new variables <code>v</code>.</li>
 <li>For <code>observe</code> expressions, we accumulate log probability into a state variable <code>logΛ</code>. When we reach the <code>observe</code> expression with a specified symbol <code>yᵣ</code>, we terminate the program by throwing a special-purpose <code>RESAMPLE-BREAKPOINT</code> error.</li>
 <li>In <code>propose</code>, there is an implicit index <code>n</code> for <code>1 ... n</code> attached to <code>yn</code>. For <code>n &lt; N</code> (<code>N</code> being the number of unnormalized densities in the sequence of unnormalized densities <code>γ1(X1), ... , γN(XN)</code>), we evaluate a truncated form of the program up to the <code>n</code>&lsquo;th <code>observe</code> expression, and simply return the sampled variables <code>Ⲭ</code> up until that point. For <code>n = N</code>, we finally return the value <code>r</code> outputted from the entire program (which represents a sample from the final unnormalized density <code>γN(XN)</code>.</li>
 </ul>
@@ -1572,10 +1590,77 @@ The translated expression will contain a new free variable <code>α</code> since
 </code></pre><p>Here, <code>e</code> is an expression, <code>κ</code> is a continuation, <code>e'</code> is the result of CPS-transforming <code>e</code> under the continuation <code>κ</code>. For purposes of generality, we incorporate an argument <code>σ</code> which serves to store mutable state, or any information that needs to be threaded through the computation.</p>
 <p>In Anglican <code>σ</code> holds any state that needs to be tracked by the inference algorithm, and hereby plays a role analogous to that the state variable <code>σ</code> we used in our evaluators.</p>
 <p>In the messaging interface that we define in this chapter, all inference state is stored by the controller process, moreover, there is no mutable state in the HOPPL. As a result, the only state that we need to pass to the execution is the process id. We use <code>σ</code> to refer to both the CPS state and the process id.</p>
-<p><strong>Variables, Procedure Names, and Constants</strong></p>
-<pre><code>
-</code></pre><h5 id="64-message-interface-implementation">6.4 Message Interface Implementation</h5>
-<div class="edit-meta">
+<p>Using CPS, because the expressions will transform to the form <code>κ σ v</code>, we can choose to either:</p>
+<ol>
+<li>Interrupt the computation and return a tuple <code>(κ, σ, v)</code>.</li>
+<li>Evaluate the continuation call <code>κ σ v</code> (i.e. <code>PApp [κ, σ, v]</code>).</li>
+</ol>
+<p>For general (non-probabilistic) expressions, we will tend to always evaluate the continuation call on the expression:</p>
+<ul>
+<li>For variables, procedure names, and constants, these take the form:
+<pre><code>v, κ, σ ⇓꜀ (PApp κ σ v)   
+</code></pre><p>For constants which are primitive functions, we need to transform them to their CPS form which are functions which additionally take a continuation and state as a parameter.</p>
+<pre><code>c_cps = fn [v1 v2 κ σ] (κ σ (c v1 v2))
+────────────────────────────────────
+c, κ, σ ⇓꜀ (PApp κ σ c_cps) 
+
+</code></pre></li>
+<li>For if expressions, we transform both branches <code>e2</code> and <code>e3</code> under the continuation <code>κ</code> (which may result in something like <code>e2_cps = κ σ e2</code> and <code>e3_cps = κ σ e3</code>). We then create a continuation which when applied to <code>e1</code>, will return the CPS transformed <code>e2'</code> or <code>e3'</code>.
+<pre><code>      e2, κ, σ ⇓꜀ e2_cps   e3, κ, σ ⇓꜀ e3_cps 
+e1, (fn [σ v] (if v then e2_cps else e3_cps)), σ ⇓꜀ e'
+────────────────────────────────────────────────────
+      (if e1 then e3 else e3), κ, σ ⇓꜀ e'
+</code></pre></li>
+<li>All functions are turned into functions which additionally accept a continuation <code>κ'</code> and state <code>σ</code>, and where their function body <code>e</code> has been CPS transformed under this continuation <code>κ'</code>. We then apply the continuation <code>κ</code> to the resulting function.
+<pre><code>                  e, κ', σ  ⇓꜀ e'
+────────────────────────────────────────────────────
+(fn [v1 .. vn] e), κ, σ   ⇓꜀   κ σ (fn [v1 .. vn  κ' σ] e')
+</code></pre></li>
+<li>With application, we know that the applied expression <code>v0 = e0</code> is a function which takes parameters <code>v1 = e1 ... vn = en</code>, so when it is CPS transformed, it will additionally take a continuation <code>κ</code> and state <code>σ</code> as a parameter. The main function body will hence be <code>v0 v1 ... vn κ σ</code>.
+<pre><code>     en, (fn [σ v] (v0 v1 ... vn κ σ )), σ  ⇓꜀  e'n
+ ei, (fn [σ v] e'i+1), σ  ⇓꜀ e'i   for i = (n - 1) ... 0
+────────────────────────────────────────────────────────
+          e0 e1 ... en, κ, σ   ⇓꜀    e0'
+</code></pre></li>
+</ul>
+<p>With <code>observe</code> and <code>sample</code>, we perform a CPS transformation on the entire expression, but also replace the functions <code>observe</code> and <code>sample</code> with their CPS equivalents which take two additional parameters <code>κ</code> and <code>σ</code>.</p>
+<h5 id="64-message-interface-implementation">6.4 Message Interface Implementation</h5>
+<p>In this interface, an inference controller process starts copies of the probabilistic program, which are interrupted at every <code>sample</code> and <code>observe</code> expression. On interruption, each program execution sends a message to the controller, which then carries out any inference operations that need to be performed. These operations can include:</p>
+<ul>
+<li>Sampling a new value</li>
+<li>Reusing a stored value</li>
+<li>Computing the log probabilities</li>
+<li>Resampling program executions</li>
+</ul>
+<p>After carrying out these operations, the controller sends messages to the program executions to continue or fork the computation. We use a client-server architecture.</p>
+<p><strong>Messages in the Inference Controller</strong></p>
+<p>The inference controller (client) can send requests to the execution server (which runs the probabilistic program).</p>
+<ol>
+<li><code>SEND(&quot;start&quot;, σ)</code> - start a new process with id σ</li>
+<li><code>SEND(&quot;continue&quot;, σ, c)</code> - continue process σ with argument c</li>
+<li><code>SEND(&quot;fork&quot;, σ, σ', c)</code> - fork process σ with a new process with id σ&rsquo;, and continue execution with argument c</li>
+<li><code>SEND(&quot;kill&quot;, σ)</code> - half execution with process σ</li>
+</ol>
+<p>It can also <code>RECEIVE</code> responses from the server.</p>
+<p><strong>Messages in the Execution Server</strong></p>
+<p>The execution server can be entirely be implemented in the HOPPL (if desired). It must be able to receive requests from the inference controller and return responses. We will assume that primitive functions <code>receive</code> and <code>send</code> exist for this purpose.</p>
+<p>The execution server can respond by:</p>
+<ol>
+<li><code>send &quot;sample&quot; σ α d</code>: The process <code>σ</code> has arrived at a <code>sample</code> expression with address <code>α</code> and distribution <code>d</code>.</li>
+<li><code>send &quot;observe&quot; σ α d c</code>: The process <code>σ</code> has arrived at an <code>observe</code> expression with address <code>α</code>, distribution <code>d</code> and value <code>c</code>.</li>
+<li><code>send &quot;return&quot; σ  c</code>: The process <code>σ</code> has termined with value <code>c</code>.</li>
+</ol>
+<p>To implement this messaging architecture, we need to change the behaviour of <code>sample</code> and <code>observe</code>. We instead make use of their CPS analogues which additionally take a continuation <code>κ</code> and the current CPS state <code>σ</code>.</p>
+<p>To interrupt the computation of <code>sample</code>, <code>observe</code> and <code>return</code> expressions, we will provide an implementation that returns a tuple containing the relevant expression and its parameters, rather than calling the continuation on the expression itself.</p>
+<pre><code>sampleCPS [α d κ σ]
+  (&quot;sample&quot;, α, d, κ, σ)
+
+observeCPS [α d κ σ]
+  (&quot;observe, α, d, κ, σ)
+
+returnCPS [α d κ σ]
+  (&quot;return&quot;, c, σ)
+</code></pre><div class="edit-meta">
 Last updated on 13 Nov 2020
 
 

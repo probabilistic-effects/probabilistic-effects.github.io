@@ -13,9 +13,7 @@
       <pubDate>Fri, 13 Nov 2020 14:05:57 +0000</pubDate>
       
       <guid>https://probabilistic-effects.github.io/research/research-journal/</guid>
-      <description>Activity (MN)
- Implementing FOPPL from &amp;ldquo;Intro to Probabilistic Programming&amp;rdquo; Reading &amp;ldquo;Design and Implementation of Probabilistic Programming Language Anglican&amp;rdquo; Reading &amp;ldquo;Folding Domain-Specific Languages: Deep and Shallow Embeddings&amp;rdquo;, and &amp;ldquo;Tagless final style&amp;rdquo;   Activity (MN) 19/01/2021 - 22/01/2021
- Reading and writing up introduction to probabilistic programming. Meeting with Alessio on understanding how the free monad transformer tree is constructed and executed as a random decision function. Things to look at: Tagless final style, Embedded probabilistic programming, PλωNK: Functional Probabilistic NetKAT, Algebraic effects  Activity (MN) 18/01/2021</description>
+      <description>Addressing 1: TraceT [Int, Int] Addressing 2: Adding fresh addresses to all expressions during compile time, and appending them during evaluation run time for increased call stack depth - i don&amp;rsquo;t think this will work during evaluation - if we continue appending addresses for every function call, then the addresses of sample statements are affecting by the entire preceding call stack. Addressing 3: Addressing all sample statements during compile time, and indexing them by number of occurrences during evaluation run time (anglican approach) Addressing 4: Using stable names to provide addresses during eval time, and appending them as well during call stack depth  Activity (MN)</description>
     </item>
     
     <item>

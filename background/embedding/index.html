@@ -35,7 +35,7 @@ data Exp = Lit Int | Neg Exp | Add Exp Exp Our running example is written as fol
 data Exp = Lit Int | Neg Exp | Add Exp Exp Our running example is written as follows:">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="931">
+<meta itemprop="wordCount" content="1595">
 
 
 
@@ -127,11 +127,52 @@ eval = id
 </code></pre><p>In the final embedding, encoded object terms are represented as polymorphic Haskell values, which are not fully first-class: storing them in data structures or passing them as arguments generally loses polymorphism.</p>
 <h5 id="22-extensibility-and-the-expression-problem">2.2 Extensibility and the Expression Problem</h5>
 <p>We have already considered one kind of extensibility: defining different interpreters for the same object language. Now, consider extending the object language itself, by adding a new syntactic form, multiplication.</p>
-<p>The initial encoding represents the object language as an algebraic data type. To add new forms to the language, we have to add new variants to the data type.</p>
+<p>The <em>initial encoding</em> represents the object language as an algebraic data type. To add new forms to the language, we have to add new variants to the data type.</p>
 <pre><code>data Exp = Lit Int
          | ...
          | Mul Exp Exp
-</code></pre><div class="edit-meta">
+</code></pre><p>We have to change the data type declaration and hence adjust all code that directly refers to that declaration. This affirms the concept of the <em>expression problem</em>. The expression problem, cast in terms of embedded languages, is about 1) defining new interpreters for the existing terms and 2) extending interpreters to handle an enriched language. In basic functional programming, it is easy to add new operations on data but it is hard to add new data variants.</p>
+<p>Suppose the <em>final encoding</em> of the original language, the type class <code>ExpSYM</code> and its instances, are imported as <code>F</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">class</span> <span style="color:#66d9ef">ExpSYM</span> repr <span style="color:#66d9ef">where</span>
+  lit <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span>  <span style="color:#f92672">-&gt;</span> repr
+  neg <span style="color:#f92672">::</span> repr <span style="color:#f92672">-&gt;</span> repr
+  add <span style="color:#f92672">::</span> repr <span style="color:#f92672">-&gt;</span> repr <span style="color:#f92672">-&gt;</span> repr
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">ExpSYM</span> <span style="color:#66d9ef">Int</span> <span style="color:#66d9ef">where</span>
+  lit n     <span style="color:#f92672">=</span> n
+  neg e     <span style="color:#f92672">=</span> <span style="color:#f92672">-</span> e
+  add e1 e2 <span style="color:#f92672">=</span> e1 <span style="color:#f92672">+</span> e2
+</code></pre></div><p>To add multiplication, we define a new type class, just for the new language form:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">class</span> <span style="color:#66d9ef">MulSYM</span> repr <span style="color:#66d9ef">where</span>
+  mul <span style="color:#f92672">::</span> repr <span style="color:#f92672">-&gt;</span> repr <span style="color:#f92672">-&gt;</span> repr
+</code></pre></div><p>This can be used immediately to write extended language terms:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">tfm1</span> <span style="color:#f92672">=</span> add (lit <span style="color:#ae81ff">7</span>) (neg (mul (lit <span style="color:#ae81ff">1</span>) (lit <span style="color:#ae81ff">2</span>))  )
+</code></pre></div><p>Note that we do not have to extend the interpreter <code>eval</code>. We merely define the meaning of <code>mul</code> in the semantic domain of <code>Int</code>. Recall that the evaluator <code>eval</code> is simply a selector of an interpretation in the desired semantic domain (the result type).</p>
+<p><em>Brief conclusion</em>:</p>
+<ul>
+<li>
+<p>The <em>final encoding</em> makes it easy to add not only new interpretations, but also new language forms, making the interpreters extensible by default.</p>
+</li>
+<li>
+<p>The <em>initial encoding</em> can also be made extensible by using the data types a la carte approach, by using fix points of a constructor signature, and combining constructor signatures by taking a co-product and automating the injections. However, the automation requires overlapping instances and the explicit enumeration of all constructor signatures in the type definition of the interpreters. In contrast, the final encoding enjoys type inference and encodes terms that cannot be represented as fixpoints of a functor.</p>
+</li>
+</ul>
+<h5 id="23-the-de-serialization-problem">2.3 The de-serialization problem</h5>
+<p>The <em>expression problem</em> (in terms of embedded languages) is about:</p>
+<ol>
+<li>Defining new interpreters for the existing terms</li>
+<li>Extending interpreters to handle an enriched language</li>
+</ol>
+<p>In both cases, we are given embedded language terms as input. So far, the process of evaluation has consisted of entering Haskell code that when compiled and run, will produce the values representing the desired terms. This method works well if we know the terms to process beforehand. The method of writing new Haskell code for each new embedded language term does not work well for communicating terms between computers, or storing terms in files and processing them later.</p>
+<p>The first direction, the storing and sending of the terms, is unproblematic.</p>
+<h5 id="24-pattern-matching-in-the-final-approach">2.4 Pattern-matching in the Final approach</h5>
+<p>Evaluators and other processors of embedded language terms have been interpreters, which fold over a term. This section describes operations that do not look like folds.</p>
+<p>The <em>initial approach</em> lets us write such operations easily, with pattern-matching and general recursion.</p>
+<p>The <em>final approach</em> does not &ldquo;seem&rdquo; to permit these operations or pattern-matching. However, it is an illusion that this is impossible.</p>
+<p>First, lets recall the principle that underlies interpreters - <em>compositionality</em>. This principle states that &ldquo;the meaning of a complex expression is determined by its structure and the meaning of its constituents&rdquo;. For example, <code>eval (Add e1 e2) = eval e1 + eval e2</code>.</p>
+<p>Our embedded language interpreters have been compositional; they define the language&rsquo;s denotational semantics, which is required to be compositional. The compositional interpretation of a term is epitomized in a <code>fold</code>. Our interpreters are all folds. In the <em>final approach</em>, the fold is wired in in the definition of the interpreters. Compositionality, i.e. <em>context insensitivity</em>, lets us build the meaning of a larger expression from the bottom-up, from the leaves to the root.</p>
+<p>There are, however, many operations that do not seem compositional because the handling of a sub-expression <em>does</em> depend on where it appears in a larger expression, i.e. it is <em>context sensitive</em>.</p>
+<div class="edit-meta">
 Last updated on 13 Nov 2020
 
 
