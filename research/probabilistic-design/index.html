@@ -18,7 +18,7 @@
 </style>
 <meta property="og:title" content="Probabilistic Language Design" />
 <meta property="og:description" content="Relevant Existing Probabilistic Programming Libraries/Languages
-        Probabilistic Language Design
+              Probabilistic Language Design
 The Design and Implementation of Probabilistic Programming Languages (Learning Resource) - Noah D. Goodman and Andreas Stuhlmüller
 Usability of Probabilistic Programming Languages
 Embedded Domain-Specific Languages for Probabilistic Programming - Oleg Kiselyov&rsquo;s Page
@@ -30,21 +30,21 @@ Embedded Domain-Specific Languages for Probabilistic Programming - Oleg Kiselyov
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Probabilistic Language Design"/>
 <meta name="twitter:description" content="Relevant Existing Probabilistic Programming Libraries/Languages
-        Probabilistic Language Design
+              Probabilistic Language Design
 The Design and Implementation of Probabilistic Programming Languages (Learning Resource) - Noah D. Goodman and Andreas Stuhlmüller
 Usability of Probabilistic Programming Languages
 Embedded Domain-Specific Languages for Probabilistic Programming - Oleg Kiselyov&rsquo;s Page
  Probabilistic Programming Language and its Incremental Evaluation (Hakaru10, Graphical Models) - Oleg Kiselyov, 2016 Probabilistic inference by program transformation in Hakaru - Praveen Narayanan, Chung-chieh Shan, 2016 Embedded Probabilistic Programming (Hansei) - Oleg Kiselyov, IFIP 2009  Functional probabilistic programming for scalable Bayesian modelling - Jonathan Law, Darren J."/>
 <meta itemprop="name" content="Probabilistic Language Design">
 <meta itemprop="description" content="Relevant Existing Probabilistic Programming Libraries/Languages
-        Probabilistic Language Design
+              Probabilistic Language Design
 The Design and Implementation of Probabilistic Programming Languages (Learning Resource) - Noah D. Goodman and Andreas Stuhlmüller
 Usability of Probabilistic Programming Languages
 Embedded Domain-Specific Languages for Probabilistic Programming - Oleg Kiselyov&rsquo;s Page
  Probabilistic Programming Language and its Incremental Evaluation (Hakaru10, Graphical Models) - Oleg Kiselyov, 2016 Probabilistic inference by program transformation in Hakaru - Praveen Narayanan, Chung-chieh Shan, 2016 Embedded Probabilistic Programming (Hansei) - Oleg Kiselyov, IFIP 2009  Functional probabilistic programming for scalable Bayesian modelling - Jonathan Law, Darren J.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="1327">
+<meta itemprop="wordCount" content="1745">
 
 
 
@@ -58,12 +58,24 @@ Embedded Domain-Specific Languages for Probabilistic Programming - Oleg Kiselyov
 <main><h1>Probabilistic Language Design</h1>
 <p><strong>Relevant Existing Probabilistic Programming Libraries/Languages</strong></p>
 <ul>
-<li><img src="https://hakaru-dev.github.io/" alt="Hakuru"></li>
-<li><img src="http://okmij.org/ftp/kakuritu/Hansei.html" alt="Hansei"></li>
-<li><img src="https://hackage.haskell.org/package/probability" alt="probability"></li>
-<li><img src="https://hackage.haskell.org/package/monad-bayes" alt="monad-bayes"></li>
-<li><img src="https://probprog.github.io/anglican/index.html" alt="Anglican"></li>
-<li><img src="https://github.com/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers" alt="PyMC"></li>
+<li>
+<p><img src="https://hakaru-dev.github.io/" alt="Hakuru"></p>
+</li>
+<li>
+<p><img src="http://okmij.org/ftp/kakuritu/Hansei.html" alt="Hansei"></p>
+</li>
+<li>
+<p><img src="https://hackage.haskell.org/package/monad-bayes" alt="monad-bayes"></p>
+</li>
+<li>
+<p><img src="https://hackage.haskell.org/package/probability" alt="probability"></p>
+</li>
+<li>
+<p><img src="https://probprog.github.io/anglican/index.html" alt="Anglican"></p>
+</li>
+<li>
+<p><img src="https://github.com/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers" alt="PyMC"></p>
+</li>
 </ul>
 <p><strong>Probabilistic Language Design</strong></p>
 <p><a href="http://dippl.org/">The Design and Implementation of Probabilistic Programming Languages (Learning Resource) - Noah D. Goodman and Andreas Stuhlmüller</a></p>
@@ -82,7 +94,7 @@ Embedded Domain-Specific Languages for Probabilistic Programming - Oleg Kiselyov
 <p><a href="https://arxiv.org/pdf/1507.00996.pdf">A New Approach to Probabilistic Programming Inference (Particle MCMC) - Frank Wood, Jan-Willem van de Meent, Vikash Mansinghka, AISTATS 2014</a></p>
 <h5 id="embedded-probabilistic-programming---oleg-kiselyov-ifip-2009">Embedded Probabilistic Programming - Oleg Kiselyov, IFIP 2009</h5>
 <p>Two general techniques for implementing a DSL with less overhead are the <em>finally-tagless</em> (shallow) embedding of object programs, and the <em>direct-style</em> representation of side effects. They use these techniques to build a DSL for probabilistic programming, embedded as an ordinary OCalm library, and represent probability distributions as ordinary OCaml programs. They use delimited continuations to reify probabilistic programs as lazy search trees, which inference algorithms may traverse without imposing overhead on deterministic parts of a model. Inference algorithms can be easily embedded in probabilistic programs themselves.</p>
-<p>They aim to build a DSL for probability distributions. A fundamental and popular way to represent a probability distribution is as a graphical model (a Bayesian network) whose nodes represent random variables and edges indicate conditional dependencies. However graphical models do not scale well to real problems involving thousands or more of random variables and dependencies.</p>
+<p>They aim to build a DSL for <em>discrete</em> probability distributions. A fundamental and popular way to represent a probability distribution is as a graphical model (a Bayesian network) whose nodes represent random variables and edges indicate conditional dependencies. However graphical models do not scale well to real problems involving thousands or more of random variables and dependencies.</p>
 <p>It helps to embed a language of probability distributions in a host language such as Haskell - the embedded language is called  a toolkit for probabilistic reasoning, because it is structured as a library of data types of graphical models and random variables along with inference procedures that operate on them. Similarly, distributions can be represented and reasoned about in a logic using formulas that talk about probabilities. However, a toolkit defines its own data types; e.g. random integers are distinct from regular integers, and cannot be added using the addition operation of the host language.</p>
 <p>The main drawback of a standalone probabilistic language is that it can&rsquo;t rely on the infrastructure of an existing host language. In contrast an embedded probabilistic language can piggyback on its host language&rsquo;s compilers to remove some interpretive overhead.</p>
 <p><strong>Their Approach: A Very Shallow Embedding</strong></p>
@@ -90,7 +102,7 @@ Embedded Domain-Specific Languages for Probabilistic Programming - Oleg Kiselyov
 <p><strong>Contributions</strong></p>
 <p>The paper describes their design of a practical DSL for probabilistic programming, by a novel combination of two existing techniques for eliminating notational and interpretive overhead in embedded languages, using OCaml:</p>
 <ol>
-<li>The direct-style representation of side effects using <em>delimited control operators</em> lets us reify a probabilistic program as a weighted search tree.</li>
+<li>The direct-style representation of side effects using <em>delimited control operators</em> lets us reify a probabilistic program as a weighted search tree (in the form of a search-tree monad). They also use continuation-passing-style via the <code>Cont</code> monad to eliminate run-time and notational overhead.</li>
 <li>The <em>finally-tagless</em> embedding of object programs using <em>combinator functions</em> allows multiple inference algorithms to operate on the same model without the run-time overhead of tagging values with their types.
 They apply these general techniques to probabilistic programming and demonstrate how they make embedded DSL programs faster to run and easier to write.</li>
 </ol>
@@ -141,8 +153,31 @@ They apply these general techniques to probabilistic programming and demonstrate
 <li>Inference transformers, compositional building blocks of inference representations, expressed as monad transformers.</li>
 </ol>
 <p>They then show how to compose these building blocks to obtain advanced inference algorithms.</p>
-<h5 id="probabilistic-programming-language-and-its-incremental-evaluation-hakaru---oleg-kiselyov-2016">Probabilistic Programming Language and its Incremental Evaluation (Hakaru) - Oleg Kiselyov, 2016</h5>
-<p>This describes the probabilistic programming language</p>
+<h5 id="probabilistic-inference-by-program-transformation-in-hakaru---praveen-narayanan-chung-chieh-shan-2016">Probabilistic inference by program transformation in Hakaru - Praveen Narayanan, Chung-chieh Shan, 2016</h5>
+<p><strong>Contributions</strong>
+Hakaru is a proof-of-concept probabilistic programming system that allows composable reuse of distributions, queries, and inference algorithms. It achieves unprecedented modularity by two means:</p>
+<ol>
+<li>A language of measures that represents distributions and queries, as well as inference algorithms.</li>
+<li>Semantics-preserving program transformations based on computer algebra.</li>
+</ol>
+<p>The system implements two automatic and semantics-preserving program transformations:</p>
+<ol>
+<li>Disintegration, which computes conditional distributions and probability densities.</li>
+<li>Simplification, which subsumes exact inference by computer algebra and supports approximate inference.</li>
+</ol>
+<p>All their transformations take input and produce output in the same language, so we can compose them to express inference algorithms.</p>
+<p><strong>Design</strong>
+Hakaru is an embedded DSL in Haskell in <em>finally tagless</em> form, so the code is parsed and type-checked by the Haskell compiler GHC. Hakaru transforms a probabilistic program to other programs in the same language that generate samples or otherwise perform inference. This major design decision contrasts with most other probabilistic programming systems, which handle a probabilistic program either by producing code in a different language, or by generating samples or otherwise performing inference directly—without staging.</p>
+<p><strong>Comparisons with other embeddings</strong></p>
+<p>Similar to Oleg Kiselyov and Adam Scibior&rsquo;s work, they embed a probabilistic language in a general-purpose functional language (respectively OCaml and Haskell). They also express and compose inference techniques as transformations that produce programs in the same language.</p>
+<p>However, Oleg and Adam&rsquo;s embeddings are &ldquo;shallower&rdquo;: the language defines a handful of constructs for manipulating distributions, and reuses the host languages' primitives for all other expressions. Their transformations consequently cannot inspect most of the input source code, notably deterministic computations and the RHS of binds <code>&gt;&gt;=</code>. Thus, Hakaru can compute densities and conditional distributions in the face of deterministic dependencies, and Hakaru can generate Metropolis-Hastings samplers using a variety of proposal distributions.</p>
+<p><strong>Workflow</strong>
+The workflow of a Hakaru user is that of Bayesian inference:</p>
+<ol>
+<li>Model the world as a <em>prior</em> probability distribution on what is observed and what is to be inferred. Hakaru defines a language of distributions that formalizes this modeling.</li>
+<li>Turn the prior distribution into a <em>conditional</em> distribution, which is a function that maps what is observed to a distribution on what is to be inferred. Hakaru provides transformations that automate this conditioning.</li>
+<li>Apply the function to what is actually observed to get the <em>posterior</em> distribution on what is to be inferred. Hakaru can represent the distribution as both a generation of a stream of samples, and also a term in the language.</li>
+</ol>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
@@ -174,6 +209,7 @@ Published on 13 Nov 2020
 <ul class="sub-menu">
 <li class=""><a href="https://probabilistic-effects.github.io/papers/asymptotic-improvement/">Asymptotic Improvement of Computations over Free Monads</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/anglican/">Design and Implementation of Probabilistic Programming Language Anglican</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/edsl-probabilistic-programming-oleg/">Embedded Domain-Specific Languages for Probabilistic Programming (Oleg)</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/">Faster Coroutine Pipelines</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>

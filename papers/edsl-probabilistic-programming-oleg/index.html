@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Embedded Domain-Specific Languages for Probabilistic Programming (Oleg) - Probabilistic Effects.  λθ</title>
+<meta name="generator" content="Hugo 0.80.0" />
+<link href="https://probabilistic-effects.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="https://probabilistic-effects.github.io/papers/edsl-probabilistic-programming-oleg/">
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="https://probabilistic-effects.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="Embedded Domain-Specific Languages for Probabilistic Programming (Oleg)" />
+<meta property="og:description" content="2.1 Tagless Final Probabilistic Language We define the syntax of the language as the following:
+type prob = float module type ProbSig = sig type ’a pm type (’a,’b) arr val b : bool -&gt; bool pm val dist : (prob * ’a) list -&gt; ’a pm val neg : bool pm -&gt; bool pm val con : bool pm -&gt; bool pm -&gt; bool pm val dis : bool pm -&gt; bool pm -&gt; bool pm val if_ ; bool pm -&gt; (unit -&gt; ’a pm) -&gt; (unit -&gt; ’a pm) -&gt; ’a pm val lam : (’a pm -&gt; ’b pm) -&gt; (’a,’b) arr pm val app : (’a,’b) arr pm -&gt; (’a pm -&gt; ’b pm) end type Prob = Float class ProbSig a b | a -&gt; b, b -&gt; a where data family ProbMonad a data family Arr a b b :: Bool -&gt; ProbMonad Bool dist :: [(Prob, a)] -&gt; ProbMonad a neg :: ProbMonad Bool -&gt; ProbMonad Bool and :: ProbMonad Bool -&gt; ProbMonad Bool -&gt; ProbMonad Bool or :: ProbMonad Bool -&gt; ProbMonad Bool -&gt; ProbMonad Bool if_ :: ProbMonad Bool -&gt; (() -&gt; ProbMonad a) -&gt; (() -&gt; ProbMonad a) -&gt; ProbMonad a lam :: (ProbMonad a -&gt; ProbMonad b) -&gt; ProbMonad (Arr a b) app :: ProbMonad (Arr a b) -&gt; (ProbMonad a -&gt; ProbMonad b) For simplicity, the signature ProbSig includes only the base type of booleans, and the operations necessary for a simple probabilistic model example." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://probabilistic-effects.github.io/papers/edsl-probabilistic-programming-oleg/" />
+<meta property="article:published_time" content="2020-11-13T14:05:41+00:00" />
+<meta property="article:modified_time" content="2020-11-13T14:05:41+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Embedded Domain-Specific Languages for Probabilistic Programming (Oleg)"/>
+<meta name="twitter:description" content="2.1 Tagless Final Probabilistic Language We define the syntax of the language as the following:
+type prob = float module type ProbSig = sig type ’a pm type (’a,’b) arr val b : bool -&gt; bool pm val dist : (prob * ’a) list -&gt; ’a pm val neg : bool pm -&gt; bool pm val con : bool pm -&gt; bool pm -&gt; bool pm val dis : bool pm -&gt; bool pm -&gt; bool pm val if_ ; bool pm -&gt; (unit -&gt; ’a pm) -&gt; (unit -&gt; ’a pm) -&gt; ’a pm val lam : (’a pm -&gt; ’b pm) -&gt; (’a,’b) arr pm val app : (’a,’b) arr pm -&gt; (’a pm -&gt; ’b pm) end type Prob = Float class ProbSig a b | a -&gt; b, b -&gt; a where data family ProbMonad a data family Arr a b b :: Bool -&gt; ProbMonad Bool dist :: [(Prob, a)] -&gt; ProbMonad a neg :: ProbMonad Bool -&gt; ProbMonad Bool and :: ProbMonad Bool -&gt; ProbMonad Bool -&gt; ProbMonad Bool or :: ProbMonad Bool -&gt; ProbMonad Bool -&gt; ProbMonad Bool if_ :: ProbMonad Bool -&gt; (() -&gt; ProbMonad a) -&gt; (() -&gt; ProbMonad a) -&gt; ProbMonad a lam :: (ProbMonad a -&gt; ProbMonad b) -&gt; ProbMonad (Arr a b) app :: ProbMonad (Arr a b) -&gt; (ProbMonad a -&gt; ProbMonad b) For simplicity, the signature ProbSig includes only the base type of booleans, and the operations necessary for a simple probabilistic model example."/>
+<meta itemprop="name" content="Embedded Domain-Specific Languages for Probabilistic Programming (Oleg)">
+<meta itemprop="description" content="2.1 Tagless Final Probabilistic Language We define the syntax of the language as the following:
+type prob = float module type ProbSig = sig type ’a pm type (’a,’b) arr val b : bool -&gt; bool pm val dist : (prob * ’a) list -&gt; ’a pm val neg : bool pm -&gt; bool pm val con : bool pm -&gt; bool pm -&gt; bool pm val dis : bool pm -&gt; bool pm -&gt; bool pm val if_ ; bool pm -&gt; (unit -&gt; ’a pm) -&gt; (unit -&gt; ’a pm) -&gt; ’a pm val lam : (’a pm -&gt; ’b pm) -&gt; (’a,’b) arr pm val app : (’a,’b) arr pm -&gt; (’a pm -&gt; ’b pm) end type Prob = Float class ProbSig a b | a -&gt; b, b -&gt; a where data family ProbMonad a data family Arr a b b :: Bool -&gt; ProbMonad Bool dist :: [(Prob, a)] -&gt; ProbMonad a neg :: ProbMonad Bool -&gt; ProbMonad Bool and :: ProbMonad Bool -&gt; ProbMonad Bool -&gt; ProbMonad Bool or :: ProbMonad Bool -&gt; ProbMonad Bool -&gt; ProbMonad Bool if_ :: ProbMonad Bool -&gt; (() -&gt; ProbMonad a) -&gt; (() -&gt; ProbMonad a) -&gt; ProbMonad a lam :: (ProbMonad a -&gt; ProbMonad b) -&gt; ProbMonad (Arr a b) app :: ProbMonad (Arr a b) -&gt; (ProbMonad a -&gt; ProbMonad b) For simplicity, the signature ProbSig includes only the base type of booleans, and the operations necessary for a simple probabilistic model example.">
+<meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
+<meta itemprop="wordCount" content="527">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>Probabilistic Effects.  λθ</h1>
+</header>
+
+<div class="content-container">
+<main><h1>Embedded Domain-Specific Languages for Probabilistic Programming (Oleg)</h1>
+<h5 id="21-tagless-final-probabilistic-language">2.1 Tagless Final Probabilistic Language</h5>
+<p>We define the syntax of the language as the following:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ocaml" data-lang="ocaml"><span style="color:#66d9ef">type</span> prob <span style="color:#f92672">=</span> <span style="color:#66d9ef">float</span>
+
+<span style="color:#66d9ef">module</span> <span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ProbSig</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">sig</span>
+  <span style="color:#66d9ef">type</span> <span style="color:#960050;background-color:#1e0010">’</span>a pm
+  <span style="color:#66d9ef">type</span> <span style="color:#f92672">(</span><span style="color:#960050;background-color:#1e0010">’</span>a<span style="color:#f92672">,</span><span style="color:#960050;background-color:#1e0010">’</span>b<span style="color:#f92672">)</span> arr
+  <span style="color:#66d9ef">val</span> b <span style="color:#f92672">:</span> <span style="color:#66d9ef">bool</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">bool</span> pm
+  <span style="color:#66d9ef">val</span> dist <span style="color:#f92672">:</span> <span style="color:#f92672">(</span>prob <span style="color:#f92672">*</span> <span style="color:#960050;background-color:#1e0010">’</span>a<span style="color:#f92672">)</span> <span style="color:#66d9ef">list</span> <span style="color:#f92672">-&gt;</span> <span style="color:#960050;background-color:#1e0010">’</span>a pm
+  <span style="color:#66d9ef">val</span> neg <span style="color:#f92672">:</span> <span style="color:#66d9ef">bool</span> pm <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">bool</span> pm
+  <span style="color:#66d9ef">val</span> con <span style="color:#f92672">:</span> <span style="color:#66d9ef">bool</span> pm <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">bool</span> pm <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">bool</span> pm
+  <span style="color:#66d9ef">val</span> dis <span style="color:#f92672">:</span> <span style="color:#66d9ef">bool</span> pm <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">bool</span> pm <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">bool</span> pm
+  <span style="color:#66d9ef">val</span> if_ <span style="color:#f92672">;</span> <span style="color:#66d9ef">bool</span> pm <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">unit</span> <span style="color:#f92672">-&gt;</span> <span style="color:#960050;background-color:#1e0010">’</span>a pm<span style="color:#f92672">)</span> <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">unit</span> <span style="color:#f92672">-&gt;</span> <span style="color:#960050;background-color:#1e0010">’</span>a pm<span style="color:#f92672">)</span> <span style="color:#f92672">-&gt;</span> <span style="color:#960050;background-color:#1e0010">’</span>a pm
+  <span style="color:#66d9ef">val</span> lam <span style="color:#f92672">:</span> <span style="color:#f92672">(</span><span style="color:#960050;background-color:#1e0010">’</span>a pm <span style="color:#f92672">-&gt;</span> <span style="color:#960050;background-color:#1e0010">’</span>b pm<span style="color:#f92672">)</span> <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">(</span><span style="color:#960050;background-color:#1e0010">’</span>a<span style="color:#f92672">,</span><span style="color:#960050;background-color:#1e0010">’</span>b<span style="color:#f92672">)</span> arr pm
+  <span style="color:#66d9ef">val</span> app <span style="color:#f92672">:</span> <span style="color:#f92672">(</span><span style="color:#960050;background-color:#1e0010">’</span>a<span style="color:#f92672">,</span><span style="color:#960050;background-color:#1e0010">’</span>b<span style="color:#f92672">)</span> arr pm <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">(</span><span style="color:#960050;background-color:#1e0010">’</span>a pm <span style="color:#f92672">-&gt;</span> <span style="color:#960050;background-color:#1e0010">’</span>b pm<span style="color:#f92672">)</span>
+<span style="color:#66d9ef">end</span>
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">type</span> <span style="color:#66d9ef">Prob</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">Float</span>
+
+<span style="color:#66d9ef">class</span> <span style="color:#66d9ef">ProbSig</span> a b <span style="color:#f92672">|</span> a <span style="color:#f92672">-&gt;</span> b, b <span style="color:#f92672">-&gt;</span> a <span style="color:#66d9ef">where</span>
+  <span style="color:#66d9ef">data</span> <span style="color:#66d9ef">family</span> <span style="color:#66d9ef">ProbMonad</span> a
+  <span style="color:#66d9ef">data</span> <span style="color:#66d9ef">family</span> <span style="color:#66d9ef">Arr</span> a b
+  b    <span style="color:#f92672">::</span> <span style="color:#66d9ef">Bool</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">ProbMonad</span> <span style="color:#66d9ef">Bool</span>
+  dist <span style="color:#f92672">::</span> [(<span style="color:#66d9ef">Prob</span>, a)] <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">ProbMonad</span> a
+  neg  <span style="color:#f92672">::</span> <span style="color:#66d9ef">ProbMonad</span> <span style="color:#66d9ef">Bool</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">ProbMonad</span> <span style="color:#66d9ef">Bool</span>
+  and  <span style="color:#f92672">::</span> <span style="color:#66d9ef">ProbMonad</span> <span style="color:#66d9ef">Bool</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">ProbMonad</span> <span style="color:#66d9ef">Bool</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">ProbMonad</span> <span style="color:#66d9ef">Bool</span>
+  or   <span style="color:#f92672">::</span> <span style="color:#66d9ef">ProbMonad</span> <span style="color:#66d9ef">Bool</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">ProbMonad</span> <span style="color:#66d9ef">Bool</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">ProbMonad</span> <span style="color:#66d9ef">Bool</span>
+  if_  <span style="color:#f92672">::</span> <span style="color:#66d9ef">ProbMonad</span> <span style="color:#66d9ef">Bool</span> <span style="color:#f92672">-&gt;</span> (() <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">ProbMonad</span> a) <span style="color:#f92672">-&gt;</span> (() <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">ProbMonad</span> a) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">ProbMonad</span> a
+  lam  <span style="color:#f92672">::</span> (<span style="color:#66d9ef">ProbMonad</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">ProbMonad</span> b) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">ProbMonad</span> (<span style="color:#66d9ef">Arr</span> a b)
+  app  <span style="color:#f92672">::</span> <span style="color:#66d9ef">ProbMonad</span> (<span style="color:#66d9ef">Arr</span> a b) <span style="color:#f92672">-&gt;</span> (<span style="color:#66d9ef">ProbMonad</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">ProbMonad</span> b)
+</code></pre></div><p>For simplicity, the signature <code>ProbSig</code> includes only the base type of booleans, and the operations necessary for a simple probabilistic model example.</p>
+<p>Following the tagless-final approach, a boolean expression in the DSL denotes a distribution over booleans, and is represented as an expression of the type <code>ProbMonad Bool</code>. Here <code>ProbMonad</code> is an abstract type constructor. Different implementations of <code>ProbSig</code> define <code>ProbMonad</code> in their own ways, giving rise to different interpreters of the same DSL.</p>
+<p>For example:</p>
+<ul>
+<li>The &ldquo;true&rdquo; literal in the DSL is represented as <code>b true</code> which has the abstract type <code>ProbMonad Bool</code>.</li>
+<li>A function expression in the DSL, for example of type <code>Bool -&gt; Bool</code> is represented as an expression of type <code>ProbMonad (Arr Bool Bool)</code>. Here, <code>Arr</code> is a binary type constructor.</li>
+<li>We use higher-order abstract syntax to represent binding. For example, we represent the curried binary function <code>λx. λy. x ∧ ¬y</code> on booleans as <code>lam (\x -&gt; lam (\y -&gt; and x (neg y)))</code>, whose inferred type is <code>ProbMonad (Arr (Arr Bool Bool) Bool))</code>. To apply this function to the literal &ldquo;false&rdquo;, we write <code>app (lam (\x -&gt; ...)) (b false)</code>.</li>
+</ul>
+<p>This DSL is probabilistic only due to the presence of the <code>dist</code> construct, which takes a list of values and their probabilities. The <code>dist</code> expression then denotes a stochastic computation with the given discrete distribution.</p>
+<p>A probabilistic program is a <em>functor</em> that takes a <code>ProbSig</code> instance as its argument.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">lawn</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">ProbSig</span> s <span style="color:#f92672">=&gt;</span> 
+<span style="color:#a6e22e">lawn</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">let</span> flip p         <span style="color:#f92672">=</span> dist [(p, true), (<span style="color:#ae81ff">1</span> <span style="color:#f92672">-</span> p, false)]
+           let_ e f       <span style="color:#f92672">=</span> app (lam f) e
+           grass_model () <span style="color:#f92672">=</span> let_ (flip <span style="color:#ae81ff">0.3</span>) (<span style="color:#a6e22e">\</span>rain <span style="color:#f92672">-&gt;</span> 
+                              let_ (flip <span style="color:#ae81ff">0.5</span>) (<span style="color:#a6e22e">\</span>sprinkler <span style="color:#f92672">-&gt;</span>
+                                let_ (or (and (flip <span style="color:#ae81ff">0.9</span>) rain)
+                                          (or (and (flip <span style="color:#ae81ff">0.8</span>) sprinkler)
+                                               (flip <span style="color:#ae81ff">0.1</span>))) (<span style="color:#a6e22e">\</span>grass_is_wet <span style="color:#f92672">-&gt;</span>
+                                      if_ grass_is_wet (<span style="color:#a6e22e">\</span>() <span style="color:#f92672">-&gt;</span> rain) (<span style="color:#a6e22e">\</span>() <span style="color:#f92672">-&gt;</span> dist <span style="color:#66d9ef">[]</span>)
+                                                            )
+                                               )
+                                             )
+</code></pre></div><div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/papers/anglican/" title="Design and Implementation of Probabilistic Programming Language Anglican"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Design and Implementation of Probabilistic Programming Language Anglican</a>
+<a class="nav nav-next" href="https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/" title="Faster Coroutine Pipelines">Next - Faster Coroutine Pipelines <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<nav class="open-menu">
+<ul>
+<li class=""><a href="https://probabilistic-effects.github.io/">Home</a></li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/activity/">Activity</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/activity/cpsing-monad-bayes/">CPSing Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/activity/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
+</ul>
+  
+</li>
+
+<li class="parent"><a href="https://probabilistic-effects.github.io/papers/">Papers</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/papers/asymptotic-improvement/">Asymptotic Improvement of Computations over Free Monads</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/anglican/">Design and Implementation of Probabilistic Programming Language Anglican</a></li>
+<li class="active"><a href="https://probabilistic-effects.github.io/papers/edsl-probabilistic-programming-oleg/">Embedded Domain-Specific Languages for Probabilistic Programming (Oleg)</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/">Faster Coroutine Pipelines</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/probabilistic-programming/">Introduction To Probabilistic Programming</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/lightweight-implementations-prob-languages/">Lightweight Implementations of Probabilistic Programming Languages</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/research/">Research</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/research/research-journal/">Research Journal</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/">Potential Approaches to Improving Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/probabilistic-design/">Probabilistic Language Design</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/literature-review/">Literature Review</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/parsley-case-study/">Case Study: Optimising Parsley</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/optimising-core/">Optimising Core</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/">Monad Bayes</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/inference-transformers/">Inference Transformers</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/pmmh-hmm/">Implementing HMM Simulation and Inference (using PMMH)</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/documentation/">Documentation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/conditioning-scoring/">How Conditioning and Scoring Works</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/">Tooling</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/cabal/">Cabal Projects</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/">Benchmarking</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmark-log/">Benchmark Log</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmarking-profiling/">How to Benchmark and Profile</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/monad-bayes-components/">Relevant Components of Monad Bayes for Profiling</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/background/">Background</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/background/embedding/">Embedding DSLs</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/staging/">Staging</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/smc-pmmh/">SMC and PMMH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/handrolling/">Handrolling Monad Transformer Stacks</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mtl/">MTL</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mcmc-mh/">MCMC and MH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/markov-chain/">Markov Chains</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/hidden-markov-model/">Hidden Markov Model</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/delimited-continuations/">Delimited Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/haskell-core/">Haskell Core</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/bayesian/">Bayesian</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/concurrency/">Concurrency</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/coroutines/">Coroutines</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/monad-transformers/"></a></li>
+</ul>
+  
+</li>
+</ul>
+</nav>
+
+
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>
