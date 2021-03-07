@@ -26,16 +26,6 @@
     </item>
     
     <item>
-      <title>Embedded Domain-Specific Languages for Probabilistic Programming (Oleg)</title>
-      <link>https://probabilistic-effects.github.io/papers/edsl-probabilistic-programming-oleg/</link>
-      <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
-      
-      <guid>https://probabilistic-effects.github.io/papers/edsl-probabilistic-programming-oleg/</guid>
-      <description>2.1 Tagless Final Probabilistic Language We define the syntax of the language as the following:
-type prob = float module type ProbSig = sig type ’a pm type (’a,’b) arr val b : bool -&amp;gt; bool pm val dist : (prob * ’a) list -&amp;gt; ’a pm val neg : bool pm -&amp;gt; bool pm val con : bool pm -&amp;gt; bool pm -&amp;gt; bool pm val dis : bool pm -&amp;gt; bool pm -&amp;gt; bool pm val if_ ; bool pm -&amp;gt; (unit -&amp;gt; ’a pm) -&amp;gt; (unit -&amp;gt; ’a pm) -&amp;gt; ’a pm val lam : (’a pm -&amp;gt; ’b pm) -&amp;gt; (’a,’b) arr pm val app : (’a,’b) arr pm -&amp;gt; (’a pm -&amp;gt; ’b pm) end type Prob = Float class ProbSig a b | a -&amp;gt; b, b -&amp;gt; a where data family ProbMonad a data family Arr a b b :: Bool -&amp;gt; ProbMonad Bool dist :: [(Prob, a)] -&amp;gt; ProbMonad a neg :: ProbMonad Bool -&amp;gt; ProbMonad Bool and :: ProbMonad Bool -&amp;gt; ProbMonad Bool -&amp;gt; ProbMonad Bool or :: ProbMonad Bool -&amp;gt; ProbMonad Bool -&amp;gt; ProbMonad Bool if_ :: ProbMonad Bool -&amp;gt; (() -&amp;gt; ProbMonad a) -&amp;gt; (() -&amp;gt; ProbMonad a) -&amp;gt; ProbMonad a lam :: (ProbMonad a -&amp;gt; ProbMonad b) -&amp;gt; ProbMonad (Arr a b) app :: ProbMonad (Arr a b) -&amp;gt; (ProbMonad a -&amp;gt; ProbMonad b) For simplicity, the signature ProbSig includes only the base type of booleans, and the operations necessary for a simple probabilistic model example.</description>
-    </item>
-    
-    <item>
       <title>Faster Coroutine Pipelines</title>
       <link>https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/</link>
       <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
@@ -62,6 +52,25 @@ data It i a = Pure a | Get (i -&amp;gt; It i a) The expression Pure e marks the 
       <guid>https://probabilistic-effects.github.io/papers/fusion-for-free/</guid>
       <description>Free monads are at the heart of algebraic effect handlers, a functional approach for modelling side effects which allows the separation of the syntax and semantics of effectful operations, whilst enabling us to provide multiple different semantics for the same syntax.
 The syntax of primitive side-effect operations is captured in a signature functor. The free monad over this functor assembles the syntax for the individual operations into an abstract syntax tree for an effectful program.</description>
+    </item>
+    
+    <item>
+      <title>Hakaru - Probabilistic Inference by Program Transformation</title>
+      <link>https://probabilistic-effects.github.io/papers/hakaru/</link>
+      <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/papers/hakaru/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Hansei - Embedded Domain-Specific Languages for Probabilistic Programming (Oleg)</title>
+      <link>https://probabilistic-effects.github.io/papers/hansei/</link>
+      <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/papers/hansei/</guid>
+      <description>2.1 Tagless Final Probabilistic Language We define the syntax of the language as the following:
+type prob = float module type ProbSig = sig type ’a pm type (’a,’b) arr val b : bool -&amp;gt; bool pm val dist : (prob * ’a) list -&amp;gt; ’a pm val neg : bool pm -&amp;gt; bool pm val con : bool pm -&amp;gt; bool pm -&amp;gt; bool pm val dis : bool pm -&amp;gt; bool pm -&amp;gt; bool pm val if_ ; bool pm -&amp;gt; (unit -&amp;gt; ’a pm) -&amp;gt; (unit -&amp;gt; ’a pm) -&amp;gt; ’a pm val lam : (’a pm -&amp;gt; ’b pm) -&amp;gt; (’a,’b) arr pm val app : (’a,’b) arr pm -&amp;gt; (’a pm -&amp;gt; ’b pm) end type Prob = Float class ProbSig a b | a -&amp;gt; b, b -&amp;gt; a where data family ProbMonad a data family Arr a b b :: Bool -&amp;gt; ProbMonad Bool dist :: [(Prob, a)] -&amp;gt; ProbMonad a neg :: ProbMonad Bool -&amp;gt; ProbMonad Bool and :: ProbMonad Bool -&amp;gt; ProbMonad Bool -&amp;gt; ProbMonad Bool or :: ProbMonad Bool -&amp;gt; ProbMonad Bool -&amp;gt; ProbMonad Bool if_ :: ProbMonad Bool -&amp;gt; (() -&amp;gt; ProbMonad a) -&amp;gt; (() -&amp;gt; ProbMonad a) -&amp;gt; ProbMonad a lam :: (ProbMonad a -&amp;gt; ProbMonad b) -&amp;gt; ProbMonad (Arr a b) app :: ProbMonad (Arr a b) -&amp;gt; (ProbMonad a -&amp;gt; ProbMonad b) For simplicity, the signature ProbSig includes only the base type of booleans, and the operations necessary for a simple probabilistic model example.</description>
     </item>
     
     <item>

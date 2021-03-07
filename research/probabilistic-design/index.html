@@ -44,7 +44,7 @@ Embedded Domain-Specific Languages for Probabilistic Programming - Oleg Kiselyov
  Probabilistic Programming Language and its Incremental Evaluation (Hakaru10, Graphical Models) - Oleg Kiselyov, 2016 Probabilistic inference by program transformation in Hakaru - Praveen Narayanan, Chung-chieh Shan, 2016 Embedded Probabilistic Programming (Hansei) - Oleg Kiselyov, IFIP 2009  Functional probabilistic programming for scalable Bayesian modelling - Jonathan Law, Darren J.">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="1745">
+<meta itemprop="wordCount" content="2741">
 
 
 
@@ -92,8 +92,8 @@ Embedded Domain-Specific Languages for Probabilistic Programming - Oleg Kiselyov
 <p><a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=8576406&amp;casa_token=ykFuETQWfDQAAAAA:yUjdDPPjS_Vpf25HewgDWzpUtE6w7jBTHCpvMeFbXf4fx7y6Jk_lwlEJfCUHJhWgZdtutQ4xSeg&amp;tag=1">Semantics for probabilistic programming: higher-order functions, continuous distributions, and soft constraints, Sam Staton, Hongseok Yang, Frank Wood, LICS 2016</a></p>
 <p><a href="http://proceedings.mlr.press/v38/vandemeent15.pdf">Particle Gibbs with Ancestor Sampling for Probabilistic Programs - Jan-Willem van de Meent, Hongseok Yang, Vikash Mansinghka, Frank Wood, AISTATS 2015</a></p>
 <p><a href="https://arxiv.org/pdf/1507.00996.pdf">A New Approach to Probabilistic Programming Inference (Particle MCMC) - Frank Wood, Jan-Willem van de Meent, Vikash Mansinghka, AISTATS 2014</a></p>
-<h5 id="embedded-probabilistic-programming---oleg-kiselyov-ifip-2009">Embedded Probabilistic Programming - Oleg Kiselyov, IFIP 2009</h5>
-<p>Two general techniques for implementing a DSL with less overhead are the <em>finally-tagless</em> (shallow) embedding of object programs, and the <em>direct-style</em> representation of side effects. They use these techniques to build a DSL for probabilistic programming, embedded as an ordinary OCalm library, and represent probability distributions as ordinary OCaml programs. They use delimited continuations to reify probabilistic programs as lazy search trees, which inference algorithms may traverse without imposing overhead on deterministic parts of a model. Inference algorithms can be easily embedded in probabilistic programs themselves.</p>
+<h5 id="embedded-probabilistic-programming-hansei-ocaml---oleg-kiselyov-ifip-2009">Embedded Probabilistic Programming (Hansei, OCaml) - Oleg Kiselyov, IFIP 2009</h5>
+<p>Two general techniques for implementing a DSL with less overhead are the <em>finally-tagless</em> (shallow) embedding of object programs, and the <em>direct-style</em> representation of side effects. They use these techniques to build a DSL for probabilistic programming, embedded as an ordinary OCaml library, and represent probability distributions as ordinary OCaml programs. They use delimited continuations to reify probabilistic programs as lazy search trees, which inference algorithms may traverse without imposing overhead on deterministic parts of a model. Inference algorithms can be easily embedded in probabilistic programs themselves.</p>
 <p>They aim to build a DSL for <em>discrete</em> probability distributions. A fundamental and popular way to represent a probability distribution is as a graphical model (a Bayesian network) whose nodes represent random variables and edges indicate conditional dependencies. However graphical models do not scale well to real problems involving thousands or more of random variables and dependencies.</p>
 <p>It helps to embed a language of probability distributions in a host language such as Haskell - the embedded language is called  a toolkit for probabilistic reasoning, because it is structured as a library of data types of graphical models and random variables along with inference procedures that operate on them. Similarly, distributions can be represented and reasoned about in a logic using formulas that talk about probabilities. However, a toolkit defines its own data types; e.g. random integers are distinct from regular integers, and cannot be added using the addition operation of the host language.</p>
 <p>The main drawback of a standalone probabilistic language is that it can&rsquo;t rely on the infrastructure of an existing host language. In contrast an embedded probabilistic language can piggyback on its host language&rsquo;s compilers to remove some interpretive overhead.</p>
@@ -113,7 +113,7 @@ They apply these general techniques to probabilistic programming and demonstrate
 <li>They support <em>lazy evaluation</em> in probabilistic programs.</li>
 <li>Users of the library are free to implement their own inference algorithms.</li>
 </ol>
-<h5 id="functional-programming-for-modular-bayesian-inference---adam-scibior-icfp-2018">Functional Programming for Modular Bayesian Inference - Adam Scibior, ICFP 2018</h5>
+<h5 id="functional-programming-for-modular-bayesian-inference-monad-bayes-haskell---adam-scibior-icfp-2018">Functional Programming for Modular Bayesian Inference (Monad Bayes, Haskell) - Adam Scibior, ICFP 2018</h5>
 <p>They present an architectural design of a library for Bayesian modelling and inference in modern functional programming languages. The novel aspect of their approach are modular implementations of existing inference algorithms. Their design relies on three inherently functional features:</p>
 <ol>
 <li>Higher-order functions</li>
@@ -153,9 +153,11 @@ They apply these general techniques to probabilistic programming and demonstrate
 <li>Inference transformers, compositional building blocks of inference representations, expressed as monad transformers.</li>
 </ol>
 <p>They then show how to compose these building blocks to obtain advanced inference algorithms.</p>
-<h5 id="probabilistic-inference-by-program-transformation-in-hakaru---praveen-narayanan-chung-chieh-shan-2016">Probabilistic inference by program transformation in Hakaru - Praveen Narayanan, Chung-chieh Shan, 2016</h5>
+<h5 id="probabilistic-inference-by-program-transformation-in-hakaru-hakaru-haskell---praveen-narayanan-chung-chieh-shan-2016">Probabilistic inference by program transformation in Hakaru (Hakaru, Haskell) - Praveen Narayanan, Chung-chieh Shan, 2016</h5>
+<p>A major challenge faced by every probabilistic programming system is that probabilistic models and inference algorithms do not compose in tandem: just because a model we’re interested in can be built naturally from two submodels does not mean a good inference algorithm for the model can be built naturally from good inference algorithms for the two submodels. Due to this challenge, many systems with good support for model composition resort to a fixed or monolithic inference algorithm and do their best to optimize it.</p>
+<p>Hakaru demonstrates a new way to address this challenge. On one hand, Hakaru supports model composition like any other embedded monadic DSL does: on top of primitive combinators such as dirac, bind, and superpose, users can define Haskell functions to express common patterns of samplers and measures. On the other hand, because each inference building block is a transformation on this DSL, Hakaru supports inference composition like a compiler construction kit or computer algebra system does: users can define Haskell functions to express custom pathways from models to inference.</p>
 <p><strong>Contributions</strong>
-Hakaru is a proof-of-concept probabilistic programming system that allows composable reuse of distributions, queries, and inference algorithms. It achieves unprecedented modularity by two means:</p>
+Hakaru is a proof-of-concept probabilistic programming system that allows composable reuse of discrete and continuous distributions, queries, and inference algorithms. It achieves unprecedented modularity by two means:</p>
 <ol>
 <li>A language of measures that represents distributions and queries, as well as inference algorithms.</li>
 <li>Semantics-preserving program transformations based on computer algebra.</li>
@@ -167,7 +169,7 @@ Hakaru is a proof-of-concept probabilistic programming system that allows compos
 </ol>
 <p>All their transformations take input and produce output in the same language, so we can compose them to express inference algorithms.</p>
 <p><strong>Design</strong>
-Hakaru is an embedded DSL in Haskell in <em>finally tagless</em> form, so the code is parsed and type-checked by the Haskell compiler GHC. Hakaru transforms a probabilistic program to other programs in the same language that generate samples or otherwise perform inference. This major design decision contrasts with most other probabilistic programming systems, which handle a probabilistic program either by producing code in a different language, or by generating samples or otherwise performing inference directly—without staging.</p>
+Hakaru is an embedded DSL in Haskell in <em>finally tagless</em> form, so the code is parsed and type-checked by the Haskell compiler GHC. Hakaru transforms a probabilistic program to other programs in the same language that generate samples or otherwise perform inference. This major design decision contrasts with most other probabilistic programming systems, which handle a probabilistic program either by producing code in a different language, or by generating samples or otherwise performing inference directly—without staging. They use staged interpreters.</p>
 <p><strong>Comparisons with other embeddings</strong></p>
 <p>Similar to Oleg Kiselyov and Adam Scibior&rsquo;s work, they embed a probabilistic language in a general-purpose functional language (respectively OCaml and Haskell). They also express and compose inference techniques as transformations that produce programs in the same language.</p>
 <p>However, Oleg and Adam&rsquo;s embeddings are &ldquo;shallower&rdquo;: the language defines a handful of constructs for manipulating distributions, and reuses the host languages' primitives for all other expressions. Their transformations consequently cannot inspect most of the input source code, notably deterministic computations and the RHS of binds <code>&gt;&gt;=</code>. Thus, Hakaru can compute densities and conditional distributions in the face of deterministic dependencies, and Hakaru can generate Metropolis-Hastings samplers using a variety of proposal distributions.</p>
@@ -178,6 +180,74 @@ The workflow of a Hakaru user is that of Bayesian inference:</p>
 <li>Turn the prior distribution into a <em>conditional</em> distribution, which is a function that maps what is observed to a distribution on what is to be inferred. Hakaru provides transformations that automate this conditioning.</li>
 <li>Apply the function to what is actually observed to get the <em>posterior</em> distribution on what is to be inferred. Hakaru can represent the distribution as both a generation of a stream of samples, and also a term in the language.</li>
 </ol>
+<p><strong>Transformations</strong></p>
+<p><em>Disintegration</em> computes conditional distributions and probability densities from a given distribution. Hakaru&rsquo;s <code>disintegrate</code> transformation turns a Hakaru program of the type <code>HMeasure (HPair a b)</code> into a Hakaru function <code>a (:-&gt;) HMeasure b</code>, i.e a distribution producing pairs of values <code>(a, b)</code> into a function which produces values of <code>b</code> conditioned on a certain value of <code>a</code>.</p>
+<p><em>Simplification</em> subsumes exact inference by computer algebra and supports approximate inference. After applying disintegration to compute a conditional distribution, <code>simplify</code> performs linear-algebra-like reductions to produce a compact representation of the conditional distribution. In this sense, simplification subsumes exact inference. The simplified posterior is a Hakaru program and it can be run as a sampler.</p>
+<p><strong>Inference by composable program transformations</strong></p>
+<p>Hakaru transforms a probabilistic program to other programs in the same language that either generate samples or perform inference. This major design decision contrasts with most other probabilistic programming systems, which handle a probabilistic program either by producing code in a different language, or by generating samples or performing inference directly without staging.</p>
+<p>Because Hakaru transformations stay in the same language, we can compose them - they use disintegration and simplification together to generate efficient densities, as well as conditional distributions. They can also compose inference techniques.</p>
+<p><strong>Expressing Semantic Distinctions by Types</strong></p>
+<p>They make crucial use of types to capture semantic distinctions in Hakaru.</p>
+<ul>
+<li>
+<p><em>Distinguishing Hakaru and Haskell types</em>: The foremost distinction between Hakaru and Haskell is their type systems. They distinguish between the universe of Hakaru types, <code>Hakaru</code>, and the universe of Haskell types, <code>*</code>. There are many types in <code>*</code> which we don&rsquo;t want to allow in <code>Hakaru</code> - Hakaru allows arbitrary user-defined regular recursive polynomial data types, but Haskell&rsquo;s data types are far richer - we musn&rsquo;t allow users to embed arbitrary Haskell data types into Hakaru.</p>
+</li>
+<li>
+<p><em>Distinguishing values and distributions</em>: Hakaru&rsquo;s type system draws a hard distinction between individual values (of type <code>a</code>) and distributions on values (of type <code>HMeasure a</code>). To see why this is necessary, consider the program <code>x = uniform 0 1; x + x</code> - it is unclear whether the value <code>x</code> is drawn from the distribution and we add it to itself, or if <code>x</code> is the distribution itself, and then we draw two samples from this distribution and add them together.</p>
+<p>Hakaru distinguishes these two meanings by distinguishing between <code>let-bindings</code> and <code>monadic-bindings</code>.</p>
+<p>If <code>x</code> is monadically bound, then it has type <code>HReal</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">sampleOnce</span>  <span style="color:#f92672">=</span> uniform <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">&gt;&gt;=</span> <span style="color:#a6e22e">\</span>x <span style="color:#f92672">-&gt;</span> dirac (x <span style="color:#f92672">+</span> x)
+</code></pre></div><p>If <code>x</code> is let-bound, then it has type <code>HMeasure HReal</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">sampleTwice</span> <span style="color:#f92672">=</span> let_ x <span style="color:#f92672">=</span> uniform <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1</span> <span style="color:#66d9ef">in</span> liftM2 (<span style="color:#f92672">+</span>) x x 
+</code></pre></div></li>
+<li>
+<p><em>Distinguishing values in different domains</em>: Hakaru provides four primitive numeric types to distinguish between various numeric domains: <code>HNat</code>, <code>HInt</code>, <code>HProb</code>, and <code>HReal</code>.</p>
+</li>
+<li>
+<p><em>Distinguishing different interpretations of Hakaru</em>: They use a <em>finally tagless</em> embedding of Hakaru in Haskell. The class they use to represent their syntax is called <code>Mochastic</code> Thus an interpretation of <code>Mochastic</code> is implemented as an instance; they have encoded several such interpretations - a sampler, a pretty printer, etc.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Prob</span>
+<span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Measure</span> a
+<span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Dist</span> a
+
+<span style="color:#66d9ef">class</span> <span style="color:#66d9ef">Mochastic</span> repr <span style="color:#66d9ef">where</span>
+  <span style="color:#66d9ef">type</span> <span style="color:#66d9ef">Type</span> repr a <span style="color:#f92672">::</span> <span style="color:#66d9ef">Constraint</span>
+  real        <span style="color:#f92672">::</span> <span style="color:#66d9ef">Double</span> <span style="color:#f92672">-&gt;</span> repr <span style="color:#66d9ef">Double</span>
+  bool        <span style="color:#f92672">::</span> <span style="color:#66d9ef">Bool</span> <span style="color:#f92672">-&gt;</span> repr <span style="color:#66d9ef">Bool</span>
+  add, mul    <span style="color:#f92672">::</span> repr <span style="color:#66d9ef">Double</span> <span style="color:#f92672">-&gt;</span> repr <span style="color:#66d9ef">Double</span> <span style="color:#f92672">-&gt;</span> repr <span style="color:#66d9ef">Double</span>
+  neg         <span style="color:#f92672">::</span> repr <span style="color:#66d9ef">Double</span> <span style="color:#f92672">-&gt;</span> repr <span style="color:#66d9ef">Double</span>
+  neg         <span style="color:#f92672">=</span>  mul (real (<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>))
+  logFloat, logToLogFloat
+              <span style="color:#f92672">::</span> repr <span style="color:#66d9ef">Double</span> <span style="color:#f92672">-&gt;</span> repr <span style="color:#66d9ef">Prob</span>
+  unbool      <span style="color:#f92672">::</span> repr <span style="color:#66d9ef">Bool</span> <span style="color:#f92672">-&gt;</span> repr c <span style="color:#f92672">-&gt;</span> repr c
+              <span style="color:#f92672">-&gt;</span> repr c
+  pair        <span style="color:#f92672">::</span> repr a <span style="color:#f92672">-&gt;</span> repr b <span style="color:#f92672">-&gt;</span> repr (a, b)
+  unpair      <span style="color:#f92672">::</span> repr (a, b) <span style="color:#f92672">-&gt;</span> (repr a <span style="color:#f92672">-&gt;</span> repr b <span style="color:#f92672">-&gt;</span> repr c)
+              <span style="color:#f92672">-&gt;</span> repr c
+  inl         <span style="color:#f92672">::</span> repr a <span style="color:#f92672">-&gt;</span> repr (<span style="color:#66d9ef">Either</span> a b)
+  inr         <span style="color:#f92672">::</span> repr b <span style="color:#f92672">-&gt;</span> repr (<span style="color:#66d9ef">Either</span> a b)
+  uneither    <span style="color:#f92672">::</span> repr (<span style="color:#66d9ef">Either</span> a b) <span style="color:#f92672">-&gt;</span> (repr a <span style="color:#f92672">-&gt;</span> repr c) <span style="color:#f92672">-&gt;</span> (repr b <span style="color:#f92672">-&gt;</span> repr c)
+              <span style="color:#f92672">-&gt;</span> repr c
+  nil         <span style="color:#f92672">::</span> repr [a]
+  cons        <span style="color:#f92672">::</span> repr a <span style="color:#f92672">-&gt;</span> repr [a] <span style="color:#f92672">-&gt;</span> repr [a]
+  unlist      <span style="color:#f92672">::</span> repr [a] <span style="color:#f92672">-&gt;</span> repr c <span style="color:#f92672">-&gt;</span> (repr a <span style="color:#f92672">-&gt;</span> repr [a] <span style="color:#f92672">-&gt;</span> repr c)
+              <span style="color:#f92672">-&gt;</span> repr c
+  ret         <span style="color:#f92672">::</span> repr a <span style="color:#f92672">-&gt;</span> repr (<span style="color:#66d9ef">Measure</span> a)
+  bind        <span style="color:#f92672">::</span> repr (<span style="color:#66d9ef">Measure</span> a) <span style="color:#f92672">-&gt;</span> (repr a <span style="color:#f92672">-&gt;</span> repr (<span style="color:#66d9ef">Measure</span> b)) <span style="color:#f92672">-&gt;</span> repr (<span style="color:#66d9ef">Measure</span> b)
+  conditioned, unconditioned <span style="color:#f92672">::</span> repr (<span style="color:#66d9ef">Dist</span> a) <span style="color:#f92672">-&gt;</span> repr (<span style="color:#66d9ef">Measure</span> a)
+  factor      <span style="color:#f92672">::</span> repr <span style="color:#66d9ef">Prob</span> <span style="color:#f92672">-&gt;</span> repr (<span style="color:#66d9ef">Measure</span> ())
+  dirac       <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Type</span> repr a) <span style="color:#f92672">=&gt;</span> repr a <span style="color:#f92672">-&gt;</span> repr (<span style="color:#66d9ef">Dist</span> a)
+  categorical <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Type</span> repr a) <span style="color:#f92672">=&gt;</span> repr [(a, <span style="color:#66d9ef">Prob</span>)] <span style="color:#f92672">-&gt;</span> repr (<span style="color:#66d9ef">Dist</span> a)
+  bern        <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Type</span> repr <span style="color:#66d9ef">Bool</span>) <span style="color:#f92672">=&gt;</span> repr <span style="color:#66d9ef">Double</span> <span style="color:#f92672">-&gt;</span> repr (<span style="color:#66d9ef">Dist</span> <span style="color:#66d9ef">Bool</span>)
+  bern p      <span style="color:#f92672">=</span>  categorical <span style="color:#f92672">$</span>
+                cons (pair (bool <span style="color:#66d9ef">True</span>) (logFloat p)) <span style="color:#f92672">$</span>
+                cons (pair (bool <span style="color:#66d9ef">False</span>) (logFloat (add (real <span style="color:#ae81ff">1</span>) (neg p)))) <span style="color:#f92672">$</span>
+                nil
+  normal, uniform
+              <span style="color:#f92672">::</span> repr <span style="color:#66d9ef">Double</span> <span style="color:#f92672">-&gt;</span> repr <span style="color:#66d9ef">Double</span> <span style="color:#f92672">-&gt;</span> repr (<span style="color:#66d9ef">Dist</span> <span style="color:#66d9ef">Double</span>)
+  poisson     <span style="color:#f92672">::</span> repr <span style="color:#66d9ef">Double</span> <span style="color:#f92672">-&gt;</span> repr (<span style="color:#66d9ef">Dist</span> <span style="color:#66d9ef">Int</span>)
+</code></pre></div><p>They use higher-order-abstract-syntax to encode Hakaru binding.</p>
+</li>
+</ul>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
@@ -209,10 +279,11 @@ Published on 13 Nov 2020
 <ul class="sub-menu">
 <li class=""><a href="https://probabilistic-effects.github.io/papers/asymptotic-improvement/">Asymptotic Improvement of Computations over Free Monads</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/anglican/">Design and Implementation of Probabilistic Programming Language Anglican</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/papers/edsl-probabilistic-programming-oleg/">Embedded Domain-Specific Languages for Probabilistic Programming (Oleg)</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/">Faster Coroutine Pipelines</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/hakaru/">Hakaru - Probabilistic Inference by Program Transformation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/hansei/">Hansei - Embedded Domain-Specific Languages for Probabilistic Programming (Oleg)</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/probabilistic-programming/">Introduction To Probabilistic Programming</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/lightweight-implementations-prob-languages/">Lightweight Implementations of Probabilistic Programming Languages</a></li>
 </ul>
@@ -281,7 +352,6 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/background/concurrency/">Concurrency</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/background/coroutines/">Coroutines</a></li>
-<li class=""><a href="https://probabilistic-effects.github.io/background/monad-transformers/"></a></li>
 </ul>
   
 </li>

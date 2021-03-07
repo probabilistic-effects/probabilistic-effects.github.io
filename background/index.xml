@@ -180,14 +180,5 @@ The Pause transformer
 The Pause monad transformer will augment the underlying language with one additional action: pause.</description>
     </item>
     
-    <item>
-      <title></title>
-      <link>https://probabilistic-effects.github.io/background/monad-transformers/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://probabilistic-effects.github.io/background/monad-transformers/</guid>
-      <description></description>
-    </item>
-    
   </channel>
 </rss>

@@ -33,11 +33,6 @@
   </url>
   
   <url>
-    <loc>https://probabilistic-effects.github.io/papers/edsl-probabilistic-programming-oleg/</loc>
-    <lastmod>2020-11-13T14:05:41+00:00</lastmod>
-  </url>
-  
-  <url>
     <loc>https://probabilistic-effects.github.io/background/embedding/</loc>
     <lastmod>2020-11-13T14:05:41+00:00</lastmod>
   </url>
@@ -54,6 +49,16 @@
   
   <url>
     <loc>https://probabilistic-effects.github.io/papers/fusion-for-free/</loc>
+    <lastmod>2020-11-13T14:05:41+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://probabilistic-effects.github.io/papers/hakaru/</loc>
+    <lastmod>2020-11-13T14:05:41+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://probabilistic-effects.github.io/papers/hansei/</loc>
     <lastmod>2020-11-13T14:05:41+00:00</lastmod>
   </url>
   
@@ -245,10 +250,6 @@
   <url>
     <loc>https://probabilistic-effects.github.io/research/optimising-core/</loc>
     <lastmod>2020-11-13T13:40:41+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://probabilistic-effects.github.io/background/monad-transformers/</loc>
   </url>
   
   <url>
