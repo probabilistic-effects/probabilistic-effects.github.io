@@ -35,7 +35,7 @@ data Exp = Lit Int | Neg Exp | Add Exp Exp Our running example is written as fol
 data Exp = Lit Int | Neg Exp | Add Exp Exp Our running example is written as follows:">
 <meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
-<meta itemprop="wordCount" content="1595">
+<meta itemprop="wordCount" content="1895">
 
 
 
@@ -172,6 +172,73 @@ eval = id
 <p>First, lets recall the principle that underlies interpreters - <em>compositionality</em>. This principle states that &ldquo;the meaning of a complex expression is determined by its structure and the meaning of its constituents&rdquo;. For example, <code>eval (Add e1 e2) = eval e1 + eval e2</code>.</p>
 <p>Our embedded language interpreters have been compositional; they define the language&rsquo;s denotational semantics, which is required to be compositional. The compositional interpretation of a term is epitomized in a <code>fold</code>. Our interpreters are all folds. In the <em>final approach</em>, the fold is wired in in the definition of the interpreters. Compositionality, i.e. <em>context insensitivity</em>, lets us build the meaning of a larger expression from the bottom-up, from the leaves to the root.</p>
 <p>There are, however, many operations that do not seem compositional because the handling of a sub-expression <em>does</em> depend on where it appears in a larger expression, i.e. it is <em>context sensitive</em>.</p>
+<hr>
+<h4 id="folding-domain-specific-languages-deep-and-shallow-embeddings">Folding Domain-Specific Languages: Deep and Shallow Embeddings</h4>
+<hr>
+<h4 id="convo-with-sam">Convo with Sam</h4>
+<p>ugh, sorry poor memory, where did you suggest that i should add some extra type information in this?
+class ExprSym repr where
+const_    :: val -&gt; repr
+var_      :: Var -&gt; repr
+if_       :: repr -&gt; repr -&gt; repr -&gt; repr
+app_      :: [repr] -&gt; repr
+sample_   :: [repr] -&gt; repr
+observe_  :: [repr] -&gt; repr
+fn_       :: [Var]  -&gt; repr
+prim_     :: Var</p>
+<p>Sam  4:22 PM
+parameterise repr
+4:22
+e.g. const_ :: Val -&gt; repr Val
+4:23
+or var_ :: Var -&gt; repr Var
+4:23
+its means you can make sure the first arg to the if is a Bool - a repr Bool</p>
+<p>Minh  4:23 PM
+mmm, this would mean that my original PExpr would also be functor, right (or atleast take a type parameter):
+data PExpr =
+PConst Val
+| PVar Var
+| PIf PExpr PExpr PExpr
+| PApp [PExpr]
+| PFn [Var] PExpr
+| PPrim Var
+| PSample [PExpr]
+| PObserve [PExpr]
+(edited)</p>
+<p>Sam  4:24 PM
+hm
+4:24
+lemme think
+4:24
+/  check
+:+1:
+1</p>
+<p>4:26
+yes youd make it a fixed version</p>
+<p>Minh  4:26 PM
+ah, so like a phantom parameter which isn&rsquo;t used?</p>
+<p>Sam  4:26 PM
+Nick&rsquo;s paper is the best reference for comparing the embedding styles <a href="https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.432.1702&amp;rep=rep1&amp;type=pdf">https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.432.1702&amp;rep=rep1&amp;type=pdf</a>
+:+1:
+1</p>
+<p>4:27
+it is used, it marks the recursion points
+:+1:
+1</p>
+<p>4:29
+actually youre right
+4:29
+it would be a phantom type cos atm your deep dsl is not typed, which is why it doesnt match with the typed classy embedding
+4:30
+fixing is different, its just another thing that you can do
+4:30
+sorry im tired today lol</p>
+<p>Minh  4:31 PM
+ooh, but i could type it! no worries at all, you&rsquo;ve been super helpful :heart: :heart:
+New</p>
+<p>Sam  4:31 PM
+im glad</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
@@ -203,6 +270,7 @@ Published on 13 Nov 2020
 <ul class="sub-menu">
 <li class=""><a href="https://probabilistic-effects.github.io/papers/asymptotic-improvement/">Asymptotic Improvement of Computations over Free Monads</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/anglican/">Design and Implementation of Probabilistic Programming Language Anglican</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/extensible-effects/">Extensible Effects</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/">Faster Coroutine Pipelines</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>

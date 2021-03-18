@@ -26,6 +26,16 @@
     </item>
     
     <item>
+      <title>Extensible Effects</title>
+      <link>https://probabilistic-effects.github.io/papers/extensible-effects/</link>
+      <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/papers/extensible-effects/</guid>
+      <description>Monad transformers is a framework to let the programmer assemble monads through a number of transformers, producing a combined effect consisting of layers of monadic effects. The layering is determined statically and cannot easily be altered dynamically in different parts of the program. This framework is fundamentally limited.
+Their alternative to a monad transformer stack is a single monad Eff, for the coroutine-like communication of a client with its handler. The ambition is for Eff to be the only monad in Haskell.</description>
+    </item>
+    
+    <item>
       <title>Faster Coroutine Pipelines</title>
       <link>https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/</link>
       <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>

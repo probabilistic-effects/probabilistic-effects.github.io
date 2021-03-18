@@ -35,7 +35,7 @@ Usually, if one is confused about something in the core, it is best to compare i
 regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="11959">
+<meta itemprop="wordCount" content="12308">
 
 
 
@@ -1279,6 +1279,53 @@ leave = callCC (\rest -&gt; exit rest)
 that implies the type of restOfWork is itself a continuation
 3:00
 it&rsquo;s the sort of thing you can do when you want to implement co-operative multi-tasking</p>
+<hr>
+<p>Minh  10:43 AM
+I&rsquo;ve been trying to use the Cont monad with callCC to return the rest of computation to be resumed later, similar to how Coroutine (i.e. the free monad) works with yield or await . (This is just me trying to sanity check whether this is possible). I&rsquo;ve also tried your approach of using two callCCs , but all i&rsquo;m able to do so far is exit the computation early. Have i misunderstood what&rsquo;s possible using the Cont monad? (edited)</p>
+<p>Jamie Willis  10:43 AM
+you will exit the computation early, if you don&rsquo;t put the continutation somewhere
+10:44
+you need to store then if you want the yield behaviour</p>
+<p>Minh  10:45 AM
+could you elaborate on how one &ldquo;puts the continuation somewhere&rdquo;?</p>
+<p>Jamie Willis  10:45 AM
+in a list?
+10:45
+i.e.
+10:45
+StateT [Thread] (Cont &hellip;)
+10:46
+yield does a callCC, puts the continuation in the state, and then calls another continuation from that state</p>
+<p>Minh  10:47 AM
+ah right, so i&rsquo;m only able to store/capture the computation that is inside callCC?</p>
+<p>Jamie Willis  10:47 AM
+yup
+10:48
+callCC (\k -&gt; storeAndRecall k)
+(edited)
+10:48
+something like that</p>
+<p>Minh  10:58 AM
+right, i&rsquo;m not sure i understand how to use that. If i had an interpreter eval :: Expr -&gt; Val that needed to pause at certain places, i would do callCC (\k -&gt; eval k expr) somehow?
+New</p>
+<p>Jamie Willis  11:09 AM
+it would be something like
+11:09
+you make the yield operation
+11:10
+and first you load all of the coroutines into the list
+11:10
+(if you are using await to spawn off, then that&rsquo;s how they make it into the list)
+11:10
+and then you schedule one of them
+11:10
+it starts running, when it yields it takes the remainder of the continuation, pops it into the list, and then schedules another continuation in the list
+11:11
+cast your mind all the way back to the cooperative multithreading in the OS coursework in second year
+11:11
+you&rsquo;re basically context-switching in and out continuations</p>
+<p>Minh  11:11 AM
+thanks a lot, i&rsquo;ll give this a go</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
@@ -1310,6 +1357,7 @@ Published on 13 Nov 2020
 <ul class="sub-menu">
 <li class=""><a href="https://probabilistic-effects.github.io/papers/asymptotic-improvement/">Asymptotic Improvement of Computations over Free Monads</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/anglican/">Design and Implementation of Probabilistic Programming Language Anglican</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/extensible-effects/">Extensible Effects</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/">Faster Coroutine Pipelines</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>

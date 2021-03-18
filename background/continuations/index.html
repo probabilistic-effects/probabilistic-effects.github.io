@@ -35,7 +35,7 @@ The direct-style factorial fac takes a single argument.
 fac :: Integral a =&gt; a -&gt; a fac 0 = 1 fac n = n * fac (n - 1) Continuation-passing-style functions are suspended computations with general type a -&gt; (b -&gt; r) -&gt; r, which represent direct-style functions with type a -&gt; b.">
 <meta itemprop="datePublished" content="2020-11-13T13:40:41+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:40:41+00:00" />
-<meta itemprop="wordCount" content="4813">
+<meta itemprop="wordCount" content="4824">
 
 
 
@@ -373,7 +373,7 @@ which will invoke <code>f3</code> which will invoke <code>k3</code>.</li>
 <p>The function <code>callCC</code> stands for &ldquo;call with current continuation&rdquo; and it brings the current continuation into scope. This is the idea that we can create an escape hatch. The code that happens after is packaged up into a function of type <code>a -&gt; m b</code>, and we run a &ldquo;program&rdquo; <code>(a -&gt; m b) -&gt; m a</code> which says &ldquo;if you tell me how to continue with the computation after i&rsquo;m done, then i can do something&rdquo;. Crucially, we don&rsquo;t <em>have</em> to use the escape continuation - we could always just reach the end of the fragment normally.  The computation always returns a type <code>a</code>, but we can escape mid-way through by calling the function with an <code>a</code>. It can thought of like a <code>go-to</code> instruction.</p>
 <ul>
 <li>The type <code>(a -&gt; m b)</code> is the actual exit mechanism.</li>
-<li>The whole thing of type <code>(a -&gt; m b) -&gt; m a</code> is the computation that <em>wants</em> an exit mechanism.</li>
+<li>The whole thing of type <code>(a -&gt; m b) -&gt; m a</code> is the computation that <em>wants</em> an exit mechanism. The exit mechanism is <code>(\x -&gt; Cont (\_ -&gt; k x))</code>.</li>
 </ul>
 <p>Importantly, by exposing the hidden continuation inside <code>Cont</code>, the function <code>callCC</code> allows to <em>name</em> our continuations. This means we can call a named continuation at any time to jump to that point in the code, and we can reuse and invoke these continuations as many times as we like, with different arguments.</p>
 <p>A good example is writing a little virtual machine. When we execute the <code>halt</code> function, we would like to exit the interpreter - but we might be very deep inside the interpreter and we don&rsquo;t want to have to unwind it and check at each step whether the machine halted or not. Hence, <code>callCC</code> provides the mechanism to do that for us. Below we have named our continuation as <code>exit</code>.</p>
@@ -568,6 +568,7 @@ Published on 13 Nov 2020
 <ul class="sub-menu">
 <li class=""><a href="https://probabilistic-effects.github.io/papers/asymptotic-improvement/">Asymptotic Improvement of Computations over Free Monads</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/anglican/">Design and Implementation of Probabilistic Programming Language Anglican</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/extensible-effects/">Extensible Effects</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/">Faster Coroutine Pipelines</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>

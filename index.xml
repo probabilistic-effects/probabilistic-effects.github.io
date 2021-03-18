@@ -13,7 +13,8 @@
       <pubDate>Fri, 13 Nov 2020 14:05:57 +0000</pubDate>
       
       <guid>https://probabilistic-effects.github.io/research/research-journal/</guid>
-      <description>Addressing 1: TraceT [Int, Int] Addressing 2: Adding fresh addresses to all expressions during compile time, and appending them during evaluation run time for increased call stack depth - i don&amp;rsquo;t think this will work during evaluation - if we continue appending addresses for every function call, then the addresses of sample statements are affecting by the entire preceding call stack. Addressing 3: Addressing all sample statements during compile time, and indexing them by number of occurrences during evaluation run time (anglican approach) Addressing 4: Using stable names to provide addresses during eval time, and appending them as well during call stack depth  Activity (MN)</description>
+      <description>New or Long-Standing Research Questions, or Missing Research
+ How to elegantly implement composable approximate inference algorithms (smc, mh, smc^2, variational mcmc, monte carlo methods in general - monte carlo methods are the primary methods for obtaining posteriors). In practice, exact inference is not used widely, and most probabilistic inference algorithms are approximate. Algebraic effects in probabilistic programming. use gadts for typed tagless final? look at embedding in haskell/icfp    Addressing 1: TraceT [Int, Int] Addressing 2: Adding fresh addresses to all expressions during compile time, and appending them during evaluation run time for increased call stack depth - i don&amp;rsquo;t think this will work during evaluation - if we continue appending addresses for every function call, then the addresses of sample statements are affecting by the entire preceding call stack.</description>
     </item>
     
     <item>
@@ -62,6 +63,16 @@
       <description>Tagless Final Style 2. Interpreters for first-order languages 2.1 Initial and Final embeddings We start with a very simple language to be later extended, which has integer literals, negation, and addition. Our running example is the expression:
 8 + (- (1 + 2)) The initial embedding of the language encodes the expressions of the language as the values of an algebraic data type.
 data Exp = Lit Int | Neg Exp | Add Exp Exp Our running example is written as follows:</description>
+    </item>
+    
+    <item>
+      <title>Extensible Effects</title>
+      <link>https://probabilistic-effects.github.io/papers/extensible-effects/</link>
+      <pubDate>Fri, 13 Nov 2020 14:05:41 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/papers/extensible-effects/</guid>
+      <description>Monad transformers is a framework to let the programmer assemble monads through a number of transformers, producing a combined effect consisting of layers of monadic effects. The layering is determined statically and cannot easily be altered dynamically in different parts of the program. This framework is fundamentally limited.
+Their alternative to a monad transformer stack is a single monad Eff, for the coroutine-like communication of a client with its handler. The ambition is for Eff to be the only monad in Haskell.</description>
     </item>
     
     <item>
@@ -157,11 +168,13 @@ Probabilistic programming languages simplify the development of probabilistic mo
       
       <guid>https://probabilistic-effects.github.io/research/probabilistic-design/</guid>
       <description>Relevant Existing Probabilistic Programming Libraries/Languages
-              Probabilistic Language Design
-The Design and Implementation of Probabilistic Programming Languages (Learning Resource) - Noah D. Goodman and Andreas Stuhlmüller
+                  Probabilistic Language Design
 Usability of Probabilistic Programming Languages
 Embedded Domain-Specific Languages for Probabilistic Programming - Oleg Kiselyov&amp;rsquo;s Page
- Probabilistic Programming Language and its Incremental Evaluation (Hakaru10, Graphical Models) - Oleg Kiselyov, 2016 Probabilistic inference by program transformation in Hakaru - Praveen Narayanan, Chung-chieh Shan, 2016 Embedded Probabilistic Programming (Hansei) - Oleg Kiselyov, IFIP 2009  Functional probabilistic programming for scalable Bayesian modelling - Jonathan Law, Darren J.</description>
+WebPPL
+The Design and Implementation of Probabilistic Programming Languages (Learning Resource) - Noah D. Goodman and Andreas Stuhlmüller
+Anglican
+ Design and Implementation of Probabilistic Programming Language Anglican - David Tolpin, Jan-Willem van de Meent, Hongseok Yang, Frank Wood, IFL 2016 A New Approach to Probabilistic Programming Inference (Particle MCMC) - Frank Wood, Jan-Willem van de Meent, Vikash Mansinghka, AISTATS 2014  MonadBayes</description>
     </item>
     
     <item>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Extensible Effects - Probabilistic Effects.  λθ</title>
+<meta name="generator" content="Hugo 0.80.0" />
+<link href="https://probabilistic-effects.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="https://probabilistic-effects.github.io/papers/extensible-effects/">
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="https://probabilistic-effects.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="Extensible Effects" />
+<meta property="og:description" content="Monad transformers is a framework to let the programmer assemble monads through a number of transformers, producing a combined effect consisting of layers of monadic effects. The layering is determined statically and cannot easily be altered dynamically in different parts of the program. This framework is fundamentally limited.
+Their alternative to a monad transformer stack is a single monad Eff, for the coroutine-like communication of a client with its handler. The ambition is for Eff to be the only monad in Haskell." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://probabilistic-effects.github.io/papers/extensible-effects/" />
+<meta property="article:published_time" content="2020-11-13T14:05:41+00:00" />
+<meta property="article:modified_time" content="2020-11-13T14:05:41+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Extensible Effects"/>
+<meta name="twitter:description" content="Monad transformers is a framework to let the programmer assemble monads through a number of transformers, producing a combined effect consisting of layers of monadic effects. The layering is determined statically and cannot easily be altered dynamically in different parts of the program. This framework is fundamentally limited.
+Their alternative to a monad transformer stack is a single monad Eff, for the coroutine-like communication of a client with its handler. The ambition is for Eff to be the only monad in Haskell."/>
+<meta itemprop="name" content="Extensible Effects">
+<meta itemprop="description" content="Monad transformers is a framework to let the programmer assemble monads through a number of transformers, producing a combined effect consisting of layers of monadic effects. The layering is determined statically and cannot easily be altered dynamically in different parts of the program. This framework is fundamentally limited.
+Their alternative to a monad transformer stack is a single monad Eff, for the coroutine-like communication of a client with its handler. The ambition is for Eff to be the only monad in Haskell.">
+<meta itemprop="datePublished" content="2020-11-13T14:05:41+00:00" />
+<meta itemprop="dateModified" content="2020-11-13T14:05:41+00:00" />
+<meta itemprop="wordCount" content="1832">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>Probabilistic Effects.  λθ</h1>
+</header>
+
+<div class="content-container">
+<main><h1>Extensible Effects</h1>
+<p>Monad transformers is a framework to let the programmer assemble monads through a number of transformers, producing a combined effect consisting of layers of monadic effects. The layering is determined statically and cannot easily be altered dynamically in different parts of the program. This framework is fundamentally limited.</p>
+<p>Their alternative to a monad transformer stack is a <strong>single</strong> monad <code>Eff</code>, for the coroutine-like communication of a client with its handler. The ambition is for <code>Eff</code> to be the only monad in Haskell. Rather than defining new monads, programmers will be defining new effects, that is, effect interpreters.</p>
+<ul>
+<li>We denote (algebraic) <em>handlers</em> as authorities that control <em>some</em> resources and interpret <em>some</em> requests.</li>
+<li>We develop an expressive type-and-effect system that keeps track of which effects are currently active in a computation. This system maintains an open union (type-indexed coproduct of functors) containing an unordered collection of current effects.</li>
+<li>The action of each handler is reflected in the type by removing the effects that have been handled.</li>
+</ul>
+<h4 id="2-a-tour-of-extensible-effects-framework">2. A Tour of Extensible Effects Framework</h4>
+<p>The two main points of interest are that:</p>
+<ol>
+<li>All effectful computations are represented by a monad <code>Eff r</code></li>
+<li>The type parameter <code>r</code> is an open union of individual effects whose components must be <code>Typeable</code> (the class <code>Typeable</code> allows a concrete representation of a type to be calculated). Effects are represented by requests, hence the name <code>r</code>.</li>
+</ol>
+<p>There are two basic ways of indicating that an effect <code>m</code> is part of this open union <code>r</code>.</p>
+<ol>
+<li>Via a type constraint <code>Member m r</code> which indicates that the effect <code>m</code> is an element of the set <code>r</code>.</li>
+<li>Via an explicit pattern <code>m ▷ r'</code> that decomposes the union <code>r</code> into the effect <code>m</code> and the remaining effects <code>r'</code>.</li>
+</ol>
+<p>The extensible effects library is implemented to look similar to MTL.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- The effect monad, which can express a monad transformer stack</span>
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monad</span> (<span style="color:#66d9ef">Eff</span> r) 
+</code></pre></div><p>We can think of <code>Void</code> as the empty set of effects, i.e. a computation of type <code>Eff Void a</code> is pure.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Void</span> 
+<span style="color:#a6e22e">run</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Eff</span> <span style="color:#66d9ef">Void</span> w <span style="color:#f92672">-&gt;</span> w <span style="color:#75715e">-- Pure computations</span>
+</code></pre></div><p>Here are some more common monads expressed as effects.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">type</span> <span style="color:#66d9ef">Reader</span> e
+<span style="color:#a6e22e">ask</span>       <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Typeable</span> e, <span style="color:#66d9ef">Member</span> (<span style="color:#66d9ef">Reader</span> e) r) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Eff</span> r e
+<span style="color:#a6e22e">runreader</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Typeable</span> e <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Eff</span> (<span style="color:#66d9ef">Reader</span> e <span style="color:#960050;background-color:#1e0010">▷</span> r) w <span style="color:#f92672">-&gt;</span> e  <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Eff</span> r w
+</code></pre></div><p>As an example, the following computation&rsquo;s type indicates that it returns an <code>Int</code> after potentially manipulating an environment containing an <code>Int</code>. The fact that <code>r</code> includes at least the <code>Reader Int</code> effect is expressed by the constraint <code>(Member (Reader Int) r)</code>. The operation <code>ask</code> inquires about the current value in the environment, and <code>t1</code> returns the incremented value.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">t1</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Member</span> (<span style="color:#66d9ef">Reader</span> <span style="color:#66d9ef">Int</span>) r <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Eff</span> r <span style="color:#66d9ef">Int</span>
+<span style="color:#a6e22e">t1</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span> v <span style="color:#f92672">&lt;-</span> ask
+        return (v <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span>)
+</code></pre></div><p>We can execute the computation <code>t1</code> by providing it with an initial value for the environment:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">runReader</span> t1 (<span style="color:#ae81ff">10</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span>) <span style="color:#f92672">::</span> <span style="color:#66d9ef">Eff</span> r <span style="color:#66d9ef">Int</span>
+</code></pre></div><p>The inferred type for this expression is <code>(Eff r Int)</code> without further constraints, because the <code>Reader Int</code> effect has been handled and hence subtracted from the open union. In this particular case, there are no remaining effects, and the pure computation can be <code>run</code> to produce a plain <code>Int</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">t1r</span> <span style="color:#f92672">=</span> (run <span style="color:#f92672">$</span> runReader t1 (<span style="color:#ae81ff">10</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span>))  <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span>
+</code></pre></div><p>At the expression level, the code for running the effectful computation is identical to that of an <code>MTL</code>-based implementation. At the type level, the constraint <code>(Member (Reader Int) r)</code> looks similar to the <code>MonadReader</code> constraint. However <code>Eff r</code> is more general: <code>r</code> may contain an arbitrary number of <code>Reader</code> effects, and does not force us to choose the order of the effects, and hence does not force us to use <code>lift</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">t2</span> <span style="color:#f92672">::</span> (<span style="color:#66d9ef">Member</span> (<span style="color:#66d9ef">Reader</span> <span style="color:#66d9ef">Int</span>) r, <span style="color:#66d9ef">Member</span> (<span style="color:#66d9ef">Reader</span> <span style="color:#66d9ef">Float</span>) r) <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">Eff</span> r <span style="color:#66d9ef">Float</span>
+<span style="color:#a6e22e">t2</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">do</span>
+  v1 <span style="color:#960050;background-color:#1e0010">←</span> ask
+  v2 <span style="color:#960050;background-color:#1e0010">←</span> ask
+  return <span style="color:#f92672">$</span> fromIntegral (v1 <span style="color:#f92672">+</span> (<span style="color:#ae81ff">1</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Int</span>)) <span style="color:#f92672">+</span> (v2 <span style="color:#f92672">+</span> (<span style="color:#ae81ff">2</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Float</span>))
+</code></pre></div><p>Each occurrence of <code>ask</code> obtains the value from its own environment, which it finds by type (here, <code>Int</code> vs <code>Float</code>).</p>
+<h4 id="3-the-implementation-of-the-extensible-effects-framework">3. The Implementation of the Extensible Effects Framework</h4>
+<h5 id="31-reader-effect-as-an-interaction-with-a-coroutine">3.1 Reader Effect as an Interaction with a Coroutine</h5>
+<p>We implement the effect of obtaining a <code>Int</code> value from the environment. We view effects as arising from communication between a client and an effect handler. This client-handler communication adheres to a generic client-server communication model, and thus may be easily modeled as a coroutine. A computation sends a request and suspends, waiting for a reply; a handler waits for a request, handles what it can, and resumes the client. We use the <em>continuation</em> monad to implement such coroutines, where the result type .</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- The result type `r` is specialised to `VE w`</span>
+<span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Eff</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Eff</span> { runEff <span style="color:#f92672">::</span> <span style="color:#960050;background-color:#1e0010">∀</span> w<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">VE</span> w) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">VE</span> w }
+
+<span style="color:#66d9ef">instance</span> <span style="color:#66d9ef">Monad</span> <span style="color:#66d9ef">Eff</span> <span style="color:#66d9ef">where</span>
+  return x <span style="color:#f92672">=</span> <span style="color:#66d9ef">Eff</span> <span style="color:#f92672">$</span> <span style="color:#a6e22e">\</span>k <span style="color:#f92672">-&gt;</span> k x
+  m <span style="color:#f92672">&gt;&gt;=</span> f  <span style="color:#f92672">=</span> <span style="color:#66d9ef">Eff</span> <span style="color:#f92672">$</span> <span style="color:#a6e22e">\</span>k <span style="color:#f92672">-&gt;</span> runEff m (<span style="color:#a6e22e">\</span>v <span style="color:#f92672">-&gt;</span> runEff (f v) k)
+
+<span style="color:#75715e">-- The result type `VE w` can either be a value or resumable continuation which reads from the environment</span>
+<span style="color:#66d9ef">data</span> <span style="color:#66d9ef">VE</span> w <span style="color:#f92672">=</span> <span style="color:#66d9ef">Val</span> w <span style="color:#f92672">|</span> <span style="color:#66d9ef">E</span> (<span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">VE</span> w)
+</code></pre></div><p>The type <code>Eff a</code> is the type of computations that perform control effects instantiated to the <em>coroutine status types</em> <code>(VE w)</code> for polymorphic final result type <code>w</code>, where <code>VE</code> is short for Value-Effect, indicating the two types that make up the signature.</p>
+<p>The coroutine <em>status type</em> shows that a computation may:</p>
+<ol>
+<li><strong>Val</strong> - Produce a <strong>value</strong> (<code>Val w</code>).</li>
+<li><strong>E</strong>   - Send a <strong>request</strong>  to read the <code>Int</code> environment (<code>E (Int -&gt; VE w)</code>). This request, when resumed, continues the computation, which then recursively produces another answer of type <code>VE w</code>.</li>
+</ol>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">ask</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Eff</span> <span style="color:#66d9ef">Int</span>
+<span style="color:#a6e22e">ask</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">Eff</span> (<span style="color:#a6e22e">\</span>k <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">E</span> k)
+</code></pre></div><p>The function <code>ask</code> sends a request that retrieves the current environment as follows: it obtains the current continuation <code>k :: Int -&gt; VE w</code> and incorporates it into the request <code>E k</code>, constructing a function <code>k</code> that will be invoked when resumed from <code>E k</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">admin</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Eff</span> w <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">VE</span> w
+<span style="color:#a6e22e">admin</span> (<span style="color:#66d9ef">Eff</span> m) <span style="color:#f92672">=</span> m <span style="color:#66d9ef">Val</span>
+</code></pre></div><p>The function <code>admin</code> launches a coroutine with an initial continuation expecting a value, which must be the final result. Hence, the <code>Val</code> continuation will be applied to the final result after all requests have been handled.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">runReader</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Eff</span> w <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">-&gt;</span> w
+<span style="color:#a6e22e">runReader</span> m e <span style="color:#f92672">=</span> loop (admin m) <span style="color:#66d9ef">where</span>
+  loop <span style="color:#f92672">::</span> <span style="color:#66d9ef">VE</span> w <span style="color:#f92672">-&gt;</span> w
+  loop (<span style="color:#66d9ef">Val</span> x) <span style="color:#f92672">=</span> x
+  loop (<span style="color:#66d9ef">E</span> k)   <span style="color:#f92672">=</span> loop (k e)
+</code></pre></div><p>The handler <code>runReader</code> launches the coroutine and checks its status.</p>
+<ol>
+<li>If the coroutine sends an answer <code>Val x</code>, then the result is returned.</li>
+<li>If the coroutine sends a request asking for the current value of the environment, then that value <code>e</code> is given in reply.</li>
+</ol>
+<h5 id="32-coroutines-for-an-arbitrary-effect">3.2 Coroutines for an Arbitrary Effect</h5>
+<p>We now extend the framework to handle other effects.</p>
+<p>Example:
+• We may model boolean exceptions: To do this, we send the exception value <code>Bool</code> as a request without specifying the continuation (since no resumption is expected). The answer type (Value-Effect) for exception-throwing coroutines can be expressed as:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">VEexception</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">Val</span> w <span style="color:#f92672">|</span> <span style="color:#66d9ef">E</span> <span style="color:#66d9ef">Bool</span>
+</code></pre></div><p>• We can also model non-deterministic effects, one which non-deterministically chooses an element from a given list. To do this, we send the request that includes the list <code>[a]</code> and the continuation <code>a -&gt; VEchoose w</code> expecting one element in reply.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">VEchoose</span> w <span style="color:#f92672">=</span> <span style="color:#66d9ef">Val</span> w <span style="color:#f92672">|</span> forall a<span style="color:#f92672">.</span> <span style="color:#66d9ef">E</span> [a] (a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">VEchoose</span> w)
+</code></pre></div><p><strong>Implementing the Groundwork for Generalized Coroutines</strong></p>
+<p>By looking at the result type <code>VE</code> for the coroutines servicing <code>Reader</code>, <code>choice</code>, and <code>Exception</code> requests, we make the observation that:</p>
+<p>The result type <code>VE</code> for an effect <code>Eff</code> always includes:</p>
+<ol>
+<li>The <code>Val w</code> alternative for normal termination with a final <strong>value</strong>.</li>
+<li>A form of <code>E</code> alternative for carrying <strong>requests</strong>.
+The request typically includes the continuation of form <code>t -&gt; VE effect w</code> where:
+<ul>
+<li>The expected reply type <code>t</code> depends on the request.</li>
+<li>The result type <code>VE effect w</code> is the status type of the coroutine.</li>
+</ul>
+</li>
+</ol>
+<p>If we abstract this approach the general type for the coroutine status is:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">VE</span> w r <span style="color:#f92672">=</span> <span style="color:#66d9ef">Val</span> w <span style="color:#f92672">|</span> <span style="color:#66d9ef">E</span> (r (<span style="color:#66d9ef">VE</span> w r))
+</code></pre></div><p>The type parameter <code>r :: * -&gt; *</code> describes a particular request.</p>
+<p>• For example, the <code>Reader</code> request would instantiate <code>r</code> with <code>(Reader e)</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Reader</span> e v <span style="color:#f92672">=</span> <span style="color:#66d9ef">Reader</span> (e <span style="color:#f92672">-&gt;</span> v)
+</code></pre></div><p>Hence using the Reader request would look like <code>E (Reader (e -&gt; VE w (Reader e)))</code></p>
+<p>The effect <code>r</code> is therefore actually a type constructor of kind <code>* -&gt; *</code>, constructing the type of the request <code>E</code> from the status type of the coroutine <code>VE w r</code>. This follows directly from the recursive nature of the request type. This type will allow us to compose arbitrary effects.</p>
+<p>Using this rich type for coroutine statuses <code>VE w r</code>, we can easily generalize our monad coroutine to <em>arbitrary requests</em>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Eff</span> r a <span style="color:#f92672">=</span> <span style="color:#66d9ef">Eff</span> { runEff <span style="color:#66d9ef">:</span> forall w<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">VE</span> w r) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">VE</span> w r }
+</code></pre></div><p>The coroutine monad <code>Eff</code> is indexed by the type of requests <code>r</code> that the coroutine may send.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">send</span> <span style="color:#f92672">::</span> (forall w<span style="color:#f92672">.</span> (a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">VE</span> w r) <span style="color:#f92672">-&gt;</span> r (<span style="color:#66d9ef">VE</span> w r)) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Eff</span> r a
+<span style="color:#a6e22e">send</span> f <span style="color:#f92672">=</span> <span style="color:#66d9ef">Eff</span> <span style="color:#f92672">$</span> <span style="color:#a6e22e">\</span>k <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">E</span> (f k)
+</code></pre></div><p>The function <code>send</code> dispatches a request <code>r</code> and waits for a reply.</p>
+<ul>
+<li>It takes an <code>f :: (a -&gt; VE w r) -&gt; r (VE w r)</code> which is a user-specified request builder. This is typically a type constructor representing an effect, which takes a suspended continuation.</li>
+<li>It obtains the suspension/continuation <code>k :: a -&gt; VE w r</code></li>
+<li>It applies <code>f</code> to <code>k</code>, to obtain the request body <code>f k :: r (VE w r)</code></li>
+<li>It incorporates the request body <code>f k</code> into the request <code>E</code>.</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a6e22e">admin</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Eff</span> r w <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">VE</span> w r
+<span style="color:#a6e22e">admin</span> (<span style="color:#66d9ef">Eff</span> m) <span style="color:#f92672">=</span> m <span style="color:#66d9ef">Val</span>
+</code></pre></div><p>The function <code>admin</code> takes a coroutine and launches it with the initial continuation being <code>Val</code> which expects a final return value.</p>
+<p><strong>Examples</strong></p>
+<p>This described coroutine library (along with open unions) provides the entire groundwork for our effect system. We demonstrate two such effects below:</p>
+<p>• The type <code>Void</code> is the type of no requests, similar to the Identity monad: it describes pure computations that contain no effects and send no requests.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Void</span> v <span style="color:#75715e">-- no constructors</span>
+
+<span style="color:#a6e22e">run</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Eff</span> <span style="color:#66d9ef">Void</span> w <span style="color:#f92672">-&gt;</span> w
+<span style="color:#a6e22e">run</span> m <span style="color:#f92672">=</span> <span style="color:#66d9ef">case</span> admin m <span style="color:#66d9ef">of</span> <span style="color:#66d9ef">Val</span>
+</code></pre></div><p>The function <code>run</code> serves as the handler for pure computations.
+• The effect of reading from an environment is reimplemented with the generalized coroutine library as follows:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">newtype</span> <span style="color:#66d9ef">Reader</span> e v <span style="color:#f92672">=</span> <span style="color:#66d9ef">Reader</span> (e <span style="color:#f92672">-&gt;</span> v)
+
+<span style="color:#a6e22e">ask</span> <span style="color:#f92672">::</span> <span style="color:#66d9ef">Eff</span> (<span style="color:#66d9ef">Reader</span> e) e
+<span style="color:#a6e22e">ask</span> <span style="color:#f92672">=</span> send <span style="color:#66d9ef">Reader</span>
+
+<span style="color:#a6e22e">runReader</span> <span style="color:#f92672">::</span> forall e w<span style="color:#f92672">.</span> <span style="color:#66d9ef">Eff</span> (<span style="color:#66d9ef">Reader</span> e) w <span style="color:#f92672">-&gt;</span> e <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Eff</span> <span style="color:#66d9ef">Void</span> w
+<span style="color:#a6e22e">runReader</span> m e <span style="color:#f92672">=</span> loop (admin m) <span style="color:#66d9ef">where</span>
+  loop <span style="color:#f92672">::</span> <span style="color:#66d9ef">VE</span> w (<span style="color:#66d9ef">Reader</span> e) 
+</code></pre></div><div class="edit-meta">
+Last updated on 13 Nov 2020
+
+
+<br>
+Published on 13 Nov 2020
+<br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/papers/anglican/" title="Design and Implementation of Probabilistic Programming Language Anglican"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Design and Implementation of Probabilistic Programming Language Anglican</a>
+<a class="nav nav-next" href="https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/" title="Faster Coroutine Pipelines">Next - Faster Coroutine Pipelines <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<nav class="open-menu">
+<ul>
+<li class=""><a href="https://probabilistic-effects.github.io/">Home</a></li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/activity/">Activity</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/activity/cpsing-monad-bayes/">CPSing Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/activity/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
+</ul>
+  
+</li>
+
+<li class="parent"><a href="https://probabilistic-effects.github.io/papers/">Papers</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/papers/asymptotic-improvement/">Asymptotic Improvement of Computations over Free Monads</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/anglican/">Design and Implementation of Probabilistic Programming Language Anglican</a></li>
+<li class="active"><a href="https://probabilistic-effects.github.io/papers/extensible-effects/">Extensible Effects</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/">Faster Coroutine Pipelines</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/hakaru/">Hakaru - Probabilistic Inference by Program Transformation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/hansei/">Hansei - Embedded Domain-Specific Languages for Probabilistic Programming (Oleg)</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/probabilistic-programming/">Introduction To Probabilistic Programming</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/lightweight-implementations-prob-languages/">Lightweight Implementations of Probabilistic Programming Languages</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/research/">Research</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/research/research-journal/">Research Journal</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/">Potential Approaches to Improving Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/probabilistic-design/">Probabilistic Language Design</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/literature-review/">Literature Review</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/parsley-case-study/">Case Study: Optimising Parsley</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/optimising-core/">Optimising Core</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/">Monad Bayes</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/inference-transformers/">Inference Transformers</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/pmmh-hmm/">Implementing HMM Simulation and Inference (using PMMH)</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/documentation/">Documentation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/conditioning-scoring/">How Conditioning and Scoring Works</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/">Tooling</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/cabal/">Cabal Projects</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/">Benchmarking</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmark-log/">Benchmark Log</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmarking-profiling/">How to Benchmark and Profile</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/monad-bayes-components/">Relevant Components of Monad Bayes for Profiling</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/background/">Background</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/background/embedding/">Embedding DSLs</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/staging/">Staging</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/smc-pmmh/">SMC and PMMH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/handrolling/">Handrolling Monad Transformer Stacks</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mtl/">MTL</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mcmc-mh/">MCMC and MH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/markov-chain/">Markov Chains</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/hidden-markov-model/">Hidden Markov Model</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/delimited-continuations/">Delimited Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/haskell-core/">Haskell Core</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/bayesian/">Bayesian</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/concurrency/">Concurrency</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/coroutines/">Coroutines</a></li>
+</ul>
+  
+</li>
+</ul>
+</nav>
+
+
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>
