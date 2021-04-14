@@ -35,7 +35,7 @@ Usually, if one is confused about something in the core, it is best to compare i
 regTest :: Parser Int regTest = newRegister_ (code 7) (\r -&gt; modify_ r makeQ (succ @Int) [||succ @Int||]) *&gt; (let g = get r in g *&gt; g)) This makes a new register, which in this context would be an STRef, containing 7; it then modifies it with &#43;1, and afterwards it gets the value out twice, and returns it the second time.">
 <meta itemprop="datePublished" content="2020-11-13T13:49:05+00:00" />
 <meta itemprop="dateModified" content="2020-11-13T13:49:05+00:00" />
-<meta itemprop="wordCount" content="12308">
+<meta itemprop="wordCount" content="12484">
 
 
 
@@ -1326,6 +1326,32 @@ cast your mind all the way back to the cooperative multithreading in the OS cour
 you&rsquo;re basically context-switching in and out continuations</p>
 <p>Minh  11:11 AM
 thanks a lot, i&rsquo;ll give this a go</p>
+<hr>
+<p>I&rsquo;m experimenting with GADTs to create an embedded DSL. It appears that the following definition of lambda functions can only support functions of one argument, so we have to nest lambdas to achieve multi-parameter functions.
+data Expr t where
+Lam      :: (Expr a -&gt; Expr b) -&gt; Expr (a -&gt; b)
+exampleFn :: Expr (Int -&gt; Int -&gt; Int)
+exampleFn = Lam (\a -&gt; Lam (\b -&gt; a))
+Is there a way to achieve this without having to nest lambdas?</p>
+<p>Jamie Willis  1:35 PM
+Heterogenous lists
+New
+1:36
+Lam :: (ExprList as -&gt; Expr b) -&gt; Expr (HigherArity as b)
+1:37
+type family HigherArity (as :: [*]) (b :: *) :: * where
+HigherArity &lsquo;[] b = b
+HigherArity (a &lsquo;: as) b = a -&gt; HigherArity as b</p>
+<p>Minh  1:37 PM
+wow this looks freaky</p>
+<p>Jamie Willis  1:38 PM
+data ExprList (as :: [*]) where
+ExprNil :: ExprList &lsquo;[]
+ExprCons :: Expr a -&gt; ExprList as -&gt; ExprList (a &lsquo;: as)
+1:38
+{-# LANGUAGE DataKinds #-}</p>
+<p>Minh  1:38 PM
+thanks i&rsquo;ll try this out! :slightly_smiling_face:</p>
 <div class="edit-meta">
 Last updated on 13 Nov 2020
 
@@ -1379,6 +1405,7 @@ Published on 13 Nov 2020
 <li class=""><a href="https://probabilistic-effects.github.io/research/literature-review/">Literature Review</a></li>
 <li class="active"><a href="https://probabilistic-effects.github.io/research/parsley-case-study/">Case Study: Optimising Parsley</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/research/optimising-core/">Optimising Core</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/alex/"></a></li>
 </ul>
   
 </li>

@@ -13,8 +13,8 @@
       <pubDate>Fri, 13 Nov 2020 14:05:57 +0000</pubDate>
       
       <guid>https://probabilistic-effects.github.io/research/research-journal/</guid>
-      <description>New or Long-Standing Research Questions, or Missing Research
- How to elegantly implement composable approximate inference algorithms (smc, mh, smc^2, variational mcmc, monte carlo methods in general - monte carlo methods are the primary methods for obtaining posteriors). In practice, exact inference is not used widely, and most probabilistic inference algorithms are approximate. Algebraic effects in probabilistic programming. use gadts for typed tagless final? look at embedding in haskell/icfp    Addressing 1: TraceT [Int, Int] Addressing 2: Adding fresh addresses to all expressions during compile time, and appending them during evaluation run time for increased call stack depth - i don&amp;rsquo;t think this will work during evaluation - if we continue appending addresses for every function call, then the addresses of sample statements are affecting by the entire preceding call stack.</description>
+      <description>def model(p): burglary &amp;lt;~ bern(0.0001) alarm &amp;lt;~ bern(if burglary: 0.95 else: 0.01) return (alarm, burglary) New or Long-Standing Research Questions, or Missing Research
+ How to elegantly implement composable approximate inference algorithms (smc, mh, smc^2, variational mcmc, monte carlo methods in general - monte carlo methods are the primary methods for obtaining posteriors). In practice, exact inference is not used widely, and most probabilistic inference algorithms are approximate. Algebraic effects in probabilistic programming.</description>
     </item>
     
     <item>
@@ -453,6 +453,19 @@ The Pause monad transformer will augment the underlying language with one additi
 1. Dumping core &amp;amp; enabling optimisations   To inspect the core (in a coherent manner), we can add the following to either our package.yaml file (when using stack):
 ghc-options: - dump-core dependencies: - -fplugin=DumpCore or our .cabal file (when using cabal):
 build-depends: dump-core ghc-options: -fplugin-DumpCore When we build our program (stack build or ghc), this creates a folder called dump-core containing html files.</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://probabilistic-effects.github.io/research/alex/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/research/alex/</guid>
+      <description>Minh 12:41 PM Hi Alex! Could i ask you a very newbie category theory question?
+Alex 12:42 PM Of course!
+Minh 12:43 PM I&amp;rsquo;m a bit confused about how proofs are supposed to be written, for example the proof that identity is neutral and composition is associative:
+12:43 i don&amp;rsquo;t see any clearer way of writing a proof than it has already been defined in the text
+Alex 12:44 PM oh I guess they mean the calculation forall a.</description>
     </item>
     
   </channel>
