@@ -468,5 +468,18 @@ Minh 12:43 PM I&amp;rsquo;m a bit confused about how proofs are supposed to be w
 Alex 12:44 PM oh I guess they mean the calculation forall a.</description>
     </item>
     
+    <item>
+      <title></title>
+      <link>https://probabilistic-effects.github.io/research/eddie/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://probabilistic-effects.github.io/research/eddie/</guid>
+      <description>Minh Today at 10:58 AM In the definition of raa-&amp;gt;tnd, could someone explain why the {P : prop} and {Q : prop} are necessary? (edited) image.png image.png
+6 replies
+Roger Bosman 1 hour ago I think this is how you introduce a forall quantifier in Agda
+Roger Bosman 1 hour ago This way you know RAA holds for any P, which means you can feed it nntnd
+Jacco Krijnen 1 hour ago It might be insightful to rename these P and Q to R and S for example (the other P and Qs are all quantified on the top-level, whereas these are higher-order)</description>
+    </item>
+    
   </channel>
 </rss>

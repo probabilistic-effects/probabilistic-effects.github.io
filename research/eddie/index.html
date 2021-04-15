@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Probabilistic Effects.  λθ</title>
+<meta name="generator" content="Hugo 0.80.0" />
+<link href="https://probabilistic-effects.github.io//index.xml" rel="alternate" type="application/rss+xml">
+<link rel="canonical" href="https://probabilistic-effects.github.io/research/eddie/">
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/theme.min.css">
+<script src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<link rel="stylesheet" href="https://probabilistic-effects.github.io/css/chroma.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="https://probabilistic-effects.github.io/js/bundle.js"></script><style>
+:root {}
+</style>
+<meta property="og:title" content="" />
+<meta property="og:description" content="Minh Today at 10:58 AM In the definition of raa-&gt;tnd, could someone explain why the {P : prop} and {Q : prop} are necessary? (edited) image.png image.png
+6 replies
+Roger Bosman 1 hour ago I think this is how you introduce a forall quantifier in Agda
+Roger Bosman 1 hour ago This way you know RAA holds for any P, which means you can feed it nntnd
+Jacco Krijnen 1 hour ago It might be insightful to rename these P and Q to R and S for example (the other P and Qs are all quantified on the top-level, whereas these are higher-order)" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://probabilistic-effects.github.io/research/eddie/" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content=""/>
+<meta name="twitter:description" content="Minh Today at 10:58 AM In the definition of raa-&gt;tnd, could someone explain why the {P : prop} and {Q : prop} are necessary? (edited) image.png image.png
+6 replies
+Roger Bosman 1 hour ago I think this is how you introduce a forall quantifier in Agda
+Roger Bosman 1 hour ago This way you know RAA holds for any P, which means you can feed it nntnd
+Jacco Krijnen 1 hour ago It might be insightful to rename these P and Q to R and S for example (the other P and Qs are all quantified on the top-level, whereas these are higher-order)"/>
+<meta itemprop="name" content="">
+<meta itemprop="description" content="Minh Today at 10:58 AM In the definition of raa-&gt;tnd, could someone explain why the {P : prop} and {Q : prop} are necessary? (edited) image.png image.png
+6 replies
+Roger Bosman 1 hour ago I think this is how you introduce a forall quantifier in Agda
+Roger Bosman 1 hour ago This way you know RAA holds for any P, which means you can feed it nntnd
+Jacco Krijnen 1 hour ago It might be insightful to rename these P and Q to R and S for example (the other P and Qs are all quantified on the top-level, whereas these are higher-order)">
+
+<meta itemprop="wordCount" content="1148">
+
+
+
+<meta itemprop="keywords" content="" />
+</head>
+<body><div class="container"><header>
+<h1>Probabilistic Effects.  λθ</h1>
+</header>
+
+<div class="content-container">
+<main><h1></h1>
+<p>Minh Today at 10:58 AM
+In the definition of raa-&gt;tnd, could someone explain why the {P : prop} and {Q : prop} are necessary? (edited)
+image.png
+image.png</p>
+<p>6 replies</p>
+<p>Roger Bosman  1 hour ago
+I think this is how you introduce a forall quantifier in Agda</p>
+<p>Roger Bosman  1 hour ago
+This way you know RAA holds for any P, which means you can feed it nntnd</p>
+<p>Jacco Krijnen  1 hour ago
+It might be insightful to rename these P and Q to R and S for example (the other P and Qs are all quantified on the top-level, whereas these are higher-order)</p>
+<p>Minh  1 hour ago
+ah okay, is this the same as RankNTypes or existential types in Haskell? (edited)
+New</p>
+<p>Eddie Jones  10 minutes ago
+Yeah it is somewhat like (forall p. RRA p) -&gt; (forall q. TND q)</p>
+<p>Eddie Jones  9 minutes ago
+Which is equivalent to the type (forall p. RRA p) -&gt; TND q but not the default RRA p -&gt; TND q
+:heart:
+1</p>
+<p>Minh
+I&rsquo;m a bit confused about the actual meaning of strictly positive and positive:
+Strictly positive means that a recursive type can only occur on the RHS of an arrow in a type of the constructor.
+Why does this prevent non-termination?
+Why does this apply only for arrow types of the constructor, and not the arrows which form the actual constructor itself? e.g.
+data Good : Set where
+good : Good -&gt; Good -&gt; Good
+&ndash; Good still appears on the LHS if we consider the whole type signature an arrow type
+Positive means that a recursive type appears on the LHS of an &ldquo;even number of arrows&rdquo; - what does this mean? The &ldquo;even number of arrows&rdquo; bit is a bit mysterious to me.
+Thanks a lot!</p>
+<p>Florian Chudigiewitsch  7 minutes ago
+I find that it is well explained in <a href="https://www.lix.polytechnique.fr/Labo/Samuel.Mimram/teaching/INF551/course.pdf">https://www.lix.polytechnique.fr/Labo/Samuel.Mimram/teaching/INF551/course.pdf</a>
+chapter 8.4.4</p>
+<p>Minh  4 minutes ago
+thanks, i&rsquo;ll take a look! :slightly_smiling_face:
+Eddie Jones  1 minute ago
+If you permit a constructor lam : (D -&gt; D) -&gt; D for the datatype D then you can define the untyped lambda calculus and in particular (\x. xx)(\x . xx) which doesn&rsquo;t terminate. It only applies to arrows type for constructor arguments which is why you can have a constructor of type Good -&gt; Good -&gt; Good this is because you can think of this as curried short hand for (Good x Good) -&gt; Good but I cannot apply the same trick to lam constructor</p>
+<p>Minh  12:09 PM
+Couple of questions!</p>
+<p>&ldquo;Let us look at some other examples of categories. We can use the natural
+numbers to define some categories: The category ! has as objects the natural
+numbers and morphisms are given as hom !mn = m &lt;= n. This is a category
+because &lt;= is reflexive and transitive and those properties give rise to identity and composition. The laws hold trivial because there is at most one element of a proposition. This category is an example of a degenerate case of a category: it is a preorder, i.e. a relation that is reflexive and transitive. Question 4 Has this category an initial or a terminal object?&rdquo;</p>
+<ul>
+<li>
+<p>&ldquo;The laws hold trivial because there is at most one element of a proposition&rdquo; - i&rsquo;m not really sure what this means?</p>
+</li>
+<li>
+<p>The initial object would be 0, but i&rsquo;m not sure what the terminal object would be?</p>
+</li>
+</ul>
+<p>Eddie Jones  12:12 PM
+To verify that this forms a category we need associativity of composition and the identity law which means that (f . g) . h = f . (g . h) and f . id = id . f = f. But in this case morphisms f : m -&gt; n merely witness the fact that m &lt;= n so there either is or isn&rsquo;t an morphism. In which case the laws comes for free because any two morphisms of the same type are equal. For example if I have f : 0 -&gt; 1 and g : 0 -&gt; 1 then f = g because they don&rsquo;t contain any information other than 0 &lt;= 1 if that makes sense?</p>
+<p>12:13
+And yeah the initial object is 0 and there isn&rsquo;t a terminal object unless you extend it to have an infinity natural number</p>
+<hr>
+<p>Minh  12:34 PM
+Does this category make sense to anyone: How can we have one object - what is this object?!
+&ldquo;Another category we can be build from natural numbers has only one object
+and its morphisms are the natural numbers. The identity morphism is 0 and
+composition is given by addition. The laws follow from the fact that 0 is neutral (n +0= n =0+ n) and (+) associative (l + m) + n = l + (m + n). Here we exploit the algebraic properties of +, namely that it is a monoid; hence categories with one object correspond to monoids. &quot;</p>
+<p>12:36
+&hellip; unless its literally the object representing the domain of Nats</p>
+<p>Eddie Jones  12:36 PM
+The object doesn&rsquo;t really have to represent anything
+12:36
+I is just an abstract *
+12:37
+I guess this is where the intuition that the category of Sets gives you starts to break down - there is no contents to the single object of this category it is not like a set at all
+12:41
+This category has kinda the opposite structure to the previous one. In that case we have lots of objects labelled by the natural numbers (but we can just think of them as abstract labels) and these objects are related by &lt;= but we don&rsquo;t need to name morphism because they are all equal whereas in this category we have one object which we don&rsquo;t need to name because well there is only one but lots of different morphisms labelled by the natural numbers
+12:42
+The point is that objects and morphisms can be literally anything without any context as long as they have the right laws</p>
+<p>Minh  12:42 PM
+ah i see, thanks! i&rsquo;ll have to deal with this uncomfortableness for now
+12:43
+is this object both the terminal and initial object? or are there none at all</p>
+<p>Eddie Jones  12:44 PM
+Yeah it is both
+12:44
+Which is sometimes called the zero object
+:+1:
+1</p>
+<p>12:46
+The trick with category theory is to not think about it too much :joy:
+New
+12:48
+But in a legit way, like we often work at different levels of granularity. We might be interested in what a specific object is but we also might not care and actually just wonder how it is related by morphisms to other objects. We then might be thinking about a specific functor and wonder how it maps morphisms in one category to morphisms in another or we might just be thinking about the category of categories in which case a functor is just another morphism
+:heart:
+1</p>
+<div class="edit-meta">
+
+<br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/research/alex/" title=""><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - </a>
+<a class="nav nav-next" href="https://probabilistic-effects.github.io/monad-bayes/" title="Monad Bayes">Next - Monad Bayes <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
+</footer>
+</main>
+<div class="sidebar">
+
+<nav class="open-menu">
+<ul>
+<li class=""><a href="https://probabilistic-effects.github.io/">Home</a></li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/activity/">Activity</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/activity/cpsing-monad-bayes/">CPSing Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/activity/inlining-monad-bayes/">Inlining Monad Bayes</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/papers/">Papers</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/papers/asymptotic-improvement/">Asymptotic Improvement of Computations over Free Monads</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/anglican/">Design and Implementation of Probabilistic Programming Language Anglican</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/extensible-effects/">Extensible Effects</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/faster-coroutine-pipelines/">Faster Coroutine Pipelines</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/freer-monads/">Freer Monads, More Extensible Effects</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/fusion-for-free/">Fusion for Free</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/hakaru/">Hakaru - Probabilistic Inference by Program Transformation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/hansei/">Hansei - Embedded Domain-Specific Languages for Probabilistic Programming (Oleg)</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/probabilistic-programming/">Introduction To Probabilistic Programming</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/papers/lightweight-implementations-prob-languages/">Lightweight Implementations of Probabilistic Programming Languages</a></li>
+</ul>
+  
+</li>
+
+<li class="parent"><a href="https://probabilistic-effects.github.io/research/">Research</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/research/research-journal/">Research Journal</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/approaches-for-monad-bayes/">Potential Approaches to Improving Monad Bayes</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/probabilistic-design/">Probabilistic Language Design</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/effects-for-less/">Effects for Less</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/literature-review/">Literature Review</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/parsley-case-study/">Case Study: Optimising Parsley</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/optimising-core/">Optimising Core</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/alex/"></a></li>
+<li class="active"><a href="https://probabilistic-effects.github.io/research/eddie/"></a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/">Monad Bayes</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/inference-transformers/">Inference Transformers</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/pmmh-hmm/">Implementing HMM Simulation and Inference (using PMMH)</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/documentation/">Documentation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/monad-bayes/conditioning-scoring/">How Conditioning and Scoring Works</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/">Tooling</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/tooling/cabal/">Cabal Projects</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/">Benchmarking</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmark-log/">Benchmark Log</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/benchmarking-profiling/">How to Benchmark and Profile</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/benchmarking/monad-bayes-components/">Relevant Components of Monad Bayes for Profiling</a></li>
+</ul>
+  
+</li>
+
+<li class=""><a href="https://probabilistic-effects.github.io/background/">Background</a>
+  
+<ul class="sub-menu">
+<li class=""><a href="https://probabilistic-effects.github.io/background/embedding/">Embedding DSLs</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/staging/">Staging</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/smc-pmmh/">SMC and PMMH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/handrolling/">Handrolling Monad Transformer Stacks</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mtl/">MTL</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/mcmc-mh/">MCMC and MH</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/markov-chain/">Markov Chains</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/hidden-markov-model/">Hidden Markov Model</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/delimited-continuations/">Delimited Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/haskell-core/">Haskell Core</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/inlining/">Inlining</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/specialisation/">Specialisation</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/bayesian/">Bayesian</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/concurrency/">Concurrency</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/continuations/">Continuations</a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/background/coroutines/">Coroutines</a></li>
+</ul>
+  
+</li>
+</ul>
+</nav>
+
+
+
+<div class="sidebar-footer"></div>
+</div>
+
+</div><a href="#" id="backtothetop-fixed" class="backtothetop"
+ data-backtothetop-duration="600"
+ data-backtothetop-easing="easeOutQuart"
+ data-backtothetop-fixed-fadeIn="1000"
+ data-backtothetop-fixed-fadeOut="1000"
+ data-backtothetop-fixed-bottom="10"
+ data-backtothetop-fixed-right="20">
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>

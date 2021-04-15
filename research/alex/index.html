@@ -39,7 +39,7 @@ Minh 12:43 PM I&rsquo;m a bit confused about how proofs are supposed to be writt
 12:43 i don&rsquo;t see any clearer way of writing a proof than it has already been defined in the text
 Alex 12:44 PM oh I guess they mean the calculation forall a.">
 
-<meta itemprop="wordCount" content="359">
+<meta itemprop="wordCount" content="3322">
 
 
 
@@ -57,7 +57,7 @@ Hi Alex! Could i ask you a very newbie category theory question?</p>
 Of course!</p>
 <p>Minh  12:43 PM
 I&rsquo;m a bit confused about how proofs are supposed to be written, for example the proof that identity is neutral and composition is associative:</p>
-<p><img src="https://i.ibb.co/tYGM4Lb/cat.png" alt=""></p>
+<p><img src="" alt="https://i.ibb.co/tYGM4Lb/cat.png"></p>
 <p>12:43
 i don&rsquo;t see any clearer way of writing a proof than it has already been defined in the text</p>
 <p>Alex  12:44 PM
@@ -93,10 +93,346 @@ i see! thanks :slightly_smiling_face:</p>
 For reference, it is my opinion that the only authoritative book which is accessible to computer scientists is in fact Awodey
 :+1:
 1</p>
+<p>Minh  2:20 PM
+This implies that there exists morphisms f : A -&gt; B and g : B -&gt; A where their compositions are not identities. But how can we tell that, if all the information we have to consider are the objects A &amp; B and the type of the morphism? (assuming the notion of isomorphism isn&rsquo;t dependent on the content of A, B, or what f and g &ldquo;do&rdquo; as functions)</p>
+<p><img src="" alt="https://i.ibb.co/51yzPXD/cat2.png"></p>
+<p>Alex  2:21 PM
+There are indeed many many categories where there are morphisms f : A -&gt;B and g : B -&gt; A where f o g =/= id
+2:22
+take e.g.
+any nonempty set S
+a point x : {<em>} -&gt; S of the set
+the unique function f : S -&gt; {</em>}
+2:22
+where {*} is the one-element set, aka the terminal object 1 of the category Set
+2:22
+we have f o x = id_{*}, but definitely not x o f = id_S</p>
+<blockquote>
+<p>Side conversation start</p>
+</blockquote>
+<p>Alex Today at 2:22 PM
+we have f o x = id_{*}, but definitely not x o f = id_S</p>
+<p>Minh  33 minutes ago
+okay i can&rsquo;t believe i confused myself again. I don&rsquo;t know if it&rsquo;s wrong to make these functions concrete, but if f took the set {1, 2, 3} to a point {1}, and x concretely took the point {1} to the set {1, 2, 3}, would these not be isomorphic?</p>
+<p>Alex  27 minutes ago
+let f : {1, 2, 3} -&gt; {1} and x : {1} -&gt; {1, 2, 3} as you describe</p>
+<p>Alex  27 minutes ago
+calculate f o x and x o f and see</p>
+<p>Minh  25 minutes ago
+i must be calculating them wrong, because i&rsquo;m not seeing</p>
+<p>Alex  25 minutes ago
+so what function is f o x?</p>
+<p>Minh  25 minutes ago
+{1} -&gt; {1] ?</p>
+<p>Alex  25 minutes ago
+that&rsquo;s its type</p>
+<p>Alex  24 minutes ago
+but concretely it is defined by (f o x)(a) = f(x(a)) = f(1) = 1</p>
+<p>Alex  24 minutes ago
+so the function f o x : {1} -&gt; {1} is the function that maps 1 to 1</p>
+<p>Alex  23 minutes ago
+it couldn&rsquo;t do anything else in fact: a function from any domain into {1} must map everything in its domain into {1}, so it must map everything to the single element 1 \in {1} (this is the beginnings of category theory)</p>
+<p>Alex  23 minutes ago
+now compute x o f</p>
+<p>Minh  22 minutes ago
+so the function x o f is (x o f)(a) = x (f (a)) = x(1) = 1, 2, 3</p>
+<p>Alex  20 minutes ago
+hang on
+:joy:
+1</p>
+<p>Alex  20 minutes ago
+a function returns for everything in its domain something in its codomain</p>
+<p>Alex  20 minutes ago
+so what is the function x?</p>
+<p>Minh  19 minutes ago
+i think this is where i&rsquo;m misunderstanding it</p>
+<p>Alex  19 minutes ago
+x : {1} -&gt; {1, 2, 3}
+x(a) = 1</p>
+<p>Alex  19 minutes ago
+aka x = { 1 |-&gt; 1 }</p>
+<p>Alex  19 minutes ago
+while f = { 1 |-&gt; 1, 2 |-&gt; 1, 3 |-&gt; 1 }</p>
+<p>Minh  18 minutes ago
+i&rsquo;m imagining a haskell defined function, where you can literally state &ldquo;x {1} = {1, 2, 3}&rdquo;</p>
+<p>Alex  18 minutes ago
+this is not a Haskell function, this is a set-theoretic function</p>
+<p>Alex  18 minutes ago
+like on your 1st year sets, relations, discrete maths type of thing</p>
+<p>Minh  18 minutes ago
+(did not do that)</p>
+<p>Minh  18 minutes ago
+a function returns for everything in its domain something in its codomain
+this is new information to me</p>
+<p>Minh  17 minutes ago
+so given this, i don&rsquo;t understand how there can exist a morphism from the empty set (the initial object) to any set</p>
+<p>Alex  17 minutes ago
+it is most definitely not</p>
+<p>Alex  17 minutes ago
+you surely know that a Haskell function returns something in its output type for everything in its input type</p>
+<p>Minh  16 minutes ago
+ahhhh i realise im thinking about it in the wrong way</p>
+<p>Minh  15 minutes ago
+i wasn&rsquo;t thinking about it in terms of possible inputs and outputs, i was thinking &ldquo;give me the set {1} and ill return you the set {1, 2, 3}&rdquo;</p>
+<p>Alex  15 minutes ago
+no no no, {1} and {1, 2, 3} are the domain and codomain of the function</p>
+<p>Alex  15 minutes ago
+x : {1} -&gt; {1, 2, 3} means that x is a function from the type {1} to the type {1, 2, 3}</p>
+<p>Alex  14 minutes ago
+it&rsquo;s almost the same as x :: () -&gt; Either () (Either () ())</p>
+<p>Minh  13 minutes ago
+right i see! so re:
+i don&rsquo;t understand how there can exist a morphism from the empty set (the initial object) to any set
+is this trivial because we don&rsquo;t actually have a domain for the function, so our codomain can be anything?</p>
+<p>Alex  13 minutes ago
+it is trivial but not for quite that reason</p>
+<p>Alex  13 minutes ago
+recall: function maps everything in domain to something in codomain (edited)</p>
+<p>Alex  13 minutes ago
+take any set S, say S = {0, 1, 2, 3&hellip;}</p>
+<p>Alex  12 minutes ago
+a function f : \emptyset -&gt; S maps everything in its domain to everything in its codomain</p>
+<p>Alex  12 minutes ago
+what is in its domain? nothing</p>
+<p>Alex  12 minutes ago
+so that&rsquo;s a function</p>
+<p>Alex  12 minutes ago
+it just maps [nothing] to&hellip;. well there&rsquo;s nothing that needs to be mapped</p>
+<p>Alex  11 minutes ago
+f(a) = &hellip; just kidding I don&rsquo;t need to write this because there&rsquo;s literally no possible a \in \emptyset &hellip;</p>
+<p>Minh  11 minutes ago
+i understand! thank you! does the idea of visualising domain and codomain generalise over different categories, or is this specific to Set because of functions</p>
+<p>Alex  11 minutes ago
+it&rsquo;s absolutely central to category theory</p>
+<p>Alex  11 minutes ago
+one way to understand category theory is as an &ldquo;algebra of functions&rdquo;</p>
+<p>Alex  10 minutes ago
+where the only possible moves are composition and identity</p>
+<p>Alex  10 minutes ago
+but it&rsquo;s worth understanding what functions are in set theory</p>
+<p>Minh  10 minutes ago
+right, so even in other categories, the types of objects will represent a domain/codomain?</p>
+<p>Alex  9 minutes ago
+every category has morphisms and objects, and every morphism has a domain and a codomain object (edited)</p>
+<p>Alex  9 minutes ago
+these are the very words used in the definition of a category</p>
+<p>Alex  8 minutes ago
+but it&rsquo;s worth differentiating between Haskell and set theory for now</p>
+<p>Alex  8 minutes ago
+in Haskell a function is just a usual function definition</p>
+<p>Alex  7 minutes ago
+in set theory, a function is a 3-tuple (A, B, f) where
+A and B are sets
+f is a relation from A to B, i.e. a subset of the set of all possible pairs A x B = { (a, b) | a \in A and b \in B}
+such that f is total and single-valued, i.e. for every x \in A there exists exactly one b \in B such that (a, b) \in f
+(edited)</p>
+<p>Alex  7 minutes ago
+we call A the domain and B the codomain</p>
+<p>Alex  6 minutes ago
+two functions (A, B, f) and (A', B', f') are equal if they are component-wise equal, i.e. if A = A', B = B', and f = f' as subsets of A x B</p>
+<p>Minh  6 minutes ago
+so is it more correct to think of objects A and B as domains and codomains, rather than as particular values of their types?</p>
+<p>Alex  6 minutes ago
+I don&rsquo;t think the latter has any standing. the terms domain and codomain arise exactly from this</p>
+<p>they have since been abstracted in category theory, but this is their origin</p>
+<p>Alex  16 minutes ago
+you should now retry x o f versus f o x</p>
+<p>Minh  13 minutes ago
+Right, so let f : {1, 2, 3} -&gt; {1} and x : {1} -&gt; {1, 2, 3}
+x o f is (x o f)(a) = x (f (a)) = x(1) = something of either value 1, 2, or 3? (edited)</p>
+<p>Minh  12 minutes ago
+im thinking that x has to map {1} to a single fixed chosen value in the codomain {1, 2, 3} (edited)</p>
+<p>Alex  7 minutes ago
+exactly, it must</p>
+<p>Alex  7 minutes ago
+nothing else is a function</p>
+<p>Alex  7 minutes ago
+so one thing you could pick here is the inclusion&hellip;.</p>
+<p>Alex  7 minutes ago
+{1} is a subset of {1, 2, 3}</p>
+<p>Alex  6 minutes ago
+so there is an obvious function x : {1} -&gt; {1, 2, 3} that includes the subset {1} into the set {1, 2, 3} (edited)</p>
+<p>Alex  6 minutes ago
+it is the function x(a) = a</p>
+<p>Alex  6 minutes ago
+concretely, x = { (1, 1) }</p>
+<p>Minh  2 minutes ago
+is there any meaning in picking this inclusion?</p>
+<p>Alex  2 minutes ago
+not really, no matter which function {1} -&gt; {1, 2, 3} you pick (there are exactly three such functions), it won&rsquo;t be an isomorphism</p>
+<p>Minh  7 minutes ago
+i think i&rsquo;ve just about convinced myself of this, thank you!</p>
+<p>Alex  6 minutes ago
+very good!</p>
+<p>Alex  6 minutes ago
+so which of the two equalities fails?</p>
+<p>Minh  5 minutes ago
+x o f = id_S, because it&rsquo;s not possible for x to consistently return the same value that was passed to f?</p>
+<p>Alex  3 minutes ago
+exactly
+:heart:
+1</p>
+<p>Alex  3 minutes ago
+more concretely, two functions f, g are equal if and only if f(x) = g(x) for all x in their domain</p>
+<p>Alex  3 minutes ago
+(also they must have the same domain and codomain)</p>
+<p>Alex  3 minutes ago
+this is known as &ldquo;function extensionality&rdquo;</p>
+<p>Alex  2 minutes ago
+(it comes for free in set theory, because sets just work that way)
+:+1:
+1</p>
+<p>Alex  2 minutes ago
+if x is the inclusion you have (x o f)(2) = 1 =/= 2 = id_S(2)</p>
+<p>Alex  2 minutes ago
+so the two functions differ at input 2, done</p>
+<p>Minh  3 minutes ago
+just to double-check, if an object represented a domain of a particular morphism, does this mean that two objects representing the same domain but instantiated to different values in that domain, would still be considered the same object? (i&rsquo;m not sure whether its a good idea to ever consider an object taking a particular value) (edited)</p>
+<p>Alex  2 minutes ago
+Objects are not instantiated to values, they&rsquo;re merely sitting there</p>
+<p>Alex  1 minute ago
+Objects are usually particular sets, graphs, groups, topological spaces, &hellip;
+:+1:
+1</p>
+<p>Alex  &lt; 1 minute ago
+Forget any intuition from CS, it&rsquo;s useless and irrelevant</p>
+<p>Alex  &lt; 1 minute ago
+Category theory is in algebra-land
+:+1:
+1</p>
+<blockquote>
+<p>Side conversation end</p>
+</blockquote>
+<p>Minh  2:24 PM
+right i see, we can&rsquo;t reproduce the set S from the terminal object because of lack of information - doesn&rsquo;t this imply that an isomorphism should depend on what f and g do as functions?</p>
+<p>Alex  2:25 PM
+there might be many isomorphisms between two objects A and B, so yes it&rsquo;s very strongly dependent
+2:25
+think of how many ways there are to prove that Nat is isomorphic to Nat x Nat
+2:25
+each one is a different pair of functions</p>
+<p>Minh  2:26 PM
+would you also say that the notion of isomorphism depends on the content of the objects A and B?</p>
+<p>Alex  2:26 PM
+how could it not?</p>
+<p>Minh  2:27 PM
+got you thanks,</p>
+<p>Minh  2:27 PM
+Eddie Jones  [2:15 PM]
+Right yeah so the language of category theory isn&rsquo;t really about the contents of objects in fact objects don&rsquo;t always have a notion of &ldquo;contents&rdquo; it is just about morphisms and objects but this language talks about specific categories such as Set where objects and morphisms have a specific meaning
+[2:15 PM] So the notion of isomorphism isn&rsquo;t dependent on the content of A, B, or what f and g &ldquo;do&rdquo; as functions really
+[2:16 PM] But the counter example just illustrates that there exists an f and g in Set that have the right type but aren&rsquo;t isomorphic
+Minh  [2:25 PM]
+alex says the notion of an isomorphism is dependent on what f and g do as functions apparently
+Eddie Jones  [2:26 PM]
+yeah you can&rsquo;t know that f and g are isomorphic until you know what they do
+[2:27 PM] but isomorphic is defined for an arbitrary category which means the definition doesn&rsquo;t even rely on the fact they are functions</p>
+<p>Alex  2:28 PM
+oh I see, classic Eddie
+2:29
+he is right though that saying &ldquo;f : A -&gt; B is an isomorphism&rdquo; is a completely formal statement in the theory of categories
+New
+2:29
+it means: \exists g : B -&gt; A. f o g = id ^ g o f = id
+2:29
+but checking that something is an actual isomorphism in a specific category does require intimate knowledge of A, B, and f
+:+1:
+1</p>
+<hr>
+<p>Minh  12:49 PM
+Hi! Could you help explain what this one object means? From what Eddie has told me, objects and morphisms can be literally anything without any context as long as they have the right laws, so the object doesn&rsquo;t really have to represent anything - it&rsquo;s just abstract. Does this mean that the ideas of objects as domains/codomains no longer apply in this context?</p>
+<p>&ldquo;Another category we can be build from natural numbers has only one object
+and its morphisms are the natural numbers. The identity morphism is 0 and
+composition is given by addition. The laws follow from the fact that 0 is neutral (n +0= n =0+ n) and (+) associative (l + m) + n = l + (m + n). Here we exploit the algebraic properties of +, namely that it is a monoid; hence categories with one object correspond to monoids. &quot;</p>
+<p>Alex  12:49 PM
+well, you know what a monoid is, right?</p>
+<p>Minh  12:50 PM
+yes sir (in a Haskell context)</p>
+<p>Alex  12:50 PM
+it&rsquo;s the same in algebra, it&rsquo;s a set (cf. type) with an associative binary operation and a unit element
+12:50
+so given two elements x, y \in M of a monoid, you can always combine them to form x \cdot y \in M
+12:51
+so far so good?</p>
+<p>Minh  12:51 PM
+yep (which is i why i first thought of the object being the domain of Nats)</p>
+<p>Alex  12:51 PM
+ok so here&rsquo;s the brain twister
+12:51
+a category is a typed monoid
+12:51
+you can&rsquo;t just form x \cdot y whenever you please
+12:52
+every &ldquo;element&rdquo; of the category (= morphism) has a &ldquo;source&rdquo; and a &ldquo;target&rdquo;
+12:52
+and you can only &ldquo;multiply&rdquo; two elements if the source of one and the target of the other match
+12:53
+so you can only have x \cdot y whenever x and y &ldquo;match&rdquo; in some sense
+12:53
+so if x : A -&gt; B and y : B -&gt; C you can form y \cdot x : A -&gt; C</p>
+<p>Minh  12:54 PM
+right</p>
+<p>Alex  12:54 PM
+you can think of the elements of this typed monoid as &ldquo;going&rdquo; from places to places
+12:54
+x : A -&gt; B is a process, maybe, that takes you from A to B in some particular way
+12:55
+a monoid is just a place where everything takes you from the same place to the same place
+12:55
+so you have just a single &ldquo;type&rdquo; *
+12:55
+and every x is x : * -&gt; *
+12:55
+and thus you can compose any x, y : * -&gt; * because their source and targets just match</p>
+<p>Minh  12:58 PM
+ah i see, this makes sense!
+12:59
+right, so could i think of the object being representative of a single type (under which addition with natural numbers results in that same type)?</p>
+<p>Alex  12:59 PM
+exactly
+12:59
+picture the category Set
+12:59
+a function f : S -&gt; T is a &ldquo;way&rdquo; of going from S to T
+1:00
+given any x \in S, it will give you f(x) \in T
+1:00
+there might be many ways f, g, h, &hellip; : S -&gt; T of going from S to T in Set
+1:00
+but here&rsquo;s a subcategory, which is in fact a monoid
+1:00
+take the set Nat of natural numbers
+New
+1:00
+the functions f : Nat -&gt; Nat form a monoid
+1:01
+each f : Nat -&gt; Nat is a way of going from Nat back to Nat, the monoid operation is exactly function composition, there is an identity elem namely the identity function
+1:05
+the association object ~ type is very strong in general
+1:06
+in rare cases object ~ state, but that&rsquo;s not common</p>
+<p>Minh  1:06 PM
+so is it okay to both be able to concretise the monoidal object as a concrete type, e.g. Nat, as well as visualise it as any type for which (+ Nat) will work e.g. Double?</p>
+<p>Alex  1:06 PM
+perhaps lose the intuition even further and yield to abstraction
+1:07
+given any monoid (M, \cdot, e) there is a category with a single object, call it *, and morphisms m : * -&gt; * being the elements of the monoid
+1:07
+you can do anything you like and call anything however you like, and postulate as much as you need
+1:08
+the single object in the above construction could be called * or, could be Nat, or Double&hellip; doesn&rsquo;t matter, it&rsquo;s just an object</p>
+<p>Minh  1:08 PM
+i see!</p>
+<p>Alex  1:09 PM
+the fact m : * -&gt; * is the important thing
+1:09
+which tells you that m takes you from a place back to the same place
+:+1:
+1</p>
 <div class="edit-meta">
 
 <br></div><nav class="pagination"><a class="nav nav-prev" href="https://probabilistic-effects.github.io/research/optimising-core/" title="Optimising Core"><i class="fas fa-arrow-left" aria-hidden="true"></i> Prev - Optimising Core</a>
-<a class="nav nav-next" href="https://probabilistic-effects.github.io/monad-bayes/" title="Monad Bayes">Next - Monad Bayes <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+<a class="nav nav-next" href="https://probabilistic-effects.github.io/research/eddie/" title="">Next -  <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
 </nav><footer><p class="powered">Powered by <a href="https://gohugo.io">Hugo</a>. Theme by <a href="https://themes.gohugo.io/hugo-theme-techdoc/">TechDoc</a>. Designed by <a href="https://github.com/thingsym/hugo-theme-techdoc">Thingsym</a>.</p>
 </footer>
 </main>
@@ -143,6 +479,7 @@ For reference, it is my opinion that the only authoritative book which is access
 <li class=""><a href="https://probabilistic-effects.github.io/research/parsley-case-study/">Case Study: Optimising Parsley</a></li>
 <li class=""><a href="https://probabilistic-effects.github.io/research/optimising-core/">Optimising Core</a></li>
 <li class="active"><a href="https://probabilistic-effects.github.io/research/alex/"></a></li>
+<li class=""><a href="https://probabilistic-effects.github.io/research/eddie/"></a></li>
 </ul>
   
 </li>
